@@ -1,0 +1,54 @@
+﻿
+@{
+    ViewBag.Title = "Matrices";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="content">
+    <div class="d-flex justify-content-start">
+        <button type="button" class="mb-1 btn btn-pill btn-primary" ng-click="isEdit? isEdit= false: isEdit=true;">
+        <span ng-show="!isEdit">تعديل</span>
+        <span ng-show="isEdit">انهاء التعديل</span></button>
+
+      
+    </div>
+    
+    <div class="card card-default" ng-repeat="(categoryName, matrices) in matricesByCategory">
+        <div class="card-header">
+            <h2>{{categoryName}}</h2>
+
+            <button ng-show="isEdit" type="button" class="mb-1 btn btn-pill btn-danger">حذف</button>
+
+        </div>
+        <div class="card-body">
+            <div class="collapse" id="collapse-data-tables">
+
+            </div>
+            <table class="table table-hover table-product" style="width:100%;text-align:center;">
+
+                <thead>
+                    <tr><th>#</th><th>اسم العنصر</th><th>كمية الاستحقاق</th><th>التكرار</th><th>الاجراءات</th></tr>
+                </thead>
+
+                <tr ng-repeat="matrix in matrices">
+                    <td data-title="'#'">{{$index + 1}}</td>
+                    <td data-title="'اسم العنصر'">{{matrix.Item}}</td>
+                    <td data-title="'كمية الاستحقاق'">{{matrix.Quantity}}</td>
+                    <td data-title="'التكرار'">{{matrix.Frequency}}</td>
+                    <td style="width:400px"><button ng-show="isEdit" type="button" class="mb-1 btn btn-outline-danger">
+    <i class=" mdi mdi-close-circle-outline mr-1"></i>
+    حذف
+</button>
+                                         <button ng-show="isEdit" type="button" class="mb-1 btn btn-outline-info">
+                                             <i class=" mdi mdi-information-outline mr-1"></i>
+                                             تعديل
+                                         </button></td>
+                </tr>
+
+            </table>
+
+
+
+
+        </div>
+    </div>
+</div>

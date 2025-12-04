@@ -1,0 +1,157 @@
+﻿
+@{
+    ViewBag.Title = "Items";
+
+}
+
+
+
+
+<div class="content">
+    <!-- For Components documentaion -->
+    <div class="card card-default">
+        <div class="px-6 py-4">
+          
+
+        </div>
+    </div>
+
+    <!-- Products Inventory -->
+    <div class="card card-default">
+        <div class="card-header">
+            <h2>قائمة المواد</h2>
+
+
+            <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#addItemModalForm">
+                اضافة مادة جديدة
+            </button>
+
+        </div>
+        <div class="card-body">
+            <div class="collapse" id="collapse-data-tables">
+
+            </div>
+            <table class="table table-hover table-product" style="width:100%;text-align:center;" ng-table="itemsTableParams">
+
+
+                <tr ng-repeat="item in $data">
+                    <td data-title="'#'">{{$index + 1}}</td>
+                    <td data-title="'اسم المادة'">{{item.Name}}</td>
+                    <td data-title="'الرصيد الحالي'">{{item.Quantity}}</td>
+                    <td data-title="'أضيف بواسطة'">{{item.AddedBy}}</td>
+                    <td data-title="'الاجراءات'">
+                        <div class="btn-group">
+                            <button  type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#increaseQuantityModalForm"ng-click="changeSelectedItem(item)" >زيادة الرصيد</a></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#disposeItemModalForm" ng-click="changeSelectedItem(item)">اتلاف كمية</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="" ng-click="confirmDelete(item.ItemId)">حذف المادة</a></li>
+                            </ul>
+                        </div>
+                    </td>
+
+                </tr>
+
+            </table>
+
+
+
+
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="increaseQuantityModalForm" tabindex="-1" aria-labelledby="increaseQuantityModalForm" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalFormTitle">زيادة رصيد المادة ({{selectedItem.Name}}) </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label>الكمية المراد زيادتها</label>
+                        <input ng-model="addedQuantity" type="number" class="form-control" min="0" value="1">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" ng-click="increaseQuantity()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="addItemModalForm" tabindex="-1" aria-labelledby="addItemModalForm" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalFormTitle">اضافة مادة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="exampleInputEmail1">اسم المادة</label>
+                        <input ng-model="newItem.Name" type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="المادة">
+                    </div>
+                    <div class="form-group">
+                        <label for="exampleInputPassword1">وصف المادة</label>
+                        <input ng-model="newItem.Description" type="text" class="form-control" id="exampleInputPassword1" placeholder="وصف المادة">
+                    </div>
+                    <div class="form-group">
+                        <label>الكمية</label>
+                        <input ng-model="newItem.Quantity" type="number" class="form-control" min="0" value="1">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" ng-click="addNewItem()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="disposeItemModalForm" tabindex="-1" aria-labelledby="disposeItemModalForm" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalFormTitle">اضافة مادة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label>الكمية</label>
+                        <input ng-model="disposal.Quantity" type="number" class="form-control" min="0" value="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="exampleInputEmail1">تاريخ الاتلاف</label>
+                        <input type="text" name="date" class="form-control" placeholder="Select date" />
+                    </div>
+                    <div class="form-group">
+                        <label for="exampleInputPassword1">نموذج التوقيع</label>
+                        <input ng-model="disposal.DisposalFormPath" type="file" id="fileInput" class="form-control">
+
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" ng-click="dispose()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+

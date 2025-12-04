@@ -1,0 +1,175 @@
+﻿/* -------- DESKTOP RTL FIX -------- */
+@media (min-width: 992px) {
+
+    /* move sidebar to right */
+    html[dir="rtl"] .left-sidebar {
+        right: 0 !important;
+        left: auto !important;
+    }
+
+    /* content wrapper margin */
+    html[dir="rtl"] .page-wrapper {
+        margin-right: 255px !important; /* sidebar width */
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+    }
+
+    /* header alignment */
+    html[dir="rtl"] .main-header {
+        padding-right: 255px !important;
+        padding-left: 0 !important;
+    }
+
+    .app-brand a {
+      
+        padding-right: 1.56rem;
+    }
+
+
+}
+
+@media (min-width: 768px) {
+    .sidebar-minified .left-sidebar:hover {
+        margin-left: -10.3125rem !important;
+    }
+}
+
+/* -------- MOBILE FIX (sidebar collapses) -------- */
+@media (max-width: 991.98px) {
+
+    /* remove margins on mobile */
+    html[dir="rtl"] .page-wrapper {
+        margin: 0 !important;
+        
+    }
+
+    html[dir="rtl"] .main-header {
+        padding: 0 1rem !important;
+    }
+}
+
+
+/* ---------- Sidebar Minified Hover RTL Fix ---------- */
+@media (min-width: 768px) {
+    html[dir="rtl"] .sidebar-minified .left-sidebar:hover {
+        width: 250px;
+        margin-left: -10.3125rem; /* was margin-right in LTR */
+        margin-right: auto; /* reset the other side */
+    }
+}
+
+html[dir="rtl"] .sidebar-minified .left-sidebar:hover .section-title {
+    height: auto;
+    padding: 1.25rem 1.56rem 1rem;
+    visibility: visible;
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out 0.1s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html[dir="rtl"] .sidebar-minified .left-sidebar:hover .section-title {
+        transition: none;
+    }
+}
+
+html[dir="rtl"] .sidebar-minified .left-sidebar:hover .nav li.has-sub.expand .collapse > .sub-menu {
+    transition: opacity 0.3s ease-in-out;
+    height: -webkit-min-content;
+    height: -moz-min-content;
+    height: min-content;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html[dir="rtl"] .sidebar-minified .left-sidebar:hover .nav li.has-sub.expand .collapse > .sub-menu {
+        transition: none;
+    }
+}
+
+html[dir="rtl"] .sidebar-minified .left-sidebar:hover .nav li.has-sub.expand .collapse > .sub-menu li {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease-out 0.25s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html[dir="rtl"] .sidebar-minified .left-sidebar:hover .nav li.has-sub.expand .collapse > .sub-menu li {
+        transition: none;
+    }
+}
+
+html[dir="rtl"] .sidebar-minified .left-sidebar:hover .nav > li > a > .caret,
+html[dir="rtl"] .sidebar-minified .left-sidebar:hover .nav > li > a > span {
+    opacity: 1;
+    transition: opacity 0.3s ease-in;
+    transition-delay: 0.15s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html[dir="rtl"] .sidebar-minified .left-sidebar:hover .nav > li > a > .caret,
+    html[dir="rtl"] .sidebar-minified .left-sidebar:hover .nav > li > a > span {
+        transition: none;
+    }
+}
+
+html[dir="rtl"] .sidebar-minified .left-sidebar:hover .brand-name {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease;
+    transition-delay: 0.3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html[dir="rtl"] .sidebar-minified .left-sidebar:hover .brand-name {
+        transition: none;
+    }
+}
+
+@media (min-width: 768px) {
+    html[dir="rtl"] .sidebar-minified .left-sidebar:hover .app-brand .brand-name {
+        opacity: 1;
+        visibility: visible;
+        transition-delay: 0.3s;
+    }
+}
+
+html[dir="rtl"] .sidebar-minified .left-sidebar:hover .sidebar .sub-menu {
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+}
+
+html[dir="rtl"] .sidebar-minified .left-sidebar:hover .separator {
+    border-top-width: 1px;
+}
+
+@media (min-width: 768px) {
+    html[dir="rtl"] .sidebar-minified .left-sidebar:hover .sidebar-footer {
+        height: -webkit-min-content;
+        height: -moz-min-content;
+        height: min-content;
+    }
+}
+
+html[dir="rtl"] .sidebar-minified .left-sidebar:hover .sidebar-footer-content {
+    visibility: visible;
+    opacity: 1;
+    transition: opacity 0.3s ease-in-out 0.15s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html[dir="rtl"] .sidebar-minified .left-sidebar:hover .sidebar-footer-content {
+        transition: none;
+    }
+}
+
+html[dir="rtl"] .sidebar-minified .left-sidebar:hover .sidebar-scrollbar {
+    overflow: hidden !important;
+}
+html[dir="rtl"] .main-header .navbar .navbar-right {
+    margin-left:0;
+   
+}
+label {
+    direction: rtl;
+    text-align: right;
+    display: block;
+}

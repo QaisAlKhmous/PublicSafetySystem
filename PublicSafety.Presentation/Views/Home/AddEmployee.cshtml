@@ -1,0 +1,153 @@
+﻿
+@{
+    ViewBag.Title = "AddEmployee";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="content">
+    <div class="card card-default">
+        <div class="card-header">
+            <h2 ng-show="!updateEmployeeId">اضافة موظف</h2>
+            <h2 ng-show="updateEmployeeId">تعديل بيانات الموظف ({{employee.Name}})</h2>
+
+        </div>
+        <div class="card-body">
+            <div class="collapse" id="collapse-input-light-bg">
+
+            </div>
+            <form name="employeeForm">
+                <div class="row">
+
+                    <div class="form-group col-4">
+                        <label for="exampleFormControlInput5" style="direction: rtl; text-align: right; display: block;">الاسم</label>
+                        <input ng-model="employee.Name" type="text" name="Name" class="form-control rounded-0 bg-light" id="exampleFormControlInput5" placeholder="الأول الثاني الثالث الرابع" required>
+                        <div class="invalid-feedback d-block" ng-show="employeeForm.$submitted && employeeForm.Name.$error.required">
+                            <i class="bx bx-radio-circle"></i>
+                            يرجى ادخال الاسم
+                        </div>
+                    </div>
+                    <div class="form-group col-4">
+                        <label for="exampleFormControlPassword4">البريد الالكتروني</label>
+                        <input ng-model="employee.Email" type="email" name="Email" class="form-control rounded-0 bg-light" id="exampleFormControlPassword4" placeholder="example@email.com" style="direction:ltr">
+                        
+                    </div>
+                    <div class="form-group col-4">
+                        <label for="exampleFormControlPassword4">رقم الجوال</label>
+                        <input ng-model="employee.Phone" type="text" name="Phone" class="form-control rounded-0 bg-light" id="exampleFormControlPassword4" placeholder="07xxxxxxxx" style="direction:ltr">
+                       
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="form-group col-6">
+                        <label for="exampleFormControlInput5">تاريخ التوظيف</label>
+                        <input ng-model="employee.EmploymentDate" type="text"  name="date" class="form-control rounded-0 bg-light" placeholder="Select date" required />
+                    </div>
+                    <div class="form-group col-6">
+                        <label for="exampleFormControlSelect12">المسمى الوظيفي</label>
+                        <select class="form-control rounded-0 bg-light" name="JobTitle" required
+                                ng-model="employee.JobTitleId"
+                                ng-options="j.JobTitleId as j.Name for j in JobTitles">
+                            <option value="" disabled selected>اختر المسمى الوظيفي</option>
+                        </select>
+                        <div class="invalid-feedback d-block" ng-show="employeeForm.$submitted && !employee.JobTitleId">
+                            <i class="bx bx-radio-circle"></i>
+                            يرجى اختيار المسمى الوظيفي
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="row">
+
+                    <div class="form-group col-6">
+                        <label for="exampleFormControlSelect12">الوحدة التنظيمية</label>
+                        <select class="form-control rounded-0 bg-light" required
+                                ng-model="employee.DepartmentId" name="Department"
+                                ng-options="d.DepartmentId as d.Name for d in Departments">
+                            <option value="" disabled selected>اختر الوحدة التنظيمية</option>
+                        </select>
+                        <div class="invalid-feedback d-block" ng-show="employeeForm.$submitted && !employee.DepartmentId">
+                            <i class="bx bx-radio-circle"></i>
+                            يرجى اختيار الوحدة التنظيمية
+                        </div>
+
+                    </div>
+                    <div class="form-group col-6">
+                        <label for="exampleFormControlSelect12">الدائرة</label>
+                        <select class="form-control rounded-0 bg-light"
+                                ng-model="employee.SectionId" name="Section" required
+                                ng-options="s.SectionId as s.Name for s in Sections">
+                            <option value="" disabled selected>اختر الدائرة</option>
+                        </select>
+                        <div class="invalid-feedback d-block" ng-show="employeeForm.$submitted && !employee.SectionId">
+                            <i class="bx bx-radio-circle"></i>
+                            يرجى اختيار الدائرة
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="row">
+
+                    <div class="form-group col-6">
+                        <label for="exampleFormControlInput5">الحالة</label>
+                        <select class="form-control rounded-0 bg-light" name="IsIntern" ng-model="employee.IsIntern">
+                            <option ng-value="false">موظف</option>
+                            <option ng-value="true">متدرب</option>
+                        </select>
+                    </div>
+                    <div class="form-group col-6">
+                        <label for="exampleFormControlPassword4" style="direction: rtl;">موقع العمل</label>
+                        <select class="form-control rounded-0 bg-light" name="WorkLocation" ng-model="employee.WorkLocation">
+                            <option value="Amman">عمان</option>
+                            <option value="Khaldieh">الخالدية</option>
+                        </select>
+                    </div>
+
+                </div>
+                <div class="row">
+
+                    @*<div class="form-group col-6">
+            <label for="exampleFormControlSelect12">التصنيف</label>
+            <select class="form-control rounded-0 bg-light"
+                    ng-model="employee.CategoryId" name="Category"
+                    ng-options="c.CategoryId as c.Name for c in Categories">
+                <option value="" disabled selected>اختر التصنيف</option>
+            </select>
+            <div class="invalid-feedback d-block" ng-show="employeeForm.$submitted && !employee.CategoryId">
+                <i class="bx bx-radio-circle"></i>
+                يرجى التصنيف
+            </div>
+        </div>*@
+                    <div class="form-group col-6">
+                        <label for="exampleFormControlSelect12">ملاحظات</label>
+                        <textarea class="form-control rounded-0 bg-light" id="exampleFormControlTextarea1" rows="3" ng-model="employee.Notes"></textarea>
+                    </div>
+                    <div class="form-group col-6">
+                        <label for="exampleFormControlPassword4">التأمين الصحي</label>
+                        <div id="dropzone" class="dropzone"></div>
+                    </div>
+
+                </div>
+
+
+
+              
+
+
+               
+
+
+                <div class="form-footer">
+                    <button type="submit" class="btn btn-secondary btn-pill" ng-click="saveEmployee()">حفظ</button>
+                    <button type="submit" class="btn btn-light btn-pill" ng-click="GoToListPage()">رجوع</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+
+
+

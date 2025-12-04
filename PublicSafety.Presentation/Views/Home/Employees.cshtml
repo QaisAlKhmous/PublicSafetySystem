@@ -1,0 +1,159 @@
+﻿
+@{
+    ViewBag.Title = "Employees";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+
+<div class="content">
+    <!-- For Components documentaion -->
+    <div class="card card-default">
+        <div class="px-6 py-4">
+
+
+        </div>
+    </div>
+
+    <!-- Products Inventory -->
+    <div class="card card-default">
+        <div class="card-header">
+            <h2>قائمة الموظفين</h2>
+
+
+            <button type="button" class="btn btn-info" ng-click="GoToAddPage()">
+                اضافة موظف
+            </button>
+
+        </div>
+        <div class="card-body">
+            <div class="collapse" id="collapse-data-tables">
+
+            </div>
+            <table class="table table-hover table-product" style="width:100%;text-align:center;" ng-table="employeesTableParams">
+
+
+                <tr ng-repeat="employee in $data">
+                    <td data-title="'#'">{{$index + 1}}</td>
+                    <td data-title="'الاسم'">{{employee.Name}}</td>
+                    <td data-title="'الفئة'">{{employee.Category}}</td>
+                    <td data-title="'الدائرة'">{{employee.Section}}</td>
+                    <td data-title="'الموقع'">{{employee.WorkLocation}}</td>
+                    <td data-title="'المسمى الوظيفي'">{{employee.JobTitle}}</td>
+                    <td data-title="'الوحدة التنظيمية'">{{employee.Department}}</td>
+                    <td data-title="'الملاحظات'">{{employee.Notes}}</td>
+                    <td data-title="'الاجراءات'">
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#!/editEmployee/{{employee.EmployeeId}}">تعديل</a></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#exceptionModalForm" ng-click="loadException(employee.EmployeeId)">بدل استثناء</a></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#damageModalForm" ng-click="loadDamaged(employee.EmployeeId)">بدل تلف مادة</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="" ng-click="confirmDelete(employee.EmployeeId)">استقال الموظف</a></li>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+
+            </table>
+
+
+
+
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="exceptionModalForm" tabindex="-1" aria-labelledby="exceptionModalForm" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalFormTitle">اضافة استثناء</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form name="exceptionForm">
+                    <div class="form-group">
+                        <label>اسم المادة</label>
+                        <select class="form-control rounded-0 bg-light"
+                                ng-model="issuance.ItemId" name="Section" required
+                                ng-options="i.ItemId as i.Name for i in items">
+                            <option value="" disabled selected>اختر اسم المادة</option>
+                        </select>
+                        <div class="invalid-feedback d-block" ng-show="exceptionForm.$submitted && !issuance.ItemId">
+                            <i class="bx bx-radio-circle"></i>
+                            يرجى اختيار مادة
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>الكمية</label>
+                        <input ng-model="issuance.Quantity" type="number" class="form-control" min="0" value="1">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="exampleInputEmail1">السبب</label>
+                        <input ng-model="issuance.ExceptionReason" type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="ادخل السبب">
+                    </div>
+
+                    <div class="form-group">
+                        <div id="dropzone" class="dropzone"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" ng-click="issueException()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="modal fade" id="damageModalForm" tabindex="-1" aria-labelledby="damageModalForm" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalFormTitle">اضافة بدل تلف مادة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form name="damageForm">
+                    <div class="form-group">
+                        <label>اسم المادة</label>
+                        <select class="form-control rounded-0 bg-light"
+                                ng-model="issuance.ItemId" name="Section" required
+                                ng-options="i.ItemId as i.Name for i in items">
+                            <option value="" disabled selected>اختر اسم المادة</option>
+                        </select>
+                        <div class="invalid-feedback d-block" ng-show="damageForm.$submitted && !issuance.ItemId">
+                            <i class="bx bx-radio-circle"></i>
+                            يرجى اختيار مادة
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>الكمية</label>
+                        <input ng-model="issuance.Quantity" type="number" class="form-control" min="0" value="1">
+                    </div>
+
+                   
+
+                    <div class="form-group">
+                        <div id="dropzone" class="dropzone"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary" ng-click="issueDamage()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+

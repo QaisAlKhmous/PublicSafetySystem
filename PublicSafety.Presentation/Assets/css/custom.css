@@ -1,0 +1,21 @@
+﻿/* Outer sidebar */
+
+.sidebar {
+    background-color: #2c2e3e !important;
+}
+.active {
+    background-color: #8D744B !important;
+}
+/*.left-sidebar {
+    background-color: #ffffff !important;
+}*/
+
+    /* Inner sidebar container */
+    /*.left-sidebar .sidebar {
+        background-color: #ffffff !important;
+    }*/
+
+    /* Scrolling content */
+    /*.left-sidebar .sidebar-left {
+        background-color: #ffffff !important;
+    }*/
