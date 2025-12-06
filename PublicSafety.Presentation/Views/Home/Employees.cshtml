@@ -7,65 +7,123 @@
 
 
 
-<div class="content">
-    <!-- For Components documentaion -->
-    <div class="card card-default">
-        <div class="px-6 py-4">
+<div class="content" dir="rtl">
 
+    <!-- Employees Inventory -->
+    <div class="card card-default" dir="rtl">
 
-        </div>
-    </div>
-
-    <!-- Products Inventory -->
-    <div class="card card-default">
+        <!-- بطاقة رأسية -->
         <div class="card-header">
-            <h2>قائمة الموظفين</h2>
 
+            <!-- العنوان -->
+            <div class="row mb-3">
+                <h2 class="mb-0">قائمة الموظفين</h2>
+            </div>
 
-            <button type="button" class="btn btn-info" ng-click="GoToAddPage()">
-                اضافة موظف
-            </button>
-
+            <!-- الفلاتر وأزرار الإضافة -->
+            
         </div>
-        <div class="card-body">
-            <div class="collapse" id="collapse-data-tables">
+
+        <!-- جسم البطاقة -->
+        <div class="card-body p-2">
+            <div class="d-flex justify-content-between">
+
+                <!-- فلتر الحالة -->
+                <div class="col-md-2 mb-2">
+                    <select ng-model="employeesTableParams.filter().Active" class="form-control">
+                        <option value="">الكل</option>
+                        <option value="true">نشط</option>
+                        <option value="false">مستقيل</option>
+                    </select>
+                </div>
+                
+                <!-- Dropdown البحث -->
+                <div class="d-flex justify-content-between col-md-5 mb-2">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-secondary dropdown-toggle w-100" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            ابحث بواسطة
+                        </button>
+                        <div class="dropdown-menu w-100">
+                            <span class="dropdown-item" ng-click="searchBy = 0" ng-class="{'active': searchBy === 0}">الاسم</span>
+                            <span class="dropdown-item" ng-click="searchBy = 1" ng-class="{'active': searchBy === 1}">الدائرة</span>
+                            <span class="dropdown-item" ng-click="searchBy = 2" ng-class="{'active': searchBy === 2}">المسمى الوظيفي</span>
+                            <span class="dropdown-item" ng-click="searchBy = 3" ng-class="{'active': searchBy === 3}">الوحدة التنظيمية</span>
+                        </div>
+                    </div>
+
+
+                    <!-- حقول البحث -->
+
+                    <input type="text" ng-show="searchBy === 0" ng-model="employeesTableParams.filter().Name" placeholder="الاسم" class="form-control mb-1" />
+                    <input type="text" ng-show="searchBy === 1" ng-model="employeesTableParams.filter().Section" placeholder="الدائرة" class="form-control mb-1" />
+                    <input type="text" ng-show="searchBy === 2" ng-model="employeesTableParams.filter().JobTitle" placeholder="المسمى الوظيفي" class="form-control mb-1" />
+                    <input type="text" ng-show="searchBy === 3" ng-model="employeesTableParams.filter().Department" placeholder="الوحدة التنظيمية" class="form-control mb-1" />
+
+                </div>
+                 
+               
+
+                <!-- زر إضافة موظف -->
+                <div class="col-md-3 mb-2 text-start">
+                    <button type="button" class="btn btn-info w-100" ng-click="GoToAddPage()">إضافة موظف</button>
+                </div>
 
             </div>
-            <table class="table table-hover table-product" style="width:100%;text-align:center;" ng-table="employeesTableParams">
 
-
-                <tr ng-repeat="employee in $data">
-                    <td data-title="'#'">{{$index + 1}}</td>
-                    <td data-title="'الاسم'">{{employee.Name}}</td>
-                    <td data-title="'الفئة'">{{employee.Category}}</td>
-                    <td data-title="'الدائرة'">{{employee.Section}}</td>
-                    <td data-title="'الموقع'">{{employee.WorkLocation}}</td>
-                    <td data-title="'المسمى الوظيفي'">{{employee.JobTitle}}</td>
-                    <td data-title="'الوحدة التنظيمية'">{{employee.Department}}</td>
-                    <td data-title="'الملاحظات'">{{employee.Notes}}</td>
-                    <td data-title="'الاجراءات'">
-                        <div class="btn-group">
-                            <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#!/editEmployee/{{employee.EmployeeId}}">تعديل</a></li>
-                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#exceptionModalForm" ng-click="loadException(employee.EmployeeId)">بدل استثناء</a></li>
-                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#damageModalForm" ng-click="loadDamaged(employee.EmployeeId)">بدل تلف مادة</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-danger" href="" ng-click="confirmDelete(employee.EmployeeId)">استقال الموظف</a></li>
-                            </ul>
-                        </div>
-                    </td>
-                </tr>
-
+            <table class="table table-hover table-bordered text-center" ng-table="employeesTableParams">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>الاسم</th>
+                        <th>الفئة</th>
+                        <th>الدائرة</th>
+                        <th>المسمى الوظيفي</th>
+                        <th>الوحدة التنظيمية</th>
+                        <th>الموقع</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="employee in $data">
+                        <td>{{$index + 1}}</td>
+                        <td>
+                            {{employee.Name}}
+                            <div>
+                                <small class="text-muted">
+                                    <span class="text-danger" ng-show="!employee.Active">مستقيل</span>
+                                </small>
+                            </div>
+                        </td>
+                        <td>{{employee.Category}}</td>
+                        <td>{{employee.Section}}</td>
+                        <td>{{employee.JobTitle}}</td>
+                        <td>{{employee.Department}}</td>
+                        <td>
+                            <span ng-show="employee.WorkLocation == 'Amman'">عمان</span>
+                            <span ng-show="employee.WorkLocation == 'Khaldieh'">الخالدية</span>
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown"></button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#!/editEmployee/{{employee.EmployeeId}}">تعديل</a></li>
+                                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#exceptionModalForm" ng-click="loadException(employee.EmployeeId)" ng-show="employee.Active">بدل استثناء</a></li>
+                                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#damageModalForm" ng-click="loadDamaged(employee.EmployeeId)" ng-show="employee.Active">بدل تلف مادة</a></li>
+                                    <li><hr class="dropdown-divider" ng-show="employee.Active"></li>
+                                    <li><a class="dropdown-item text-danger" href="" ng-click="confirmDelete(employee.EmployeeId)" ng-show="employee.Active">استقال الموظف</a></li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
             </table>
 
-
-
-
         </div>
+
     </div>
+
 </div>
+
 
 
 <div class="modal fade" id="exceptionModalForm" tabindex="-1" aria-labelledby="exceptionModalForm" aria-hidden="true">
@@ -142,7 +200,7 @@
                         <input ng-model="issuance.Quantity" type="number" class="form-control" min="0" value="1">
                     </div>
 
-                   
+
 
                     <div class="form-group">
                         <div id="dropzone" class="dropzone"></div>

@@ -63,7 +63,9 @@
     <Compile Include="DTOs\ItemsDTO.cs" />
     <Compile Include="DTOs\JobTitleDTO.cs" />
     <Compile Include="DTOs\MatrixDTO.cs" />
+    <Compile Include="DTOs\MatrixItemDTO.cs" />
     <Compile Include="DTOs\SectionDTO.cs" />
+    <Compile Include="DTOs\UpdateMatrixItemDTO.cs" />
     <Compile Include="DTOs\UserDTO.cs" />
     <Compile Include="EmailService.cs" />
     <Compile Include="EmployeeService.cs" />

@@ -15,7 +15,7 @@ namespace PublicSafety.Repositories.Repositories
         {
             using (var context = new AppDbContext())
             {
-                return context.Items.Include(i => i.AddedBy).ToList();
+                return context.Items.Include(i => i.AddedBy).Where(i => i.IsActive).ToList();
             }
         }
 
@@ -33,7 +33,7 @@ namespace PublicSafety.Repositories.Repositories
             using(var context = new AppDbContext())
             {
                 var item = context.Items.Find(id);
-                context.Items.Remove(item);
+                item.IsActive = false;
 
                 context.SaveChanges();
             }
@@ -56,6 +56,14 @@ namespace PublicSafety.Repositories.Repositories
                 var item = context.Items.Find(id);
                 item.Quantity -= newQuantity;
                 context.SaveChanges();
+            }
+        }
+        public static Item GetItemById(Guid ItemId)
+        {
+            using (var context = new AppDbContext())
+            {
+                var item = context.Items.Include(i => i.AddedBy).FirstOrDefault(i => i.ItemId == ItemId);
+                return item;
             }
         }
     }

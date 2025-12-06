@@ -32,6 +32,8 @@ namespace PublicSafety.Domain.Entities
         public DateTime EmploymentDate { get; set; }
         public DateTime? RetirementDate { get; set; }
         public ICollection<Issuance> Issuances { get; set; }
+
+        public DateTime JobTitleUpdateDate { get; set; }
        
     }
 }

@@ -14,6 +14,8 @@ namespace PublicSafety.Services
         public static void AddNewIssuance(AddIssuanceDTO issuance)
         {
 
+            
+
             var newIssuance = new Issuance()
             {
                 IssuanceId = Guid.NewGuid(),
@@ -29,6 +31,7 @@ namespace PublicSafety.Services
                 EmployeeId = issuance.EmployeeId
             };
             IssuanceRepo.AddIssuance(newIssuance);
+            ItemService.DecreaseItemQuantity(issuance.ItemId, issuance.Quantity);
         }
     }
 }

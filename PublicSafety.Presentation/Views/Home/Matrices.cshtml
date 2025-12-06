@@ -3,52 +3,165 @@
     ViewBag.Title = "Matrices";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+
 <div class="content">
-    <div class="d-flex justify-content-start">
-        <button type="button" class="mb-1 btn btn-pill btn-primary" ng-click="isEdit? isEdit= false: isEdit=true;">
-        <span ng-show="!isEdit">تعديل</span>
-        <span ng-show="isEdit">انهاء التعديل</span></button>
+    <label>الفئة</label>
+    <select class="form-control rounded-0 bg-light txt-large"
+            ng-model="selectedCategory"
+            ng-change="selectedCategoryChanged()"
+            ng-options="c as c.Name for c in Categories track by c.CategoryId">
+        <option value="" disabled selected>اختر الفئة</option>
+    </select>
 
-      
-    </div>
-    
-    <div class="card card-default" ng-repeat="(categoryName, matrices) in matricesByCategory">
-        <div class="card-header">
-            <h2>{{categoryName}}</h2>
 
-            <button ng-show="isEdit" type="button" class="mb-1 btn btn-pill btn-danger">حذف</button>
+    <div class="card-header">
+        <div class="d-flex justify-content-between">
+            <h2>{{selectedCategory.Name}}</h2>
+            <div ng-show="selectedCategory">
+                <div ng-show="matrixExists">
+                    <button class="btn btn-primary"
+                            ng-click="confirmCreateMatrix()">
+                        تغيير المصفوفة
+                    </button>
+                </div>
+            </div>
 
         </div>
+            <div ng-show="selectedCategory">
+                <div ng-show="!matrixExists">
+                    <h3>لا يوجد مصفوفات لهذه الفئة</h3>
+                    <button class="btn btn-primary"
+                            ng-click="confirmCreateMatrix()">
+                        إنشاء مصفوفة
+                    </button>
+                    <br><br>
+                </div>
+            </div>
+
+
+        </div>
+
         <div class="card-body">
-            <div class="collapse" id="collapse-data-tables">
+
+
+
+
+            <div ng-show="matrixExists">
+
+
+
+
+
+                <table class="table table-hover"
+                       style="width:100%;text-align:center;">
+
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>اسم العنصر</th>
+                            <th>كمية الاستحقاق</th>
+                            <th>التكرار</th>
+                            <th>الاجراءات</th>
+                        </tr>
+                    </thead>
+
+                    <tbody ng-show="matrixItems.length > 0">
+                        <tr ng-repeat="matrixItem in matrixItems">
+                            <td>{{$index + 1}}</td>
+                            <td>{{matrixItem.ItemName}}</td>
+                            <td>{{matrixItem.Quantity}}</td>
+                            <td>{{matrixItem.Frequency}}</td>
+                            <td>
+                                <button ng-click="confirmDelete(matrixItem.MatrixItemId)" class="btn btn-outline-danger">حذف</button>
+                                <button ng-click="loadUpdateMatrixItem(matrixItem)" data-bs-toggle="modal" data-bs-target="#editItemModalForm" class="btn btn-outline-info">تعديل</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div ng-show="matrixItems.length === 0" class="d-flex justify-content-center">
+                    <h4>لا يوجد عناصر في المصفوفة النشطة</h4>
+                </div>
+                <button class="btn btn-success"
+                        ng-click="loadAddItem()" data-bs-toggle="modal" data-bs-target="#addItemModalForm">
+                    إضافة عنصر
+                </button>
+                <br><br>
+
+
 
             </div>
-            <table class="table table-hover table-product" style="width:100%;text-align:center;">
 
-                <thead>
-                    <tr><th>#</th><th>اسم العنصر</th><th>كمية الاستحقاق</th><th>التكرار</th><th>الاجراءات</th></tr>
-                </thead>
+        </div>
 
-                <tr ng-repeat="matrix in matrices">
-                    <td data-title="'#'">{{$index + 1}}</td>
-                    <td data-title="'اسم العنصر'">{{matrix.Item}}</td>
-                    <td data-title="'كمية الاستحقاق'">{{matrix.Quantity}}</td>
-                    <td data-title="'التكرار'">{{matrix.Frequency}}</td>
-                    <td style="width:400px"><button ng-show="isEdit" type="button" class="mb-1 btn btn-outline-danger">
-    <i class=" mdi mdi-close-circle-outline mr-1"></i>
-    حذف
-</button>
-                                         <button ng-show="isEdit" type="button" class="mb-1 btn btn-outline-info">
-                                             <i class=" mdi mdi-information-outline mr-1"></i>
-                                             تعديل
-                                         </button></td>
-                </tr>
-
-            </table>
+    </div>
 
 
 
 
+
+
+
+<div class="modal fade" id="addItemModalForm" tabindex="-1" aria-labelledby="addItemModalForm" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalFormTitle">اضافة مادة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="exampleInputEmail1">اسم المادة</label>
+                        <select class="form-control rounded-0 bg-light"
+                                ng-model="addMatrixItem.ItemId" required
+                                ng-options="i.ItemId as i.Name for i in items">
+
+                            <option value="" disabled selected>اختر المادة</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="exampleInputPassword1">كمية الاستحقاق</label>
+                        <input ng-model="addMatrixItem.Quantity" type="number" class="form-control" min="0" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>التكرار</label>
+                        <input ng-model="addMatrixItem.Frequency" type="number" class="form-control" min="0" value="1">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" ng-click="addNewItem()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editItemModalForm" tabindex="-1" aria-labelledby="editItemModalForm" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalFormTitle">تعديل مادة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                  
+                    <div class="form-group">
+                        <label for="exampleInputPassword1">كمية الاستحقاق</label>
+                        <input ng-model="updateMatrixItem.Quantity" type="number" class="form-control" min="0" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>التكرار</label>
+                        <input ng-model="updateMatrixItem.Frequency" type="number" class="form-control" min="0" value="1">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" ng-click="updateMatrixItemFun()">Save Changes</button>
+            </div>
         </div>
     </div>
 </div>

@@ -9,10 +9,10 @@ namespace PublicSafety.Services.DTOs
 {
     public class MatrixDTO
     {
-        public string Item {  get; set; }
-        public string Category { get; set; }
+        public Guid MatrixId {  get; set; }
+        public Guid CategoryId { get; set; }
 
-        public int Quantity { get; set; }
-        public int Frequency { get; set; }
+        public int Version { get; set; }
+        public bool IsActive { get; set; }
     }
 }

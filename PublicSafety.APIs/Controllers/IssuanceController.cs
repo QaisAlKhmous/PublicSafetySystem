@@ -11,11 +11,26 @@ namespace PublicSafety.APIs.Controllers
 {
     public class IssuanceController : Controller
     {
-        public JsonResult AddNewIssuance(AddIssuanceDTO issaunce)
+        public JsonResult AddNewIssuance(AddIssuanceDTO issuance)
         {
-            IssuanceService.AddNewIssuance(issaunce);
+            var item = ItemService.GetItemById(issuance.ItemId);
 
-            return Json("Issued successfuly!");
+            if (item.Quantity < issuance.Quantity)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "الكمية المطلوبة أكبر من المتوفرة!"
+                });
+            }
+
+            IssuanceService.AddNewIssuance(issuance);
+
+            return Json(new
+            {
+                success = true,
+                message = "تم الاصدار بنجاح"
+            });
         }
     }
 }

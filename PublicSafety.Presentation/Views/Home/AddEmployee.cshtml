@@ -20,7 +20,7 @@
 
                     <div class="form-group col-4">
                         <label for="exampleFormControlInput5" style="direction: rtl; text-align: right; display: block;">الاسم</label>
-                        <input ng-model="employee.Name" type="text" name="Name" class="form-control rounded-0 bg-light" id="exampleFormControlInput5" placeholder="الأول الثاني الثالث الرابع" required>
+                        <input arabic-only ng-model="employee.Name" type="text" name="Name" class="form-control rounded-0 bg-light" id="exampleFormControlInput5" placeholder="الأول الثاني الثالث الرابع" required>
                         <div class="invalid-feedback d-block" ng-show="employeeForm.$submitted && employeeForm.Name.$error.required">
                             <i class="bx bx-radio-circle"></i>
                             يرجى ادخال الاسم
@@ -28,12 +28,12 @@
                     </div>
                     <div class="form-group col-4">
                         <label for="exampleFormControlPassword4">البريد الالكتروني</label>
-                        <input ng-model="employee.Email" type="email" name="Email" class="form-control rounded-0 bg-light" id="exampleFormControlPassword4" placeholder="example@email.com" style="direction:ltr">
-                        
+                        <input valid-email ng-model="employee.Email" type="email" name="Email" class="form-control rounded-0 bg-light" id="exampleFormControlPassword4" placeholder="example@email.com" style="direction:ltr">
+                        <span ng-show="employeeForm.email.$error.email">البريد الإلكتروني غير صحيح!</span>
                     </div>
                     <div class="form-group col-4">
                         <label for="exampleFormControlPassword4">رقم الجوال</label>
-                        <input ng-model="employee.Phone" type="text" name="Phone" class="form-control rounded-0 bg-light" id="exampleFormControlPassword4" placeholder="07xxxxxxxx" style="direction:ltr">
+                        <input numbers-only ng-model="employee.Phone" type="text" name="Phone" class="form-control rounded-0 bg-light" id="exampleFormControlPassword4" placeholder="07xxxxxxxx" style="direction:ltr">
                        
                     </div>
                 </div>

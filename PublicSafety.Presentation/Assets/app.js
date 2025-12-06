@@ -42,7 +42,22 @@ app.config(function ($routeProvider) {
 
 app.run(function ($rootScope, $location) {
     
-
+    $rootScope.toastify = function (msg, type) {
+        if (type)
+            color = "#4fbe87"
+        else
+            color = "#FF0000";
+        if (typeof Toastify !== "undefined") {
+            Toastify({
+                text: msg,
+                duration: 3000,
+                close: true,
+                gravity: "bottom",
+                position: "center",
+                backgroundColor: color
+            }).showToast();
+        }
+    };
 
 
 })
@@ -131,7 +146,15 @@ app.factory('employeeService', function ($http) {
     };
 });
 
-app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, disposalService) {
+app.controller('sidebarCtrl', function ($scope) {
+
+    $scope.selectedIndex = 0;
+
+
+
+})
+
+app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, disposalService, $rootScope) {
 
     $scope.items = [];
     $scope.newItem = { Name: '', Description: '', Quantity: 0, AddedBy: 'Admin' }
@@ -140,18 +163,7 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
     $scope.addedQuantity = 0;
     $scope.disposal = {ItemId : null,Quantity: 0,DisposalDate: '',DisposalFormPath : '',CreatedBy: 'Admin',ApprovedBy: "Admin"}
 
-    $scope.toastify = function (msg) {
-        if (typeof Toastify !== "undefined") {
-            Toastify({
-                text: msg,
-                duration: 3000,
-                close: true,
-                gravity: "bottom",
-                position: "center",
-                backgroundColor: "#4fbe87"
-            }).showToast();
-        }
-    };
+   
 
     $scope.loadItems = function () {
         itemService.getItems().then(function (response) {
@@ -178,7 +190,7 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
     $scope.addNewItem = function () {
         itemService.addItem($scope.newItem).then(function (response) {
             $scope.loadItems();
-            $scope.toastify('تم اضافة المادة بنجاح');
+            $rootScope.toastify('تم اضافة المادة بنجاح',1);
         }, function (error) {
             console.error("Error loading items", error);
         });
@@ -203,7 +215,7 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
     $scope.deleteItem = function (ItemId) {
         itemService.deleteItem(ItemId).then(function (response) {
             $scope.loadItems();
-            $scope.toastify("تم حذف مادة بنجاح")
+            $rootScope.toastify("تم حذف مادة بنجاح",1)
         }, function (error) {
             console.error("Error deleting items", error);
         });
@@ -217,7 +229,7 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
         console.log($scope.selectedItem);
         itemService.increaseQuantity($scope.selectedItem.ItemId,$scope.addedQuantity).then(function (response) {
             $scope.loadItems();
-            $scope.toastify("تم زيادة رصيد مادة بنجاح")
+            $rootScope.toastify("تم زيادة رصيد مادة بنجاح", 1);
         }, function (error) {
             console.error("Error deleting items", error);
         });
@@ -262,65 +274,151 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
         $scope.disposal.ItemId = $scope.selectedItem.ItemId;
         disposalService.addDisposal($scope.disposal).then(function (response) {
             $scope.loadItems();
-            $scope.toastify("تم اتلاف مادة بنجاح")
+            $rootScope.toastify("تم اتلاف مادة بنجاح",1)
         }, function (error) {
             console.error("Error deleting items", error);
         })
     }
 })
 
-app.controller('matrixCtrl', function ($scope, NgTableParams, matrixService) {
+app.controller('matrixCtrl', function ($scope, NgTableParams, matrixService, $http, $rootScope, itemService) {
 
-    $scope.matrices = [];
-
-    $scope.matricesByCategory = {}; 
+    $scope.selectedCategory = null;
 
     
+    $scope.loadCategories = function () {
+        $http.get('/Category/GetAllCategories').then((res) => {
+            $scope.Categories = res.data;
+            console.log(res.data)
+        })
+    }
+    $scope.loadCategories();
+
+
    
+    $scope.loadItemsByCategory = function (CategoryId) {
+        $http.get('/Matrix/GetItemsByCategory?CategoryId=' + CategoryId).then((res) => {
 
+            if (res.data.error === 1)
+                return 'لا يوجد مصفوفات لهذه الفئة';
+            $scope.matrixItems = res.data;
+           
+        })
+    }
 
-    $scope.loadMatrices = function () {
-        matrixService.getAllMatrices().then(function (response) {
-            $scope.matrices = response.data;
+    $scope.selectedCategoryChanged = function () {
 
-            $scope.matrices.forEach(function (m) {
-                var catName = m.Category;
-                if (!$scope.matricesByCategory[catName]) {
-                    $scope.matricesByCategory[catName] = [];
-                }
-                $scope.matricesByCategory[catName].push(m);
-            });
-
-            console.log($scope.matricesByCategory)
-
-        }, function (error) {
-            console.error("Error loading items", error);
-        });
+        $scope.matrixItems = [];
+        if ($scope.selectedCategory) {
+            $scope.IsMatrixExistsByCategoryId($scope.selectedCategory.CategoryId);
+           
+        } else {
+            $scope.matrixExists = false;
+        }
     };
 
+    $scope.IsMatrixExistsByCategoryId = function (CategoryId) {
+        if (CategoryId == null)
+            return false;
+        $http.get('/Matrix/IsMatrixExistsByCategoryId?CategoryId=' + CategoryId).then((res) => {
+
+            $scope.matrixExists = res.data;
+            console.log($scope.matrixExists)
+            if ($scope.matrixExists) {
+                $scope.loadItemsByCategory($scope.selectedCategory.CategoryId)
+            }
+        })
+    }
+
+    $scope.confirmCreateMatrix = function () {
+        Swal.fire({
+            title: 'هل انت متأكد من اضافة مصفوفة جديدة؟',
+            text: "",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'نعم',
+            cancelButtonText: 'لا'
+        }).then((result) => {
+            if (result.isConfirmed) $scope.createMatrix();
+        });
+    }
+
+    $scope.addMatrixItem = { MatrixId: null, ItemId: null, Quantity: 1, Frequency: 1, CreatedBy: 'Admin' };
+
+    $scope.createMatrix = function () {
+        $http.post('/Matrix/AddNewMatrix', { CategoryId: $scope.selectedCategory.CategoryId }).then((res) => {
+            $rootScope.toastify('تم اضافة مصفوفة جديدة بنجاح', 1)
+            $scope.matrixExists = true;
+            $scope.loadItemsByCategory($scope.selectedCategory.CategoryId);
+        })
+    }
+
+    $scope.addNewItem = function () {
+        $http.post('/Matrix/AddItemInMatrix', { MatrixItem: $scope.addMatrixItem }).then((res) => {
+            $rootScope.toastify('تم اضافة مادة جديدة الى المصفوفة بنجاح',1)
+            $scope.loadItemsByCategory($scope.selectedCategory.CategoryId);
+        })
+    } 
+
+    $scope.loadAddItem = function () {
+        $http.get('/Matrix/GetMatrixByCategory?CategoryId=' + $scope.selectedCategory.CategoryId).then((res) => {
+            $scope.addMatrixItem.MatrixId = res.data.MatrixId;
+        })
+        itemService.getItems().then((res) => {
+            $scope.items = res.data;
+        })
+    }
+
+    
+    $scope.updateMatrixItem = { MatrixItemId: null, Frequency: 0, Quantity : 0}
+    $scope.loadUpdateMatrixItem = function (matrixItem) {
+        $scope.updateMatrixItem.MatrixItemId = matrixItem.MatrixItemId;
+        $scope.updateMatrixItem.Frequency = matrixItem.Frequency;
+        $scope.updateMatrixItem.Quantity = matrixItem.Quantity;
+    }
+
   
-    $scope.loadMatrices();
 
+    $scope.confirmDelete = function (matrixItemId) {
+        Swal.fire({
+            title: 'هل انت متأكد من حذف المادة؟',
+            text: "",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'نعم',
+            cancelButtonText: 'لا'
+        }).then((result) => {
+            if (result.isConfirmed) $scope.deleteMatrixItem(matrixItemId);
+        });
+       
+    }
 
+    $scope.deleteMatrixItem = function (matrixItemId) {
+        $http.post('/Matrix/DeleteMatrixItem', {MatrixItemId: matrixItemId}).then((res) => {
+            $rootScope.toastify('تم حذف المادة من المصفوفة بنجاح')
+            $scope.loadItemsByCategory($scope.selectedCategory.CategoryId);
+        })
+    }
+
+    $scope.updateMatrixItemFun = function () {
+        $http.post('/Matrix/UpdateMatrixItem', { MatrixItem: $scope.updateMatrixItem }).then((res) => {
+            $rootScope.toastify('تم تعديل المادة بنجاح',1)
+            $scope.loadItemsByCategory($scope.selectedCategory.CategoryId);
+        })
+    }
+  
     $scope.isEdit = false;
 })
 
-app.controller('employeeCtrl', function ($scope, NgTableParams, employeeService, $location, itemService,$http) {
+app.controller('employeeCtrl', function ($scope, NgTableParams, employeeService, $location, itemService, $http, $rootScope) {
 
     $scope.employees = [];
 
-    $scope.toastify = function (msg) {
-        if (typeof Toastify !== "undefined") {
-            Toastify({
-                text: msg,
-                duration: 3000,
-                close: true,
-                gravity: "bottom",
-                position: "center",
-                backgroundColor: "#4fbe87"
-            }).showToast();
-        }
-    };
+    $scope.searchBy = 0;
 
     $scope.getAllEmployees = function () {
         employeeService.getAllEmployees().then(function (response) {
@@ -372,6 +470,34 @@ app.controller('employeeCtrl', function ($scope, NgTableParams, employeeService,
         })
     }
 
+    $scope.issue = function () {
+        $http.post('/Issuance/AddNewIssuance', $scope.issuance)
+            .then(function (res) {
+
+                if (res.data.success === false) {
+                    $rootScope.toastify(res.data.message, 0);
+                } else {
+                    $rootScope.toastify(res.data.message, 1);
+
+                    $scope.issuance = {
+                        EmployeeId: null,
+                        IssuanceId: null,
+                        ItemId: null,
+                        Quantity: 1,
+                        Type: '',
+                        ExceptionReason: '',
+                        ExceptionFormPath: '',
+                        CreatedBy: 'Admin'
+                    };
+                    $scope.exceptionForm.$submitted = false;
+                }
+            })
+            .catch(function (err) {
+
+                $rootScope.toastify(err.data ? err.data.message : 'Something went wrong!', 0);
+            });
+    }
+
     $scope.issueException = function () {
         $scope.exceptionForm.$setSubmitted();
 
@@ -381,12 +507,7 @@ app.controller('employeeCtrl', function ($scope, NgTableParams, employeeService,
             return;
         }
 
-        $http.post('/Issuance/AddNewIssuance', $scope.issuance).then((res) => {
-            $scope.toastify($scope.msg)
-            $scope.issuance = { EmployeeId: null, IssuanceId: null, ItemId: null, Quantity: 1, Type: '', ExceptionReason: '', ExceptionFormPath: '', CreatedBy: 'Admin' };
-            $scope.exceptionForm.$submitted = false;
-
-        })
+        $scope.issue()
     }
     $scope.issueDamage = function () {
         $scope.damageForm.$setSubmitted();
@@ -397,12 +518,7 @@ app.controller('employeeCtrl', function ($scope, NgTableParams, employeeService,
             return;
         }
 
-        $http.post('/Issuance/AddNewIssuance', $scope.issuance).then((res) => {
-            $scope.toastify($scope.msg)
-            $scope.issuance = { EmployeeId: null, IssuanceId: null, ItemId: null, Quantity: 1, Type: '', ExceptionReason: '', ExceptionFormPath: '', CreatedBy: 'Admin' };
-            $scope.damageForm.$submitted = false;
-
-        })
+        $scope.issue()
     }
 
     $scope.confirmDelete = function (EmployeeId) {
@@ -422,26 +538,101 @@ app.controller('employeeCtrl', function ($scope, NgTableParams, employeeService,
 
     $scope.deleteEmployee = function (EmployeeId) {
         employeeService.deleteEmployee(EmployeeId).then((res) => {
-            $scope.toastify('تم تغيير حالة الموظف الى مستقيل')
+            $rootScope.toastify('تم تغيير حالة الموظف الى مستقيل',1)
         })
     }
    
 })
+app.directive('arabicOnly', function () {
+    return {
+        restrict: 'A',
+        require: 'ngModel',
+        link: function (scope, element, attrs, ngModel) {
+            ngModel.$parsers.push(function (value) {
+                if (!value) return value;
 
-app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeService, $location, $http, $timeout, $routeParams) {
+                // يسمح فقط بالحروف العربية والمسافات
+                var clean = value.replace(/[^\u0600-\u06FF\s]/g, '');
 
-    $scope.toastify = function (msg) {
-        if (typeof Toastify !== "undefined") {
-            Toastify({
-                text: msg,
-                duration: 3000,
-                close: true,
-                gravity: "bottom",
-                position: "center",
-                backgroundColor: "#4fbe87"
-            }).showToast();
+                if (clean !== value) {
+                    ngModel.$setViewValue(clean);
+                    ngModel.$render();
+                }
+
+                return clean;
+            });
         }
     };
+});
+
+app.directive('englishOnly', function () {
+    return {
+        restrict: 'A',
+        require: 'ngModel',
+        link: function (scope, element, attrs, ngModel) {
+            ngModel.$parsers.push(function (value) {
+                if (!value) return value;
+
+                // يسمح فقط بالأحرف الإنجليزية (A-Z, a-z) والمسافات
+                var clean = value.replace(/[^a-zA-Z\s]/g, '');
+
+                if (clean !== value) {
+                    ngModel.$setViewValue(clean);
+                    ngModel.$render();
+                }
+
+                return clean;
+            });
+        }
+    };
+});
+
+app.directive('numbersOnly', function () {
+    return {
+        restrict: 'A',
+        require: 'ngModel',
+        link: function (scope, element, attrs, ngModel) {
+            ngModel.$parsers.push(function (value) {
+                if (!value) return value;
+
+                // يسمح فقط بالأرقام 0-9
+                var clean = value.replace(/[^0-9]/g, '');
+
+                if (clean !== value) {
+                    ngModel.$setViewValue(clean);
+                    ngModel.$render();
+                }
+
+                return clean;
+            });
+        }
+    };
+});
+app.directive('validEmail', function () {
+    var EMAIL_REGEXP = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+
+    return {
+        require: 'ngModel',
+        link: function (scope, element, attrs, ngModel) {
+            ngModel.$parsers.push(function (value) {
+                if (!value) return value;
+
+                // يتحقق من صحة الإيميل
+                if (EMAIL_REGEXP.test(value)) {
+                    ngModel.$setValidity('email', true);
+                } else {
+                    ngModel.$setValidity('email', false);
+                }
+
+                return value;
+            });
+        }
+    };
+});
+
+app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeService, $location, $http, $timeout, $routeParams,$rootScope) {
+
+   
 
     $scope.GoToListPage = function () {
         $location.path('/employees');
@@ -556,13 +747,13 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
         if ($scope.updateEmployeeId ) {
             employeeService.updateEmployee($scope.employee)
                 .then((res) => {
-                    $scope.toastify('تم تعديل بيانات الموظف بنجاح');
+                    $rootScope.toastify('تم تعديل بيانات الموظف بنجاح',1);
                 }).catch((rej) => console.log(rej))
         }
         else {
             employeeService.addNewEmployee($scope.employee)
                 .then((res) => {
-                    $scope.toastify('تم اضافة موظف بنجاح');
+                    $rootScope.toastify('تم اضافة موظف بنجاح', 1);
                     $location.path('/editEmployee/' + res.data.id);
                 }).catch((rej) => console.log(rej))
 

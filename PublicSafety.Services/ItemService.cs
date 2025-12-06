@@ -47,5 +47,19 @@ namespace PublicSafety.Services
             ItemRepo.DecreaseItemQuantity(id, AddedQuantity);
         }
 
+        public static ItemsDTO GetItemById(Guid Id)
+        {
+            var item = ItemRepo.GetItemById(Id);
+
+            return new ItemsDTO()
+            {
+                ItemId = item.ItemId,
+                Name = item.Name,
+                Description = item.Description,
+                AddedBy = UserService.GetUserByUsername(item.AddedBy.Username).Username,
+                Quantity = item.Quantity
+            };
+        }
+
     }
 }
