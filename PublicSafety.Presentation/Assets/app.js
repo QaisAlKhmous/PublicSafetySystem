@@ -1,4 +1,4 @@
-﻿var app = angular.module('myApp', ["ngRoute", 'ngTable']);
+﻿var app = angular.module('myApp', ["ngRoute", 'ngTable', 'ngCookies']);
 
 
 app.config(function ($routeProvider) {
@@ -6,6 +6,10 @@ app.config(function ($routeProvider) {
 
 
     $routeProvider
+        .when("/", {
+            templateUrl: '/Home/Dashboard',
+            controller: 'dashboardCtrl'
+        })
        .when("/items", {
             templateUrl: '/Home/Items',
             controller: 'itemsCtrl'
@@ -40,7 +44,28 @@ app.config(function ($routeProvider) {
 
 
 
-app.run(function ($rootScope, $location) {
+app.run(function ($rootScope, $location, $cookies) {
+
+    $rootScope.CurrentUser = $cookies.get('UserInfo');
+
+
+    if ($rootScope.CurrentUser == null) {
+
+        window.location = "/#!/"
+        return;
+    }
+
+
+    var res = $rootScope.CurrentUser.split("&");
+
+    $rootScope.LogedInUser = { username: '', userId: '', userType: '' };
+
+    $rootScope.LogedInUser.username = (res[0]).replace("Username=", "");
+    $rootScope.LogedInUser.userId = (res[1]).replace("UserId=", "");
+    $rootScope.LogedInUser.userType = (res[2]).replace("Type=", "");
+
+
+
     
     $rootScope.toastify = function (msg, type) {
         if (type)
@@ -58,6 +83,9 @@ app.run(function ($rootScope, $location) {
             }).showToast();
         }
     };
+
+
+
 
 
 })
@@ -146,22 +174,49 @@ app.factory('employeeService', function ($http) {
     };
 });
 
-app.controller('sidebarCtrl', function ($scope) {
+app.controller('sidebarCtrl', function ($scope, $rootScope, $location) {
 
-    $scope.selectedIndex = 0;
+    $scope.activeItem = 0;
+
+    $rootScope.setActive = function (item) {
+        $scope.activeItem = item;
+
+    }
+
+    $rootScope.$on('$locationChangeSuccess', function (event, newUrl, oldUrl) {
+        let url = $location.path();
+
+        if (url === '/') {
+            $rootScope.setActive(0);
+
+        }
 
 
+        if (url === '/matrices') {
+            $rootScope.setActive(1);
 
+        }
+        if (url === '/employees' || url === '/addEmployee' || url.startsWith('/editEmployee')) {
+            $rootScope.setActive(2);
+
+        }
+
+        if (url === '/items') {
+            $rootScope.setActive(3);
+
+        }
+
+    });
 })
 
 app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, disposalService, $rootScope) {
 
     $scope.items = [];
-    $scope.newItem = { Name: '', Description: '', Quantity: 0, AddedBy: 'Admin' }
+    $scope.newItem = { Name: '', Description: '', Quantity: 0, AddedBy: $rootScope.LogedInUser.username }
     $scope.clicked = false;
     $scope.selectedItem = null;  
     $scope.addedQuantity = 0;
-    $scope.disposal = {ItemId : null,Quantity: 0,DisposalDate: '',DisposalFormPath : '',CreatedBy: 'Admin',ApprovedBy: "Admin"}
+    $scope.disposal = { ItemId: null, Quantity: 0, DisposalDate: '', DisposalFormPath: '', CreatedBy: $rootScope.LogedInUser.username , ApprovedBy: "Admin"}
 
    
 
@@ -185,12 +240,26 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
             sorting: { Name: "asc" }// initial filter
         }
     );
+    $scope.itemsTableParams.settings().counts = [];
     $scope.loadItems();
 
     $scope.addNewItem = function () {
+        $scope.additemForm.$setSubmitted();
+
+        if (!$scope.newItem.Name) {
+
+            console.warn("Form invalid");
+            return;
+        }
+        
         itemService.addItem($scope.newItem).then(function (response) {
-            $scope.loadItems();
-            $rootScope.toastify('تم اضافة المادة بنجاح',1);
+            if (!response.data.success)
+                $rootScope.toastify('يوجد مادة بهذا الاسم', 0);
+            else {
+                $scope.loadItems();
+                $rootScope.toastify('تم اضافة المادة بنجاح', 1);
+            }
+          
         }, function (error) {
             console.error("Error loading items", error);
         });
@@ -289,8 +358,11 @@ app.controller('matrixCtrl', function ($scope, NgTableParams, matrixService, $ht
     $scope.loadCategories = function () {
         $http.get('/Category/GetAllCategories').then((res) => {
             $scope.Categories = res.data;
+            $scope.selectedCategory = $scope.Categories[0];
+            $scope.selectedCategoryChanged();
             console.log(res.data)
         })
+
     }
     $scope.loadCategories();
 
@@ -345,7 +417,7 @@ app.controller('matrixCtrl', function ($scope, NgTableParams, matrixService, $ht
         });
     }
 
-    $scope.addMatrixItem = { MatrixId: null, ItemId: null, Quantity: 1, Frequency: 1, CreatedBy: 'Admin' };
+    $scope.addMatrixItem = { MatrixId: null, ItemId: null, Quantity: 1, Frequency: 1, CreatedBy: $rootScope.LogedInUser.username };
 
     $scope.createMatrix = function () {
         $http.post('/Matrix/AddNewMatrix', { CategoryId: $scope.selectedCategory.CategoryId }).then((res) => {
@@ -439,7 +511,7 @@ app.controller('employeeCtrl', function ($scope, NgTableParams, employeeService,
             sorting: { Name: "asc" }// initial filter
         }
     );
-
+    $scope.employeesTableParams.settings().counts = [];
 
     $scope.GoToAddPage = function () {
         $location.path('/addEmployee');
@@ -447,7 +519,7 @@ app.controller('employeeCtrl', function ($scope, NgTableParams, employeeService,
 
     // Handle Issue Exception
 
-    $scope.issuance = { EmployeeId : null,IssuanceId: null, ItemId: null, Quantity: 1, Type: '', ExceptionReason: '', ExceptionFormPath: '' ,CreatedBy : 'Admin'};
+    $scope.issuance = { EmployeeId: null, IssuanceId: null, ItemId: null, Quantity: 1, Type: '', ExceptionReason: '', ExceptionFormPath: '', CreatedBy: $rootScope.LogedInUser.username };
 
     $scope.loadException = function (EmployeeId) {
         $scope.loadItems();
@@ -487,7 +559,7 @@ app.controller('employeeCtrl', function ($scope, NgTableParams, employeeService,
                         Type: '',
                         ExceptionReason: '',
                         ExceptionFormPath: '',
-                        CreatedBy: 'Admin'
+                        CreatedBy: $rootScope.LogedInUser.username
                     };
                     $scope.exceptionForm.$submitted = false;
                 }

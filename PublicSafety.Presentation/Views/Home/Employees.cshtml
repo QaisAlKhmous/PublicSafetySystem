@@ -38,26 +38,26 @@
                 </div>
                 
                 <!-- Dropdown البحث -->
-                <div class="d-flex justify-content-between col-md-5 mb-2">
+                <div class="d-flex justify-content-between col-md-5 mb-2 align-items-center">
                     <div class="btn-group">
-                        <button type="button" class="btn btn-secondary dropdown-toggle w-100" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <button type="button" class="search btn btn-secondary dropdown-toggle w-100 ml-2" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             ابحث بواسطة
                         </button>
                         <div class="dropdown-menu w-100">
-                            <span class="dropdown-item" ng-click="searchBy = 0" ng-class="{'active': searchBy === 0}">الاسم</span>
-                            <span class="dropdown-item" ng-click="searchBy = 1" ng-class="{'active': searchBy === 1}">الدائرة</span>
-                            <span class="dropdown-item" ng-click="searchBy = 2" ng-class="{'active': searchBy === 2}">المسمى الوظيفي</span>
-                            <span class="dropdown-item" ng-click="searchBy = 3" ng-class="{'active': searchBy === 3}">الوحدة التنظيمية</span>
+                            <span class="dropdown-item searchItem" ng-click="searchBy = 0" ng-class="{'active': searchBy === 0}">الاسم</span>
+                            <span class="dropdown-item searchItem" ng-click="searchBy = 1" ng-class="{'active': searchBy === 1}">الدائرة</span>
+                            <span class="dropdown-item searchItem" ng-click="searchBy = 2" ng-class="{'active': searchBy === 2}">المسمى الوظيفي</span>
+                            <span class="dropdown-item searchItem" ng-click="searchBy = 3" ng-class="{'active': searchBy === 3}">الوحدة التنظيمية</span>
                         </div>
                     </div>
 
-
+                    
                     <!-- حقول البحث -->
 
-                    <input type="text" ng-show="searchBy === 0" ng-model="employeesTableParams.filter().Name" placeholder="الاسم" class="form-control mb-1" />
-                    <input type="text" ng-show="searchBy === 1" ng-model="employeesTableParams.filter().Section" placeholder="الدائرة" class="form-control mb-1" />
-                    <input type="text" ng-show="searchBy === 2" ng-model="employeesTableParams.filter().JobTitle" placeholder="المسمى الوظيفي" class="form-control mb-1" />
-                    <input type="text" ng-show="searchBy === 3" ng-model="employeesTableParams.filter().Department" placeholder="الوحدة التنظيمية" class="form-control mb-1" />
+                    <input type="text" ng-show="searchBy === 0" ng-model="employeesTableParams.filter().Name" placeholder="الاسم" class="form-control" />
+                    <input type="text" ng-show="searchBy === 1" ng-model="employeesTableParams.filter().Section" placeholder="الدائرة" class="form-control" />
+                    <input type="text" ng-show="searchBy === 2" ng-model="employeesTableParams.filter().JobTitle" placeholder="المسمى الوظيفي" class="form-control" />
+                    <input type="text" ng-show="searchBy === 3" ng-model="employeesTableParams.filter().Department" placeholder="الوحدة التنظيمية" class="form-control" />
 
                 </div>
                  
@@ -65,7 +65,7 @@
 
                 <!-- زر إضافة موظف -->
                 <div class="col-md-3 mb-2 text-start">
-                    <button type="button" class="btn btn-info w-100" ng-click="GoToAddPage()">إضافة موظف</button>
+                    <button type="button" class="btn btn-info w-100 add" ng-click="GoToAddPage()">إضافة موظف</button>
                 </div>
 
             </div>
@@ -104,7 +104,7 @@
                         </td>
                         <td>
                             <div class="btn-group">
-                                <button type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown"></button>
+                                <button type="button" class="btn btn-success dropdown-toggle actions" data-bs-toggle="dropdown"></button>
                                 <ul class="dropdown-menu">
                                     <li><a class="dropdown-item" href="#!/editEmployee/{{employee.EmployeeId}}">تعديل</a></li>
                                     <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#exceptionModalForm" ng-click="loadException(employee.EmployeeId)" ng-show="employee.Active">بدل استثناء</a></li>
@@ -164,8 +164,8 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" ng-click="issueException()">Save Changes</button>
+                <button type="submit" class="btn btn-primary accept" ng-click="issueDamage()">حفظ التغييرات</button>
+                <button type="button" class="btn btn-danger closeBtn" data-bs-dismiss="modal">إغلاق</button>
             </div>
         </div>
     </div>
@@ -208,8 +208,9 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                <button type="submit" class="btn btn-primary" ng-click="issueDamage()">Save Changes</button>
+                <button type="submit" class="btn btn-primary accept" ng-click="issueDamage()">حفظ التغييرات</button>
+                <button type="button" class="btn btn-danger closeBtn" data-bs-dismiss="modal">إغلاق</button>
+
             </div>
         </div>
     </div>

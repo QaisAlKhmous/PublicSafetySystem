@@ -20,6 +20,12 @@ namespace PublicSafety.Presentation.Controllers
             return View();
         }
 
+        public ActionResult Dashboard()
+        {
+            return View();
+        }
+
+
 
         public ActionResult Items()
         {

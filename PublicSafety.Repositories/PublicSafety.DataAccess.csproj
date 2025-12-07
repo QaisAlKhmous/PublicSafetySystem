@@ -105,6 +105,14 @@
     <Compile Include="Migrations\202512061830244_add_JobTitleUpdateDate.Designer.cs">
       <DependentUpon>202512061830244_add_JobTitleUpdateDate.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202512070710315_add_permissionType.cs" />
+    <Compile Include="Migrations\202512070710315_add_permissionType.Designer.cs">
+      <DependentUpon>202512070710315_add_permissionType.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202512070720034_add_permissionType_toUser.cs" />
+    <Compile Include="Migrations\202512070720034_add_permissionType_toUser.Designer.cs">
+      <DependentUpon>202512070720034_add_permissionType_toUser.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositories\CategoryRepo.cs" />
@@ -152,6 +160,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202512061830244_add_JobTitleUpdateDate.resx">
       <DependentUpon>202512061830244_add_JobTitleUpdateDate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202512070710315_add_permissionType.resx">
+      <DependentUpon>202512070710315_add_permissionType.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202512070720034_add_permissionType_toUser.resx">
+      <DependentUpon>202512070720034_add_permissionType_toUser.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

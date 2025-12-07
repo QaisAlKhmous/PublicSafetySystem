@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PublicSafety.Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -15,85 +16,47 @@ namespace PublicSafety.Presentation.Controllers
             return View();
         }
 
-        //[HttpPost]
-        //public ActionResult Login(string Username, string Password)
-        //{
-        //    var LogedInUser = UserService.Login(Username, Password);
+        [HttpPost]
+        public ActionResult Login(string Username, string Password)
+        {
+            var LogedInUser = UserService.Login(Username, Password);
 
-        //    if (LogedInUser == null)
-        //    {
+            if (LogedInUser == null)
+            {
 
-        //        ViewBag.LoginError = "Invalid username or password";
+                ViewBag.LoginError = "اسم المستخدم او كلمة لمرور خاطئة";
 
-        //        return View();
-        //    }
-
-        //    if (LogedInUser.IsLocked)
-        //    {
-        //        ViewBag.LoginError = "Your account is locked. Please contact admin.";
-        //        return View();
-        //    }
-
-        //    if (!LogedInUser.Password)
-        //    {
-        //        ViewBag.LoginError = "Invalid username or password";
-        //        UserService.InceremntFaildAttempts(LogedInUser.Username);
+                return View();
+            }
 
 
-        //        return View();
-        //    }
+            if (!LogedInUser.IsPassword)
+            {
+                ViewBag.LoginError = "اسم المستخدم او كلمة لمرور خاطئة";
 
 
-        //    if (LogedInUser.Status == enRegStatus.pending)
-        //    {
-        //        ViewBag.LoginError = "Your registration request is still pending.";
-        //        return View();
-        //    }
-
-        //    if (LogedInUser.Status == enRegStatus.rejected)
-        //    {
-        //        ViewBag.LoginError = "Your registration request is rejected, you can't login.";
-        //        return View();
-        //    }
+                return View();
+            }
 
 
-        //    var ticket = new FormsAuthenticationTicket(
-        //            1,
-        //            Username,
-        //            DateTime.Now,
-        //            DateTime.Now.AddMinutes(30),
-        //            false,
-        //             LogedInUser.Type,
-        //            FormsAuthentication.FormsCookiePath
-        //        );
+           
+
+           
+
+            HttpCookie userCookie = new HttpCookie("UserInfo");
+            userCookie.HttpOnly = false;
+            userCookie["Username"] = Username;
+            userCookie["UserId"] = LogedInUser.UserId.ToString();
+            userCookie["Type"] = LogedInUser.Type.ToString();
+            userCookie.Expires = DateTime.Now.AddHours(1);
+            Response.Cookies.Add(userCookie);
 
 
-
-        //    string encryptedTicket = FormsAuthentication.Encrypt(ticket);
-
-
-        //    HttpCookie authCookie = new HttpCookie(FormsAuthentication.FormsCookieName, encryptedTicket);
-        //    authCookie.HttpOnly = false;
-        //    Response.Cookies.Add(authCookie);
-
-
-        //    HttpCookie userCookie = new HttpCookie("UserInfo");
-        //    userCookie.HttpOnly = false;
-        //    userCookie["Username"] = Username;
-        //    userCookie["UserId"] = LogedInUser.UserId.ToString();
-        //    userCookie["Type"] = LogedInUser.Type;
-        //    userCookie["Email"] = LogedInUser.Email;
-        //    userCookie.Expires = DateTime.Now.AddHours(1);
-        //    Response.Cookies.Add(userCookie);
-
-
-        //    UserService.ResetFailedAttempts(LogedInUser.Username);
-
-        //    return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Home");
 
 
 
 
-        //}
+        }
     }
 }

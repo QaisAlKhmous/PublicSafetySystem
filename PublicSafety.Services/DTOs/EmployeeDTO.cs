@@ -27,5 +27,6 @@ namespace PublicSafety.Services.DTOs
         public string CreationDate { get; set; }
         public string EmploymentDate { get; set; }
         public string RetirementDate { get; set; }
+        public string JobTitleUpdateDate { get; set; }
     }
 }

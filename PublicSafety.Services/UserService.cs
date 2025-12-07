@@ -1,4 +1,5 @@
-﻿using PublicSafety.Repositories.Repositories;
+﻿using AdminDashboard.Services;
+using PublicSafety.Repositories.Repositories;
 using PublicSafety.Services.DTOs;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,37 @@ namespace PublicSafety.Services
         {
             var user = UserRepo.GetUserByUsername(Username);
             return new UserDTO() { UserId = user.UserId,Username = user.Username};
+        }
+
+        public static LoginResultDTO Login(string Username,string Password)
+        {
+            var user = UserRepo.GetUserByUsername(Username);
+
+            if (user == null)
+            {
+                return null;
+            }
+
+            if (Password == user.PasswordHash)
+            {
+                return new LoginResultDTO
+                {
+                    UserId = user.UserId,
+                    Username = Username,
+                    Type = (int)user.Type,
+                    IsPassword = true
+                };
+            }
+
+
+
+            return new LoginResultDTO
+            {
+                UserId = user.UserId,
+                Username = Username,
+                Type = (int)user.Type,
+                IsPassword = false
+            };
         }
     }
 }

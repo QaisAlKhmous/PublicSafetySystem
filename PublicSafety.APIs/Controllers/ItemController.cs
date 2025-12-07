@@ -28,9 +28,16 @@ namespace PublicSafety.APIs.Controllers
         [HttpPost]
         public JsonResult AddItem(ItemsDTO item)
         {
-            ItemService.AddItem(item);
+            if(ItemService.IsItemExistsByName(item.Name))
+                return Json(new {success = false },"");
+            else
+            {
+                ItemService.AddItem(item);
 
-            return Json("Added Successfully!");
+                return Json(new { success = true }, "Added Successfully!");
+            }
+
+          
 
 
         }

@@ -59,7 +59,8 @@ namespace PublicSafety.Services
                 Notes = employee.Notes,
                 CreationDate = DateTime.Now,
                 WorkLocation = (enWorkLocation)Enum.Parse(typeof(enWorkLocation), employee.WorkLocation),
-                HealthInsuranceFile = employee.HealthInsuranceFile
+                HealthInsuranceFile = employee.HealthInsuranceFile,
+                JobTitleUpdateDate = DateTime.Now
             };
 
             return EmployeeRepo.AddNewEmployeee(newEmployee);
@@ -89,7 +90,8 @@ namespace PublicSafety.Services
                 SectionId = Employee.Section.SectionId,
                 JobTitleId = Employee.JobTitle.JobTitleId,
                 CategoryId = Employee.JobTitle.jobTitleCategories.Select(jc => jc.Category.CategoryId).FirstOrDefault(),
-                EmploymentDate = Employee.EmploymentDate.ToString()
+                EmploymentDate = Employee.EmploymentDate.ToString(),
+                JobTitleUpdateDate = Employee.JobTitleUpdateDate.ToString()
             };
         }
 
@@ -114,6 +116,12 @@ namespace PublicSafety.Services
             existingEmployee.SectionId = employee.SectionId;
             existingEmployee.JobTitleId = employee.JobTitleId;
             existingEmployee.EmploymentDate = DateTime.Parse(employee.EmploymentDate);
+            
+
+            if(existingEmployee.JobTitleId != employee.JobTitleId)
+            {
+                existingEmployee.JobTitleUpdateDate = DateTime.Now;
+            }
 
             // TO DO -- Update CategoryId
 

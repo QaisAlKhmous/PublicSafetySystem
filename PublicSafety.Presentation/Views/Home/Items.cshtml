@@ -16,7 +16,7 @@
             <h2>قائمة المواد</h2>
 
 
-            <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#addItemModalForm">
+            <button type="button" class="btn btn-info add" data-bs-toggle="modal" data-bs-target="#addItemModalForm">
                 اضافة مادة جديدة
             </button>
 
@@ -35,7 +35,7 @@
                     <td data-title="'أضيف بواسطة'">{{item.AddedBy}}</td>
                     <td data-title="'الاجراءات'">
                         <div class="btn-group">
-                            <button  type="button" class="btn btn-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <button  type="button" class="btn btn-success dropdown-toggle actions" data-bs-toggle="dropdown" aria-expanded="false">
                                 
                             </button>
                             <ul class="dropdown-menu">
@@ -91,10 +91,14 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form>
+                <form name="additemForm">
                     <div class="form-group">
                         <label for="exampleInputEmail1">اسم المادة</label>
                         <input ng-model="newItem.Name" type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="المادة">
+                        <div class="invalid-feedback d-block" ng-show="additemForm.$submitted && !newItem.Name">
+                            <i class="bx bx-radio-circle"></i>
+                            يرجى ادخال اسم مادة
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="exampleInputPassword1">وصف المادة</label>
@@ -107,8 +111,9 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" ng-click="addNewItem()">Save Changes</button>
+                <button type="submit" class="btn btn-primary accept" ng-click="addNewItem()">حفظ التغييرات</button>
+                <button type="button" class="btn btn-danger closeBtn" data-bs-dismiss="modal">إغلاق</button>
+
             </div>
         </div>
     </div>
@@ -142,8 +147,8 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" ng-click="dispose()">Save Changes</button>
+                <button type="submit" class="btn btn-primary accept" ng-click="dispose()">حفظ التغييرات</button>
+                <button type="button" class="btn btn-danger closeBtn" data-bs-dismiss="modal">إغلاق</button>
             </div>
         </div>
     </div>

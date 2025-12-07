@@ -1,18 +1,85 @@
 ﻿/* Outer sidebar */
-
-.sidebar {
-    background-color: #2c2e3e !important;
-}
-.active {
-    background-color: #8D744B !important;
-}
 :root {
-    --scale: 1.3; /* اجعلها 1.1 أو 1.3 حسب رغبتك */
+    /* Base Colors */
+    --color-background: #2c2e3e; /* Dark blue-gray background */
+    --color-surface: #3a3b4f; /* Slightly lighter for cards/panels */
+    --color-primary: #8D744B; /* Warm brown/gold for buttons, highlights */
+    --color-secondary: #808080; /* Gray for text or secondary elements */
+    --color-accent: #c9b78c; /* Lighter gold accent */
+    --color-text: #f5f5f5; /* Light text for contrast */
+    --color-muted-text: #b0b0b0; /* Muted text color */
+    --color-border: #4a4b5c; /* Subtle border color */
+    --color-hover: #a1885f; /* Hover state for buttons/links */
+    --color-active: #a1885f;
+    /* Dropdown base */
+    --dropdown-bg: #3a3b4f; /* Surface color for dropdown */
+    --dropdown-text: #f5f5f5; /* Normal text */
+    --dropdown-border: #4a4b5c; /* Border or separator */
+    /* States */
+    --dropdown-hover: #4a4b5c; /* Hover background */
+    --dropdown-active: #a1885f; /* Active/selected item */
+    --dropdown-disabled: #6b6c7d; /* Disabled items */
+    /* Add button colors */
+    --color-add: #4CAF50; /* main green for Add button */
+    --color-add-hover: #66BB6A; /* lighter green on hover */
+    --color-add-active: #388E3C; /* darker green on click */
+    --color-add-text: #f5f5f5; /* light text for contrast */
+}
+/* Light */
+@font-face {
+    font-family: 'Almarai';
+    src: url('Almarai/Almarai-Light.ttf') format('truetype');
+    font-weight: 300; /* Light */
+    font-style: normal;
+}
+
+/* Regular */
+@font-face {
+    font-family: 'Almarai';
+    src: url('Almarai/Almarai-Regular.ttf') format('truetype');
+    font-weight: 400; /* Regular */
+    font-style: normal;
+}
+
+/* Bold */
+@font-face {
+    font-family: 'Almarai';
+    src: url('Almarai/Almarai-Bold.ttf') format('truetype');
+    font-weight: 700; /* Bold */
+    font-style: normal;
 }
 
 body {
-    font-size: calc(16px * var(--scale)) !important;
+    font-family: 'Almarai', sans-serif;
+    font-weight: 400; /* default regular */
 }
+
+h1 {
+    font-family: 'Almarai', sans-serif;
+    font-weight: 700; /* bold */
+}
+
+p.light {
+    font-family: 'Almarai', sans-serif;
+    font-weight: 300; /* light */
+}
+
+
+
+.sidebar {
+    background-color: var(--color-background) !important;
+}
+.active {
+    background-color: var(--color-hover) !important;
+}
+:root {
+    --scale: 1.3; 
+}
+body, input, textarea, button, select {
+    font-size: calc(16px * var(--scale)) !important;
+   
+}
+
 
 h1 {
     font-size: calc(2rem * var(--scale)) !important;
@@ -33,3 +100,153 @@ p, span, li,label {
 small,input,select {
     font-size: calc(0.85rem * var(--scale)) !important;
 }
+
+tr:hover {
+    background-color: var(--color-hover) !important;
+}
+.actions {
+    background-color: var(--dropdown-bg) !important;
+    border: 1px solid var(--dropdown-border) !important;
+    color: var(--dropdown-text) !important;
+    border-radius: 6px !important;
+
+}
+button.add {
+    background-color: var(--color-add);
+    color: var(--color-add-text);
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+button.add:hover {
+  background-color: var(--color-add-hover);
+}
+    button.add.show {
+        background-color: var(--color-add-active);
+    }
+    button.add:active {
+  background-color: #388E3C !important;       /* pressed/holding state */
+  transform: scale(0.98);          /* optional: slight shrink effect */
+}
+
+
+button.search {
+    background-color: var(--dropdown-bg) !important;
+    color: var(--dropdown-text) !important;
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+    button.search:hover {
+        background-color: var(--dropdown-bg);
+    }
+
+    button.search.show {
+        background-color: var(--dropdown-bg);
+    }
+
+    button.search:active {
+        background-color: var(--dropdown-bg) !important; /* pressed/holding state */
+        transform: scale(0.98); /* optional: slight shrink effect */
+    }
+.searchItem:active {
+    background-color: var(--color-hover) !important;
+}
+
+/* Pagination container */
+.ng-table-pagination {
+    background-color: var(--color-background); /* dark background */
+    padding: 0.5rem;
+    border-radius: 6px;
+    display: flex;
+    list-style: none;
+}
+
+/* Pagination items (li) */
+.ng-table-pagination .page-item {
+    margin: 0 4px;
+    border-radius: 4px;
+}
+
+/* Links inside li */
+.ng-table-pagination .page-item a.page-link {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    text-decoration: none;
+    color: var(--color-text);           /* default text color */
+    background-color: var(--color-surface); /* card-like background */
+    border-radius: 4px;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+/* Hover state */
+.ng-table-pagination .page-item a.page-link:hover {
+    background-color: var(--color-hover);    /* your hover color */
+    color: var(--color-text);
+}
+
+/* Active page */
+.ng-table-pagination .page-item.active a.page-link {
+    background-color: #8D744B;  /* gold active color */
+    color: var(--color-background); /* text contrast */
+}
+
+/* Disabled page */
+.ng-table-pagination .page-item.disabled a.page-link {
+    background-color: var(--color-surface);
+    color: var(--color-muted-text);
+    cursor: not-allowed;
+}
+
+/* Holding / click state */
+.ng-table-pagination .page-item a.page-link:active {
+    background-color: #388E3C;  /* green press effect */
+    transform: scale(0.98);
+}
+
+.closeBtn {
+    background-color: #D32F2F !important;
+}
+.closeBtn:hover{
+    background-color: #E53935 !important;
+}
+.accept {
+    background-color: #4CAF50 !important;
+    border: 1px solid #4CAF50;
+}
+.accept:hover {
+    background-color: #66BB6A !important;
+    border: 1px solid #66BB6A;
+}
+.sidebar .sidebar-inner > li.active > a {
+    background-color: transparent !important;
+}
+.sidebar .sidenav-item-link .nav-text {
+    margin: 0;
+}
+.sidebar-left .nav-text {
+    direction: rtl;
+    text-align: right;
+    width:150px
+    
+}
+.sidenav-item-link {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+}
+
+.categories {
+    font-size: calc(1.4rem * var(--scale)) !important;
+}
+.blue {
+    background-color: #03a6ba !important;
+    border: none;
+}
+

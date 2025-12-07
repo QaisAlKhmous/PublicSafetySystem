@@ -130,6 +130,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\app.js" />
+    <Content Include="Assets\css\Almarai\OFL.txt" />
     <Content Include="Assets\css\custom.css" />
     <Content Include="Assets\css\dropzone.min.css" />
     <Content Include="Assets\css\style-rtl.css" />
@@ -210,6 +211,10 @@
     <Content Include="Scripts\angular-cookies.min.js.map" />
     <Content Include="Scripts\angular-aria.min.js.map" />
     <Content Include="Scripts\angular-animate.min.js.map" />
+    <Content Include="Assets\css\Almarai\Almarai-Bold.ttf" />
+    <Content Include="Assets\css\Almarai\Almarai-ExtraBold.ttf" />
+    <Content Include="Assets\css\Almarai\Almarai-Light.ttf" />
+    <Content Include="Assets\css\Almarai\Almarai-Regular.ttf" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\i18n\angular-locale_af-na.js" />
     <Content Include="Scripts\i18n\angular-locale_af-za.js" />
@@ -993,11 +998,12 @@
     <Content Include="Views\Home\Matrices.cshtml" />
     <Content Include="Views\Home\Employees.cshtml" />
     <Content Include="Views\Home\AddEmployee.cshtml" />
+    <Content Include="Views\Account\Login.cshtml" />
+    <Content Include="Views\Home\Dashboard.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
     <Folder Include="Models\" />
-    <Folder Include="Views\Account\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap.rtl.min.css.map" />
@@ -1030,6 +1036,10 @@
     <ProjectReference Include="..\PublicSafety.APIs\PublicSafety.APIs.csproj">
       <Project>{b29f734e-cb3b-4125-a8bb-67b65831b22b}</Project>
       <Name>PublicSafety.APIs</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PublicSafety.Services\PublicSafety.Services.csproj">
+      <Project>{08a53cee-1d50-4c83-9ec4-cc98e12bea86}</Project>
+      <Name>PublicSafety.Services</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

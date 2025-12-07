@@ -6,7 +6,7 @@
 
 <div class="content">
     <label>الفئة</label>
-    <select class="form-control rounded-0 bg-light txt-large"
+    <select class="form-control rounded-0 bg-light txt-large categories"
             ng-model="selectedCategory"
             ng-change="selectedCategoryChanged()"
             ng-options="c as c.Name for c in Categories track by c.CategoryId">
@@ -15,11 +15,10 @@
 
 
     <div class="card-header">
-        <div class="d-flex justify-content-between">
-            <h2>{{selectedCategory.Name}}</h2>
+        <div class="d-flex justify-content-end">
             <div ng-show="selectedCategory">
                 <div ng-show="matrixExists">
-                    <button class="btn btn-primary"
+                    <button class="btn btn-primary blue"
                             ng-click="confirmCreateMatrix()">
                         تغيير المصفوفة
                     </button>
@@ -28,13 +27,18 @@
 
         </div>
             <div ng-show="selectedCategory">
-                <div ng-show="!matrixExists">
-                    <h3>لا يوجد مصفوفات لهذه الفئة</h3>
-                    <button class="btn btn-primary"
-                            ng-click="confirmCreateMatrix()">
-                        إنشاء مصفوفة
-                    </button>
-                    <br><br>
+                <div ng-show="!matrixExists" >
+                    <div class="d-flex justify-content-center">
+                        <h3>لا يوجد مصفوفات لهذه الفئة</h3>
+                    </div>
+                    <div class="d-flex justify-content-center mt-2">
+                        <button class="btn btn-primary"
+                                ng-click="confirmCreateMatrix()">
+                            إنشاء مصفوفة
+                        </button>
+                    </div>
+                   
+
                 </div>
             </div>
 
@@ -79,10 +83,10 @@
                     </tbody>
                 </table>
 
-                <div ng-show="matrixItems.length === 0" class="d-flex justify-content-center">
+                <div ng-show="matrixItems.length === 0" class="d-flex justify-content-center p-2">
                     <h4>لا يوجد عناصر في المصفوفة النشطة</h4>
                 </div>
-                <button class="btn btn-success"
+                <button class="btn btn-success add"
                         ng-click="loadAddItem()" data-bs-toggle="modal" data-bs-target="#addItemModalForm">
                     إضافة عنصر
                 </button>

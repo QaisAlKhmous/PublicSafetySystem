@@ -66,5 +66,12 @@ namespace PublicSafety.Repositories.Repositories
                 return item;
             }
         }
+        public static bool IsItemExistsByName(string Name)
+        {
+            using (var context = new AppDbContext())
+            {
+                return context.Items.Any(i => i.Name == Name);
+            }
+        }
     }
 }

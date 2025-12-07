@@ -1,4 +1,5 @@
 ﻿using PublicSafety.Domain.Entities;
+using PublicSafety.Repositories;
 using PublicSafety.Repositories.Migrations;
 using PublicSafety.Repositories.Repositories;
 using PublicSafety.Services.DTOs;
@@ -59,6 +60,11 @@ namespace PublicSafety.Services
                 AddedBy = UserService.GetUserByUsername(item.AddedBy.Username).Username,
                 Quantity = item.Quantity
             };
+        }
+
+        public static bool IsItemExistsByName(string Name)
+        {
+            return ItemRepo.IsItemExistsByName(Name);
         }
 
     }
