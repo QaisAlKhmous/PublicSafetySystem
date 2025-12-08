@@ -27,6 +27,7 @@ namespace PublicSafety.Repositories
         public DbSet<Matrix> Matrices { get; set; }
 
         public DbSet<MatrixItem> MatrixItems { get; set; }
+        public DbSet<ChangeRequest> ChangeRequests { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -65,6 +66,29 @@ namespace PublicSafety.Repositories
             .Property(u => u.MatrixId)
             .HasDatabaseGeneratedOption(DatabaseGeneratedOption.None);
 
+            modelBuilder.Entity<ChangeRequest>()
+            .Property(u => u.RequestId)
+            .HasDatabaseGeneratedOption(DatabaseGeneratedOption.None);
+
+
+            modelBuilder.Entity<ChangeRequest>()
+                .HasKey(cr => cr.RequestId);
+
+            modelBuilder.Entity<ChangeRequest>()
+                .Property(cr => cr.ApprovedDate)
+                .IsOptional();
+
+            modelBuilder.Entity<ChangeRequest>()
+            .HasRequired(cr => cr.ChangedBy)
+            .WithMany(u => u.ChangeRequests) 
+            .HasForeignKey(cr => cr.ChangedById)
+            .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<ChangeRequest>()
+           .HasOptional(cr => cr.ApprovedBy)
+           .WithMany(u => u.ChangeRequestsApproved)
+           .HasForeignKey(cr => cr.ApprovedById)
+           .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<Employee>()
                  .HasRequired(e => e.JobTitle)

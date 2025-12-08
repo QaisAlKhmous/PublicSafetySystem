@@ -70,7 +70,14 @@ namespace PublicSafety.Repositories.Repositories
         {
             using (var context = new AppDbContext())
             {
-                return context.Items.Any(i => i.Name == Name);
+                return context.Items.Where(i => i.IsActive).Any(i => i.Name == Name);
+            }
+        }
+        public static int GetNumberOfAllItems()
+        {
+            using (var context = new AppDbContext())
+            {
+                return context.Items.Where(i => i.IsActive).Select(i => i.Quantity).Sum();
             }
         }
     }

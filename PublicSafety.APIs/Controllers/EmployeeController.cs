@@ -52,5 +52,20 @@ namespace PublicSafety.APIs.Controllers
 
             return Json("updated successfully");
         }
+
+        [HttpGet]
+        public JsonResult GetNumberOfActiveEmployees()
+        {
+          int number =  EmployeeService.GetNumberOfActiveEmployees();
+
+            return Json(number,JsonRequestBehavior.AllowGet);
+        }
+        [HttpGet]
+        public JsonResult GetNumberOfInactiveEmployees()
+        {
+            int number = EmployeeService.GetNumberOfInactiveEmployees();
+
+            return Json(number, JsonRequestBehavior.AllowGet);
+        }
     }
 }

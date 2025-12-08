@@ -23,6 +23,8 @@ namespace PublicSafety.Domain.Entities
         public ICollection<MatrixItem> MatrixItems { get; set; }
         public ICollection<Issuance> Issues { get; set; }
         public ICollection<Item> Items { get; set; }
+        public ICollection<ChangeRequest> ChangeRequests { get; set; }
+        public ICollection<ChangeRequest> ChangeRequestsApproved { get; set; }
 
     }
 }

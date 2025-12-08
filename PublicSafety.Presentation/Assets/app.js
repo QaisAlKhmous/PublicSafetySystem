@@ -112,6 +112,9 @@ app.factory('itemService', function ($http) {
         },
         increaseQuantity: function (id, quantity) {
             return $http.post(baseUrl + '/IncreaseQuantity', { id: id, quantity: quantity });
+        },
+        getNumberOfAllItems: function () {
+            return $http.get(baseUrl + '/GetNumberOfAllItems');
         }
     };
 });
@@ -170,6 +173,12 @@ app.factory('employeeService', function ($http) {
         },
         deleteEmployee: function (id) {
             return $http.post(baseUrl + '/ResignEmployee', { Id: id })
+        },
+        getNumberOfActiveEmployees: function () {
+            return $http.get(baseUrl + '/GetNumberOfActiveEmployees');
+        },
+        getNumberOfInactiveEmployees: function () {
+            return $http.get(baseUrl + '/GetNumberOfInactiveEmployees');
         }
     };
 });
@@ -485,12 +494,53 @@ app.controller('matrixCtrl', function ($scope, NgTableParams, matrixService, $ht
   
     $scope.isEdit = false;
 })
+app.directive('fileModel', ['$parse', function ($parse) {
+    return {
+        restrict: 'A',
+        link: function (scope, element, attrs) {
+            var model = $parse(attrs.fileModel);
+            var modelSetter = model.assign;
+
+            element.bind('change', function () {
+                scope.$apply(function () {
+                    modelSetter(scope, element[0].files[0]);
+                });
+            });
+        }
+    };
+}]);
 
 app.controller('employeeCtrl', function ($scope, NgTableParams, employeeService, $location, itemService, $http, $rootScope) {
 
     $scope.employees = [];
 
     $scope.searchBy = 0;
+
+    $scope.downloadTemplate = function () {
+        window.location = "/Upload/DownloadEmployeeTemplate";
+    };
+
+    $scope.uploadExcel = function () {
+        if (!$scope.excelFile) {
+            $rootScope.toastify('Please select a file', 0);
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append('file', $scope.excelFile);
+
+        $http.post('/Upload/UploadEmployeesExcel', formData, {
+            transformRequest: angular.identity,
+            headers: { 'Content-Type': undefined }
+        }).then(function (res) {
+            $scope.uploadResult = res.data;
+            $rootScope.toastify('Upload completed', 1);
+        }).catch(function (err) {
+            $rootScope.toastify('Upload failed', 0);
+            console.error(err);
+        });
+    };
+
 
     $scope.getAllEmployees = function () {
         employeeService.getAllEmployees().then(function (response) {
@@ -784,23 +834,30 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
     $scope.loadJobTitles();
 
     $scope.employee = {
-        Name: '', Email: '', Phone: '', IsIntern: false, Notes: '', WorkLocation: 'Amman',
+        EmployeeId : null,FullName : '',FirstName: '', SecondName: '', LastName: '', Email: '', Phone: '', IsIntern: false, Notes: '', WorkLocation: 'Amman',
         HealthInsuranceFile: '', DepartmentId: null, SectionId: null, JobTitleId: null, CategoryId: null,
         EmploymentDate: '',Notes: ''
     }
 
     $scope.updateEmployeeId = $routeParams.employeeId;
 
+    $scope.changeRequest = {
+        EntityType: 'Employee', EntityId: '', OldValue: '',
+        NewValue: '', ChangedBy: $rootScope.LogedInUser.username
+    }
 
-
+   
     $scope.checkIfUpdate = function () {
         if ($scope.updateEmployeeId) {
             console.log("hi");
             employeeService.getEmployeeById($scope.updateEmployeeId)
                 .then((res) => {
                   
-                   $scope.employee = res.data;
-
+                    $scope.employee = res.data;
+                    $scope.changeRequest = {
+                        EntityType: 'Employee', EntityId: $scope.updateEmployeeId, OldValue: JSON.stringify($scope.employee),
+                        NewValue: '', ChangedBy: $rootScope.LogedInUser.username
+                    }
                 })
         }
     }
@@ -816,11 +873,22 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
         }
 
 
-        if ($scope.updateEmployeeId ) {
-            employeeService.updateEmployee($scope.employee)
-                .then((res) => {
-                    $rootScope.toastify('تم تعديل بيانات الموظف بنجاح',1);
-                }).catch((rej) => console.log(rej))
+        if ($scope.updateEmployeeId) {
+            if ($rootScope.LogedInUser.userType != 'admin') {
+                $scope.changeRequest.NewValue = JSON.stringify($scope.employee);
+                $http.post('/ChangeRequest/AddNewChangeRequest', { ChangeRequest: $scope.changeRequest }).then((res) => {
+                    $rootScope.toastify('تم حفظ طلب التعديل بنجاح, وسيتم مراجعته من الادارة', 1);
+
+                })
+
+            }
+            else {
+                employeeService.updateEmployee($scope.employee)
+                    .then((res) => {
+                        $rootScope.toastify('تم تعديل بيانات الموظف بنجاح', 1);
+                    }).catch((rej) => console.log(rej))
+            }
+          
         }
         else {
             employeeService.addNewEmployee($scope.employee)
@@ -907,4 +975,42 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
 
 
     
+})
+
+app.controller('dashboardCtrl', function ($scope, employeeService, itemService, $location, $http, $timeout, $rootScope,NgTableParams) {
+
+    $scope.loadNumbers = function () {
+        employeeService.getNumberOfActiveEmployees().then((res) => {
+            $scope.activeEmployeesCount = res.data;
+        })
+        employeeService.getNumberOfInactiveEmployees().then((res) => {
+            $scope.inactiveEmployeesCount = res.data;
+        })
+        itemService.getNumberOfAllItems().then((res) => {
+            $scope.itemsCount = res.data;
+        })
+
+        
+    }
+    $scope.loadNumbers();
+
+    $scope.changeRequests = []
+
+    $scope.loadChangeRequests = function () {
+        $http.get('/ChangeRequest/GetAllChangeRequests').then((res) => {
+            $scope.changeRequests = res.data;
+            $scope.requestsTableParams.settings({ dataset: $scope.changeRequests } )
+        })
+    }
+    $scope.loadChangeRequests();
+
+    $scope.requestsTableParams = new NgTableParams(
+        {
+            page: 1,            // start on first page
+            count: 10,          // items per page
+            filter: {},
+            sorting: { }// initial filter
+        }
+    );
+    $scope.requestsTableParams.settings().counts = [];
 })

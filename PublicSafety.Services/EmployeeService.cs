@@ -20,7 +20,7 @@ namespace PublicSafety.Services
             return Employees.Select(e => new EmployeeDTO
             {
                 EmployeeId = e.EmployeeId,
-                Name = e.Name,
+                FullName = e.FullName,
                 Email = e.Email,
                 Phone = e.Phone,
                 IsIntern = e.IsIntern,
@@ -47,7 +47,10 @@ namespace PublicSafety.Services
             var newEmployee = new Employee()
             {
                 EmployeeId = Guid.NewGuid(),
-                Name = employee.Name,
+                FirstName = employee.FirstName,
+                SecondName = employee.SecondName,
+                LastName = employee.LastName,
+                FullName = employee.FullName = employee.FirstName + " " + employee.SecondName + " " + employee.LastName,
                 Email = employee.Email,
                 Phone = employee.Phone,
                 IsIntern = employee.IsIntern,
@@ -78,7 +81,10 @@ namespace PublicSafety.Services
             return new AddEmployeeDTO()
             {
                 EmployeeId = Employee.EmployeeId,
-                Name = Employee.Name,
+                FullName = Employee.FullName,
+                FirstName = Employee.FirstName,
+                SecondName = Employee.SecondName,
+                LastName = Employee.LastName,
                 Email = Employee.Email,
                 Phone = Employee.Phone,
                 IsIntern = Employee.IsIntern,
@@ -103,7 +109,10 @@ namespace PublicSafety.Services
                 return false;
 
 
-            existingEmployee.Name = employee.Name;
+            existingEmployee.FirstName = employee.FirstName;
+            existingEmployee.SecondName = employee.SecondName;
+            existingEmployee.LastName = employee.LastName;
+            existingEmployee.FullName = employee.FirstName + " " + employee.SecondName + " " + employee.LastName;
             existingEmployee.Email = employee.Email;
             existingEmployee.Phone = employee.Phone;
             existingEmployee.IsIntern = employee.IsIntern;
@@ -129,5 +138,15 @@ namespace PublicSafety.Services
             return EmployeeRepo.UpdateEmployee(existingEmployee);
 
         }
+
+        public static int GetNumberOfActiveEmployees()
+        {
+            return EmployeeRepo.GetNumberOfActiveEmployees();
+        }
+        public static int GetNumberOfInactiveEmployees()
+        {
+            return EmployeeRepo.GetNumberOfInactiveEmployees();
+        }
+
     }
 }

@@ -21,12 +21,38 @@
             </div>
 
             <!-- الفلاتر وأزرار الإضافة -->
-            
+
         </div>
 
         <!-- جسم البطاقة -->
         <div class="card-body p-2">
             <div class="d-flex justify-content-between">
+                <div class="btn-group w-100 ">
+                    <button type="button" class="btn dropdown-toggle w-100 text-dark" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        اكسل
+                    </button>
+                    <ul class="dropdown-menu w-100 small">
+                        <li>
+                            <a class="dropdown-item text-truncate" href="/Upload/DownloadEmployeeTemplate" title="تنزيل نموذج الموظفين">
+                                تنزيل نموذج الموظفين
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#uploadEmployeesModal" href="">
+                                رفع ملف الموظفين
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="/Upload/DownloadAllEmployees">
+                                تنزيل ملف الموظفين
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+
+
+               
 
                 <!-- فلتر الحالة -->
                 <div class="col-md-2 mb-2">
@@ -36,7 +62,7 @@
                         <option value="false">مستقيل</option>
                     </select>
                 </div>
-                
+
                 <!-- Dropdown البحث -->
                 <div class="d-flex justify-content-between col-md-5 mb-2 align-items-center">
                     <div class="btn-group">
@@ -51,7 +77,7 @@
                         </div>
                     </div>
 
-                    
+
                     <!-- حقول البحث -->
 
                     <input type="text" ng-show="searchBy === 0" ng-model="employeesTableParams.filter().Name" placeholder="الاسم" class="form-control" />
@@ -60,8 +86,8 @@
                     <input type="text" ng-show="searchBy === 3" ng-model="employeesTableParams.filter().Department" placeholder="الوحدة التنظيمية" class="form-control" />
 
                 </div>
-                 
-               
+
+
 
                 <!-- زر إضافة موظف -->
                 <div class="col-md-3 mb-2 text-start">
@@ -87,7 +113,7 @@
                     <tr ng-repeat="employee in $data">
                         <td>{{$index + 1}}</td>
                         <td>
-                            {{employee.Name}}
+                            {{employee.FullName}}
                             <div>
                                 <small class="text-muted">
                                     <span class="text-danger" ng-show="!employee.Active">مستقيل</span>
@@ -210,6 +236,35 @@
             <div class="modal-footer">
                 <button type="submit" class="btn btn-primary accept" ng-click="issueDamage()">حفظ التغييرات</button>
                 <button type="button" class="btn btn-danger closeBtn" data-bs-dismiss="modal">إغلاق</button>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="uploadEmployeesModal" tabindex="-1" aria-labelledby="uploadEmployeesModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalFormTitle">رفع ملف الموظفين</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div>
+                    
+                    <input type="file" file-model="excelFile" accept=".xlsx" />
+                    
+                </div>
+
+                <div ng-show="uploadResult">
+                    <p>Success: {{uploadResult.SuccessCount}}</p>
+                    <ul>
+                        <li ng-repeat="err in uploadResult.Errors">{{err}}</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button ng-click="uploadExcel()">Upload</button>
 
             </div>
         </div>

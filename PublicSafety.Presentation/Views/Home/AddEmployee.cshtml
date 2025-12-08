@@ -8,7 +8,7 @@
     <div class="card card-default">
         <div class="card-header">
             <h2 ng-show="!updateEmployeeId">اضافة موظف</h2>
-            <h2 ng-show="updateEmployeeId">تعديل بيانات الموظف ({{employee.Name}})</h2>
+            <h2 ng-show="updateEmployeeId">تعديل بيانات الموظف ({{employee.FullName}})</h2>
 
         </div>
         <div class="card-body">
@@ -19,23 +19,40 @@
                 <div class="row">
 
                     <div class="form-group col-4">
-                        <label for="exampleFormControlInput5" style="direction: rtl; text-align: right; display: block;">الاسم</label>
-                        <input arabic-only ng-model="employee.Name" type="text" name="Name" class="form-control rounded-0 bg-light" id="exampleFormControlInput5" placeholder="الأول الثاني الثالث الرابع" required>
-                        <div class="invalid-feedback d-block" ng-show="employeeForm.$submitted && employeeForm.Name.$error.required">
+                        <label for="exampleFormControlInput5" style="direction: rtl; text-align: right; display: block;">الاسم الأول</label>
+                        <input arabic-only ng-model="employee.FirstName" type="text" name="FirstName" class="form-control rounded-0 bg-light" id="exampleFormControlInput5" placeholder="الاسم الأول" required>
+                        <div class="invalid-feedback d-block" ng-show="employeeForm.$submitted && employeeForm.FirstName.$error.required">
                             <i class="bx bx-radio-circle"></i>
-                            يرجى ادخال الاسم
+                            يرجى ادخال الاسم الأول
                         </div>
                     </div>
                     <div class="form-group col-4">
+                        <label for="exampleFormControlInput5" style="direction: rtl; text-align: right; display: block;">الاسم الثاني</label>
+                        <input arabic-only ng-model="employee.SecondName" type="text" name="SecondName" class="form-control rounded-0 bg-light" id="exampleFormControlInput5" placeholder="الاسم الثاني" required>
+                       
+                    </div>
+                    <div class="form-group col-4">
+                        <label for="exampleFormControlInput5" style="direction: rtl; text-align: right; display: block;">اسم العائلة</label>
+                        <input arabic-only ng-model="employee.LastName" type="text" name="LastName" class="form-control rounded-0 bg-light" id="exampleFormControlInput5" placeholder="اسم العائلة" required>
+                        <div class="invalid-feedback d-block" ng-show="employeeForm.$submitted && employeeForm.LastName.$error.required">
+                            <i class="bx bx-radio-circle"></i>
+                            يرجى ادخال اسم العائلة
+                        </div>
+                    </div>
+                  
+                </div>
+                <div class="row">
+                    <div class="form-group col-6">
                         <label for="exampleFormControlPassword4">البريد الالكتروني</label>
                         <input valid-email ng-model="employee.Email" type="email" name="Email" class="form-control rounded-0 bg-light" id="exampleFormControlPassword4" placeholder="example@email.com" style="direction:ltr">
                         <span ng-show="employeeForm.email.$error.email">البريد الإلكتروني غير صحيح!</span>
                     </div>
-                    <div class="form-group col-4">
+                    <div class="form-group col-6">
                         <label for="exampleFormControlPassword4">رقم الجوال</label>
                         <input numbers-only ng-model="employee.Phone" type="text" name="Phone" class="form-control rounded-0 bg-light" id="exampleFormControlPassword4" placeholder="07xxxxxxxx" style="direction:ltr">
-                       
+
                     </div>
+
                 </div>
 
                 <div class="row">

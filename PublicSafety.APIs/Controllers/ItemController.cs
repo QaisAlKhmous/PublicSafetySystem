@@ -71,5 +71,11 @@ namespace PublicSafety.APIs.Controllers
 
 
         }
+
+        [HttpGet]
+        public JsonResult GetNumberOfAllItems()
+        {
+            return Json(ItemService.GetNumberOfAllItems(),JsonRequestBehavior.AllowGet);
+        }
     }
 }

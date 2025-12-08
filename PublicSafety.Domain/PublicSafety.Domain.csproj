@@ -53,6 +53,7 @@
   <ItemGroup>
     <Compile Include="Class1.cs" />
     <Compile Include="Entities\Category.cs" />
+    <Compile Include="Entities\ChangeRequest.cs" />
     <Compile Include="Entities\Department.cs" />
     <Compile Include="Entities\Disposal.cs" />
     <Compile Include="Entities\Employee.cs" />

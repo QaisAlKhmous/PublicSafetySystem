@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PublicSafety.Services;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -58,8 +59,35 @@ namespace PublicSafety.APIs.Controllers
         }
 
 
+        [HttpPost]
+        public JsonResult UploadEmployeesExcel(HttpPostedFileBase file)
+        {
+            if (file == null || file.ContentLength == 0)
+                return Json(new { SuccessCount = 0, Errors = new List<string> { "No file uploaded" } });
+
+            var result = ExcelService.AddEmployeesFromExcel(file.InputStream);
+
+            return Json(result);
+        }
+        public FileResult DownloadEmployeeTemplate()
+        {
+            var fileBytes = ExcelService.GenerateEmployeeTemplate();
+            return File(fileBytes,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "EmployeeUploadTemplate.xlsx");
+        }
 
 
+        [HttpGet]
+        public ActionResult DownloadAllEmployees()
+        {
+            var fileContents = ExcelService.ExportAllEmployeesToExcel();
+            var fileName = $"Employees_{DateTime.Now:yyyyMMddHHmm}.xlsx";
+
+            return File(fileContents,
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        fileName);
+        }
 
     }
 }

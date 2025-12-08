@@ -22,6 +22,32 @@ namespace PublicSafety.Repositories.Repositories
                     .ToList();
             }
         }
+        public static IEnumerable<Employee> GetAllActiveEmployees()
+        {
+            using (var context = new AppDbContext())
+            {
+                return context.Employees
+                    .Include(e => e.Department)
+                    .Include(e => e.Section)
+                    .Include(e => e.JobTitle)
+                    .Include(e => e.JobTitle.jobTitleCategories.Select(jc => jc.Category))
+                    .Where(e => e.Active)
+                    .ToList();
+            }
+        }
+        public static IEnumerable<Employee> GetAllInactiveEmployees()
+        {
+            using (var context = new AppDbContext())
+            {
+                return context.Employees
+                    .Include(e => e.Department)
+                    .Include(e => e.Section)
+                    .Include(e => e.JobTitle)
+                    .Include(e => e.JobTitle.jobTitleCategories.Select(jc => jc.Category))
+                    .Where(e => !e.Active)
+                    .ToList();
+            }
+        }
 
         public static Guid AddNewEmployeee(Employee newEmployee)
         {
@@ -70,7 +96,10 @@ namespace PublicSafety.Repositories.Repositories
                 if (employee == null) return false;
 
                 // Update only the properties you want
-                employee.Name = updatedEmployee.Name;
+                employee.FirstName = updatedEmployee.FirstName;
+                employee.SecondName = updatedEmployee.SecondName;
+                employee.LastName = updatedEmployee.LastName;
+                employee.FullName = updatedEmployee.FullName;
                 employee.Email = updatedEmployee.Email;
                 employee.Phone = updatedEmployee.Phone;
                 employee.Active = updatedEmployee.Active;
@@ -90,6 +119,29 @@ namespace PublicSafety.Repositories.Repositories
 
                 context.SaveChanges();
                 return true;
+            }
+        }
+
+        public static int GetNumberOfActiveEmployees()
+        {
+            using (var context = new AppDbContext())
+            {
+                return context.Employees.Where(e => e.Active).Count();
+            }
+        }
+        public static int GetNumberOfInactiveEmployees()
+        {
+            using (var context = new AppDbContext())
+            {
+                return context.Employees.Where(e => !e.Active).Count();
+            }
+        }
+        public static void AddRange(List<Employee> employees)
+        {
+            using(var context = new AppDbContext())
+            {
+                context.Employees.AddRange(employees);
+                context.SaveChanges();
             }
         }
     }

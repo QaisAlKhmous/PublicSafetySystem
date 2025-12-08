@@ -75,6 +75,7 @@
   <ItemGroup>
     <Compile Include="Class1.cs" />
     <Compile Include="Controllers\CategoryController.cs" />
+    <Compile Include="Controllers\ChangeRequestController.cs" />
     <Compile Include="Controllers\DepartmentController.cs" />
     <Compile Include="Controllers\DisposalController.cs" />
     <Compile Include="Controllers\EmployeeController.cs" />

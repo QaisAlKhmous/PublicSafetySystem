@@ -9,33 +9,65 @@
 
 
     <!-- Main Dashboard -->
-    <div class="flex-grow-1 p-4" >
-      
+    <div class="flex-grow-1 p-4">
+
 
         <!-- KPI Cards -->
         <div class="row mt-4">
             <div class="col-md-4">
                 <div class="card shadow p-3">
                     <h5>عدد الموظفين الكلي</h5>
-                    <h2>124</h2>
+                    <h2>{{activeEmployeesCount}}</h2>
                 </div>
             </div>
 
             <div class="col-md-4">
                 <div class="card shadow p-3">
                     <h5>عدد المستقيلين الكلي</h5>
-                    <h2>124</h2>
+                    <h2>{{inactiveEmployeesCount}}</h2>
                 </div>
             </div>
 
             <div class="col-md-4">
                 <div class="card shadow p-3">
                     <h5>عدد المواد الكلي</h5>
-                    <h2>52</h2>
+                    <h2>{{itemsCount}}</h2>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<div class="card">
+    <div class="card-header text-center text-dark">
+        طلبات  تعديل المعلومات 
+    </div>
+    <div class="card-body">
+        <table class="table table-hover table-product" style="width:100%;text-align:center;" ng-table="requestsTableParams">
+
+
+            <tr ng-repeat="request in $data">
+                <td data-title="'#'">{{$index + 1}}</td>
+                <td data-title="'بواسطة'">{{request.ChangedBy}}</td>
+                <td data-title="'الجدول'">{{request.EntityType}}</td>
+                <td data-title="'تاريخ التعديل'">{{request.RequestDate}}</td>
+                <td data-title="'الحالة'">{{request.Status}}</td>
+                <td data-title="'الاجراءات'">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-success dropdown-toggle actions" data-bs-toggle="dropdown" aria-expanded="false">
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#increaseQuantityModalForm" ng-click="changeSelectedItem(item)">زيادة الرصيد</a></li>
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#disposeItemModalForm" ng-click="changeSelectedItem(item)">اتلاف كمية</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="" ng-click="confirmDelete(item.ItemId)">حذف المادة</a></li>
+                        </ul>
+                    </div>
+                </td>
+
+            </tr>
+
+        </table>
+    </div>
+</div>
 

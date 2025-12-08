@@ -66,6 +66,10 @@ namespace PublicSafety.Services
         {
             return ItemRepo.IsItemExistsByName(Name);
         }
+        public static int GetNumberOfAllItems()
+        {
+            return ItemRepo.GetNumberOfAllItems();
+        }
 
     }
 }
