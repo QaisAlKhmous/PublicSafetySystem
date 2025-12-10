@@ -42,7 +42,7 @@ namespace PublicSafety.Services
 
 
 
-        public static Guid AddNewEmployee(AddEmployeeDTO employee)
+        public static Guid? AddNewEmployee(AddEmployeeDTO employee)
         {
             var newEmployee = new Employee()
             {

@@ -10,9 +10,10 @@ namespace PublicSafety.Domain.Entities
     {
         Employee = 0,
         Item = 1,
-        Matrix = 2
+        Matrix = 2,
+        Issuance = 3
     }
-    public enum enStatus
+    public enum enRequestStatus
     {
         pending = 0,
         approved= 1,
@@ -31,7 +32,7 @@ namespace PublicSafety.Domain.Entities
         public Guid? ApprovedById { get; set; }
         public DateTime RequestDate { get; set; }
         public DateTime? ApprovedDate { get; set; }
-        public enStatus Status { get; set; }    
+        public enRequestStatus Status { get; set; }    
         public string AdminComment { get; set; }
     }
 }

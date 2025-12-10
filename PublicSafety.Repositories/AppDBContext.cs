@@ -157,6 +157,13 @@ namespace PublicSafety.Repositories
              .HasForeignKey(i => i.CreatedById)
              .WillCascadeOnDelete(false);
 
+            modelBuilder.Entity<Issuance>()
+             .HasOptional(ish => ish.MatrixItem)
+             .WithMany(i => i.Issuances)
+             .HasForeignKey(i => i.MatrixItemId)
+             .WillCascadeOnDelete(false);
+
+
             modelBuilder.Entity<MatrixItem>()
                 .HasRequired(m => m.Matrix)
                 .WithMany(c => c.MatrixItems)

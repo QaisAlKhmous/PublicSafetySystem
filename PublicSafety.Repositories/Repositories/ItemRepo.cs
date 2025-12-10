@@ -80,5 +80,7 @@ namespace PublicSafety.Repositories.Repositories
                 return context.Items.Where(i => i.IsActive).Select(i => i.Quantity).Sum();
             }
         }
+
+       
     }
 }

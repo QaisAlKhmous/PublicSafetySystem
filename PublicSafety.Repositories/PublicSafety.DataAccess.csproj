@@ -156,6 +156,10 @@
     <Compile Include="Migrations\202512081146169_add_approvedBy_changeRequests.Designer.cs">
       <DependentUpon>202512081146169_add_approvedBy_changeRequests.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202512101301299_add_MatrixItem_toIssuances.cs" />
+    <Compile Include="Migrations\202512101301299_add_MatrixItem_toIssuances.Designer.cs">
+      <DependentUpon>202512101301299_add_MatrixItem_toIssuances.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositories\CategoryRepo.cs" />
@@ -219,6 +223,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202512081146169_add_approvedBy_changeRequests.resx">
       <DependentUpon>202512081146169_add_approvedBy_changeRequests.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202512101301299_add_MatrixItem_toIssuances.resx">
+      <DependentUpon>202512101301299_add_MatrixItem_toIssuances.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

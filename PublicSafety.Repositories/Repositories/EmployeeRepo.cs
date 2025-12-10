@@ -49,7 +49,7 @@ namespace PublicSafety.Repositories.Repositories
             }
         }
 
-        public static Guid AddNewEmployeee(Employee newEmployee)
+        public static Guid? AddNewEmployeee(Employee newEmployee)
         {
             using (var context = new AppDbContext())
             {
@@ -74,7 +74,7 @@ namespace PublicSafety.Repositories.Repositories
 
         }
 
-        public static Employee GetEmployeeById(Guid Id)
+        public static Employee GetEmployeeById(Guid? Id)
         {
             using(var context = new AppDbContext())
             {

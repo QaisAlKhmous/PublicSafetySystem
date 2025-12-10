@@ -1,4 +1,6 @@
-﻿using PublicSafety.Repositories.Repositories;
+﻿using PublicSafety.Domain.Entities;
+using PublicSafety.Repositories;
+using PublicSafety.Repositories.Repositories;
 using PublicSafety.Services.DTOs;
 using System;
 using System.Collections.Generic;
@@ -18,6 +20,18 @@ namespace PublicSafety.Services
                 CategoryId = c.CategoryId,
                 Name = c.Name,
             });
+        }
+
+        public static JobTitleCategoryDTO GetCategoryByJobTitleId(Guid JobTitleId)
+        {
+            var JobTitleCategory = CategoryRepo.GetCategoryByJobTitleId(JobTitleId);
+
+            return new JobTitleCategoryDTO()
+            {
+                JobTitleCategoryId = JobTitleCategory.JobTitleCategoryId,
+                JobTitle = JobTitleCategory.JobTitle.Name,
+                Category = JobTitleCategory.Category.Name
+            };
         }
     }
 }

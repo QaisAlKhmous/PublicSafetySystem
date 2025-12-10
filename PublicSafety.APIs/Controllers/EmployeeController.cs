@@ -24,7 +24,7 @@ namespace PublicSafety.APIs.Controllers
         [HttpPost]
         public JsonResult AddNewEmployee(AddEmployeeDTO Employee)
         {
-          Guid id =  EmployeeService.AddNewEmployee(Employee);
+          Guid? id =  EmployeeService.AddNewEmployee(Employee);
 
             return Json(new { id = id }, "Added Succesfully!");
         }

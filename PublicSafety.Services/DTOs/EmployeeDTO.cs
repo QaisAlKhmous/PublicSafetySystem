@@ -9,7 +9,7 @@ namespace PublicSafety.Services.DTOs
 {
     public class EmployeeDTO
     {
-        public Guid EmployeeId { get; set; }
+        public Guid? EmployeeId { get; set; }
 
         public string FullName { get; set; }
 

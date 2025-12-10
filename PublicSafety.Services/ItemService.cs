@@ -71,5 +71,12 @@ namespace PublicSafety.Services
             return ItemRepo.GetNumberOfAllItems();
         }
 
+        public static bool IsQuantityEnough(Guid Id, int quantity)
+        {
+            var item = GetItemById(Id);
+
+            return (item.Quantity >= quantity);
+        }
+
     }
 }

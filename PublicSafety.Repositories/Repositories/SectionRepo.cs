@@ -25,5 +25,13 @@ namespace PublicSafety.Repositories.Repositories
                 return context.Sections.FirstOrDefault(s => s.Name == Name);
             }
         }
+
+        public static Section GetSectionById(Guid Id)
+        {
+            using (var context = new AppDbContext())
+            {
+                return context.Sections.Find(Id);
+            }
+        }
     }
 }

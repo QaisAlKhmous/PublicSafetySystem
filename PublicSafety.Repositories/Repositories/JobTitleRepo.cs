@@ -25,5 +25,12 @@ namespace PublicSafety.Repositories.Repositories
                 return context.JobTitles.FirstOrDefault(j => j.Name == name);
             }
         }
+        public static JobTitle GetJobTitleById(Guid Id)
+        {
+            using (var context = new AppDbContext())
+            {
+                return context.JobTitles.Find(Id);
+            }
+        }
     }
 }

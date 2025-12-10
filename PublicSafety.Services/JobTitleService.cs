@@ -27,5 +27,12 @@ namespace PublicSafety.Services
 
             return new JobTitleDTO() { JobTitleId = JobTitle.JobTitleId, Name = name };
         }
+
+        public static JobTitleDTO GetJobTitleById(Guid Id)
+        {
+            var JobTitle = JobTitleRepo.GetJobTitleById(Id);
+
+            return new JobTitleDTO() {JobTitleId = JobTitle.JobTitleId,Name= JobTitle.Name};
+        }
     }
 }

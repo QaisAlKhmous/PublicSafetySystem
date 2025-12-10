@@ -18,6 +18,7 @@ namespace PublicSafety.Domain.Entities
         public User CreatedBy { get; set; }
         public Guid CreatedById { get; set; }
         public DateTime CreatedDate {  get; set; }
+        public ICollection<Issuance> Issuances { get; set; }
 
 
     }

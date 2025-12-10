@@ -28,5 +28,12 @@ namespace PublicSafety.Services
 
             return new DepartmentDTO { DepartmentId = Department.DepartmentId, Name = name };   
         }
+
+        public static DepartmentDTO GetDepartmentById(Guid Id)
+        {
+            var Department = DepartmentRepo.GetDepartmentById(Id);
+
+            return new DepartmentDTO { DepartmentId = Department.DepartmentId, Name = Department.Name };
+        }
     }
 }

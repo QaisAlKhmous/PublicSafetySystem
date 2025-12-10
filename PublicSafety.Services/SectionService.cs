@@ -1,5 +1,6 @@
 ﻿using PublicSafety.Repositories.Repositories;
 using PublicSafety.Services.DTOs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -22,6 +23,13 @@ namespace PublicSafety.Services
             var Section = SectionRepo.GetSectionByName(name);
 
             return new SectionDTO { SectionId = Section.SectionId, Name = name };
+        }
+
+        public static SectionDTO GetSectionById(Guid Id)
+        {
+            var Section = SectionRepo.GetSectionById(Id);
+
+            return new SectionDTO { SectionId = Section.SectionId, Name = Section.Name };
         }
     }
 }

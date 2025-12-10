@@ -32,6 +32,8 @@ namespace PublicSafety.Domain.Entities
 
         public enIssuanceType Type { get; set; }
         public string ExceptionReason { get; set; }
+        public Guid? MatrixItemId { get; set; }
+        public MatrixItem MatrixItem { get; set; }
 
     }
 }

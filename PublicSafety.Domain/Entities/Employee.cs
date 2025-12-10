@@ -11,7 +11,7 @@ namespace PublicSafety.Domain.Entities
     
     public class Employee
     {
-        public Guid EmployeeId { get; set; }
+        public Guid? EmployeeId { get; set; }
         public string FullName { get; set; }
         public string FirstName { get; set; }
         public string SecondName { get; set; }

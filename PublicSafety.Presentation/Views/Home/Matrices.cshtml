@@ -135,8 +135,11 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" ng-click="addNewItem()">Save Changes</button>
+                <button type="submit" class="btn btn-primary accept" ng-click="addNewItem()">حفظ التغييرات</button>
+                <button type="button" class="btn btn-danger closeBtn" data-bs-dismiss="modal">
+                    إغلاق
+                </button>
+
             </div>
         </div>
     </div>
@@ -163,8 +166,9 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" ng-click="updateMatrixItemFun()">Save Changes</button>
+
+                <button type="submit" class="btn btn-primary accept" ng-click="updateMatrixItemFun()">حفظ التغييرات</button>
+                <button type="button" class="btn btn-danger closeBtn" data-bs-dismiss="modal">إغلاق</button>
             </div>
         </div>
     </div>

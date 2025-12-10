@@ -32,14 +32,14 @@
                     <td data-title="'#'">{{$index + 1}}</td>
                     <td data-title="'اسم المادة'">{{item.Name}}</td>
                     <td data-title="'الرصيد الحالي'">{{item.Quantity}}</td>
+                    <td data-title="'الوصف'">{{item.Description}}</td>
                     <td data-title="'أضيف بواسطة'">{{item.AddedBy}}</td>
                     <td data-title="'الاجراءات'">
                         <div class="btn-group">
-                            <button  type="button" class="btn btn-success dropdown-toggle actions" data-bs-toggle="dropdown" aria-expanded="false">
-                                
+                            <button type="button" class="btn btn-success dropdown-toggle actions" data-bs-toggle="dropdown" aria-expanded="false">
                             </button>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#increaseQuantityModalForm"ng-click="changeSelectedItem(item)" >زيادة الرصيد</a></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#increaseQuantityModalForm" ng-click="changeSelectedItem(item)">زيادة الرصيد</a></li>
                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#disposeItemModalForm" ng-click="changeSelectedItem(item)">اتلاف كمية</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item text-danger" href="" ng-click="confirmDelete(item.ItemId)">حذف المادة</a></li>
@@ -75,8 +75,8 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" ng-click="increaseQuantity()">Save Changes</button>
+                <button type="submit" class="btn btn-primary accept" ng-click="increaseQuantity()">حفظ التغييرات</button>
+                <button type="button" class="btn btn-danger closeBtn" data-bs-dismiss="modal">إغلاق</button>
             </div>
         </div>
     </div>

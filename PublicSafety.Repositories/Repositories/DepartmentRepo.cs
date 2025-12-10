@@ -1,4 +1,5 @@
 ﻿using PublicSafety.Domain.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -18,6 +19,14 @@ namespace PublicSafety.Repositories.Repositories
             using (var context = new AppDbContext())
             {
                 return context.Departments.FirstOrDefault(s => s.Name == Name);
+            }
+        }
+
+        public static Department GetDepartmentById(Guid Id)
+        {
+            using (var context = new AppDbContext())
+            {
+                return context.Departments.Find(Id);
             }
         }
     }

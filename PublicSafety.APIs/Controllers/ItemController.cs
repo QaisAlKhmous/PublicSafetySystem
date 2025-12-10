@@ -77,5 +77,11 @@ namespace PublicSafety.APIs.Controllers
         {
             return Json(ItemService.GetNumberOfAllItems(),JsonRequestBehavior.AllowGet);
         }
+
+        [HttpPost]
+        public JsonResult IsQuantityEnough(Guid Id,int Quantity)
+        {
+            return Json(ItemService.IsQuantityEnough(Id, Quantity),JsonRequestBehavior.AllowGet);
+        }
     }
 }

@@ -218,7 +218,7 @@ app.controller('sidebarCtrl', function ($scope, $rootScope, $location) {
     });
 })
 
-app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, disposalService, $rootScope) {
+app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, disposalService, $rootScope,$http) {
 
     $scope.items = [];
     $scope.newItem = { Name: '', Description: '', Quantity: 0, AddedBy: $rootScope.LogedInUser.username }
@@ -252,6 +252,11 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
     $scope.itemsTableParams.settings().counts = [];
     $scope.loadItems();
 
+    $scope.changeRequest = {
+        EntityType: 'Item', EntityId: '', OldValue: null,
+        NewValue: '', ChangedBy: $rootScope.LogedInUser.username
+    }
+
     $scope.addNewItem = function () {
         $scope.additemForm.$setSubmitted();
 
@@ -260,18 +265,30 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
             console.warn("Form invalid");
             return;
         }
+        if ($rootScope.LogedInUser.userType != 0) {
+            $scope.changeRequest.NewValue = JSON.stringify($scope.newItem);
+            $http.post('/ChangeRequest/AddNewChangeRequest', { ChangeRequest: $scope.changeRequest }).then((res) => {
+                $rootScope.toastify('تم حفظ طلب التعديل بنجاح, وسيتم مراجعته من الادارة', 1);
+
+            })
+
+        }
+        else {
+            itemService.addItem($scope.newItem).then(function (response) {
+                if (!response.data.success)
+                    $rootScope.toastify('يوجد مادة بهذا الاسم', 0);
+                else {
+                    $scope.loadItems();
+                    $rootScope.toastify('تم اضافة المادة بنجاح', 1);
+                }
+
+            }, function (error) {
+                console.error("Error loading items", error);
+            });
+
+        }
         
-        itemService.addItem($scope.newItem).then(function (response) {
-            if (!response.data.success)
-                $rootScope.toastify('يوجد مادة بهذا الاسم', 0);
-            else {
-                $scope.loadItems();
-                $rootScope.toastify('تم اضافة المادة بنجاح', 1);
-            }
-          
-        }, function (error) {
-            console.error("Error loading items", error);
-        });
+      
     }
 
     $scope.confirmDelete = function (ItemId) {
@@ -291,26 +308,50 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
    
 
     $scope.deleteItem = function (ItemId) {
-        itemService.deleteItem(ItemId).then(function (response) {
-            $scope.loadItems();
-            $rootScope.toastify("تم حذف مادة بنجاح",1)
-        }, function (error) {
-            console.error("Error deleting items", error);
-        });
+
+        if ($rootScope.LogedInUser.userType != 0) {
+            $scope.changeRequest.EntityId = ItemId;
+            $http.post('/ChangeRequest/AddNewChangeRequest', { ChangeRequest: $scope.changeRequest }).then((res) => {
+                $rootScope.toastify('تم حفظ الطلب بنجاح, وسيتم مراجعته من الادارة', 1);
+
+            })
+
+        } else {
+            itemService.deleteItem(ItemId).then(function (response) {
+                $scope.loadItems();
+                $rootScope.toastify("تم حذف مادة بنجاح", 1)
+            }, function (error) {
+                console.error("Error deleting items", error);
+            });
+        }
+      
     }
 
     $scope.changeSelectedItem = function (item) {
         $scope.selectedItem = item;
     }
+   
 
     $scope.increaseQuantity = function () {
-        console.log($scope.selectedItem);
-        itemService.increaseQuantity($scope.selectedItem.ItemId,$scope.addedQuantity).then(function (response) {
-            $scope.loadItems();
-            $rootScope.toastify("تم زيادة رصيد مادة بنجاح", 1);
-        }, function (error) {
-            console.error("Error deleting items", error);
-        });
+        if ($rootScope.LogedInUser.userType != 0) {
+            $scope.changeRequest.EntityId = $scope.selectedItem.ItemId;
+            var item = { Quantity: $scope.addedQuantity, IsIncrease: true };
+            $scope.changeRequest.OldValue = JSON.stringify(item);
+
+            $http.post('/ChangeRequest/AddNewChangeRequest', { ChangeRequest: $scope.changeRequest }).then((res) => {
+                $rootScope.toastify('تم حفظ الطلب بنجاح, وسيتم مراجعته من الادارة', 1);
+
+            })
+
+        } else {
+            itemService.increaseQuantity($scope.selectedItem.ItemId, $scope.addedQuantity).then(function (response) {
+                $scope.loadItems();
+                $rootScope.toastify("تم زيادة رصيد مادة بنجاح", 1);
+            }, function (error) {
+                console.error("Error deleting items", error);
+            });
+        }
+       
     }
 
     $(document).ready(function () {
@@ -347,15 +388,37 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
         });
     });
 
+    
 
     $scope.dispose = function () {
         $scope.disposal.ItemId = $scope.selectedItem.ItemId;
-        disposalService.addDisposal($scope.disposal).then(function (response) {
-            $scope.loadItems();
-            $rootScope.toastify("تم اتلاف مادة بنجاح",1)
-        }, function (error) {
-            console.error("Error deleting items", error);
-        })
+        if ($scope.selectedItem.Quantity < $scope.disposal.Quantity) {
+            $rootScope.toastify("الكمية المراد اتلافها غير متوفرة", 0)
+        } else {
+            if ($rootScope.LogedInUser.userType != 0) {
+                $scope.changeRequest.EntityId = $scope.selectedItem.ItemId;
+                var item = { Quantity: $scope.disposal.Quantity, IsIncrease: false };
+                $scope.changeRequest.OldValue = JSON.stringify(item);
+
+                $http.post('/ChangeRequest/AddNewChangeRequest', { ChangeRequest: $scope.changeRequest }).then((res) => {
+                    $rootScope.toastify('تم حفظ الطلب بنجاح, وسيتم مراجعته من الادارة', 1);
+
+                })
+
+            }
+            else {
+
+                disposalService.addDisposal($scope.disposal).then(function (response) {
+                    $scope.loadItems();
+                    $rootScope.toastify("تم اتلاف مادة بنجاح", 1)
+                }, function (error) {
+                    console.error("Error deleting items", error);
+                })
+            }
+
+
+        }
+       
     }
 })
 
@@ -569,7 +632,7 @@ app.controller('employeeCtrl', function ($scope, NgTableParams, employeeService,
 
     // Handle Issue Exception
 
-    $scope.issuance = { EmployeeId: null, IssuanceId: null, ItemId: null, Quantity: 1, Type: '', ExceptionReason: '', ExceptionFormPath: '', CreatedBy: $rootScope.LogedInUser.username };
+    $scope.issuance = { EmployeeId: null, IssuanceId: null, ItemId: null, Quantity: 1, Type: '', ExceptionReason: '', ExceptionFormPath: '', CreatedBy: $rootScope.LogedInUser.username,IssuanceDate : '' };
 
     $scope.loadException = function (EmployeeId) {
         $scope.loadItems();
@@ -591,33 +654,65 @@ app.controller('employeeCtrl', function ($scope, NgTableParams, employeeService,
             $scope.items = res.data;
         })
     }
+    $scope.changeRequest = {
+        EntityType: 'Issuance', EntityId: '', OldValue: null,
+        NewValue: '', ChangedBy: $rootScope.LogedInUser.username
+    }
+
+    $scope.addChangeRequest = function () {
+        $scope.issuance.IssuanceDate = new Date().toISOString().split("T")[0];
+        const { IssuanceId, ...issuanceRequest } = $scope.issuance;
+        $scope.issuanceRequest = issuanceRequest;
+
+        $scope.changeRequest.NewValue = JSON.stringify($scope.issuanceRequest);
+        $http.post('/ChangeRequest/AddNewChangeRequest', { ChangeRequest: $scope.changeRequest }).then((res) => {
+            $rootScope.toastify('تم حفظ طلب التعديل بنجاح, وسيتم مراجعته من الادارة', 1);
+
+        })
+
+    }
 
     $scope.issue = function () {
-        $http.post('/Issuance/AddNewIssuance', $scope.issuance)
-            .then(function (res) {
 
-                if (res.data.success === false) {
-                    $rootScope.toastify(res.data.message, 0);
-                } else {
-                    $rootScope.toastify(res.data.message, 1);
-
-                    $scope.issuance = {
-                        EmployeeId: null,
-                        IssuanceId: null,
-                        ItemId: null,
-                        Quantity: 1,
-                        Type: '',
-                        ExceptionReason: '',
-                        ExceptionFormPath: '',
-                        CreatedBy: $rootScope.LogedInUser.username
-                    };
-                    $scope.exceptionForm.$submitted = false;
+        if ($rootScope.LogedInUser.userType != 0) {
+            $http.post('/Item/IsQuantityEnough', { Id: $scope.issuance.ItemId, Quantity: $scope.issuance.Quantity }).then((res) => {
+                if (res.data)
+                    $scope.addChangeRequest();
+                else {
+                    $rootScope.toastify('الكمية المطلوبة غير متوفرة', 0);
                 }
             })
-            .catch(function (err) {
+           
+        } else {
 
-                $rootScope.toastify(err.data ? err.data.message : 'Something went wrong!', 0);
-            });
+            $http.post('/Issuance/AddNewIssuance', $scope.issuance)
+                .then(function (res) {
+
+                    if (res.data.success === false) {
+                        $rootScope.toastify(res.data.message, 0);
+                    } else {
+                        $rootScope.toastify(res.data.message, 1);
+
+                        $scope.issuance = {
+                            EmployeeId: null,
+                            IssuanceId: null,
+                            ItemId: null,
+                            Quantity: 1,
+                            Type: '',
+                            ExceptionReason: '',
+                            ExceptionFormPath: '',
+                            CreatedBy: $rootScope.LogedInUser.username
+                        };
+                        $scope.exceptionForm.$submitted = false;
+                    }
+                })
+                .catch(function (err) {
+
+                    $rootScope.toastify(err.data ? err.data.message : 'Something went wrong!', 0);
+                });
+        }
+
+
     }
 
     $scope.issueException = function () {
@@ -842,7 +937,7 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
     $scope.updateEmployeeId = $routeParams.employeeId;
 
     $scope.changeRequest = {
-        EntityType: 'Employee', EntityId: '', OldValue: '',
+        EntityType: 'Employee', EntityId: '', OldValue: null,
         NewValue: '', ChangedBy: $rootScope.LogedInUser.username
     }
 
@@ -871,33 +966,43 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
             console.warn("Form invalid");
             return;
         }
+        if ($rootScope.LogedInUser.userType != 0) {
+
+            const { EmployeeId, CategoryId, ...employeeRequest } = $scope.employee;
+            $scope.employeeRequest = employeeRequest;
+
+            $scope.changeRequest.NewValue = JSON.stringify($scope.employeeRequest);
+            $http.post('/ChangeRequest/AddNewChangeRequest', { ChangeRequest: $scope.changeRequest }).then((res) => {
+                $rootScope.toastify('تم حفظ طلب التعديل بنجاح, وسيتم مراجعته من الادارة', 1);
+
+            })
+
+        } else {
+            if ($scope.updateEmployeeId) {
 
 
-        if ($scope.updateEmployeeId) {
-            if ($rootScope.LogedInUser.userType != 'admin') {
-                $scope.changeRequest.NewValue = JSON.stringify($scope.employee);
-                $http.post('/ChangeRequest/AddNewChangeRequest', { ChangeRequest: $scope.changeRequest }).then((res) => {
-                    $rootScope.toastify('تم حفظ طلب التعديل بنجاح, وسيتم مراجعته من الادارة', 1);
-
-                })
-
-            }
-            else {
                 employeeService.updateEmployee($scope.employee)
                     .then((res) => {
                         $rootScope.toastify('تم تعديل بيانات الموظف بنجاح', 1);
                     }).catch((rej) => console.log(rej))
-            }
-          
-        }
-        else {
-            employeeService.addNewEmployee($scope.employee)
-                .then((res) => {
-                    $rootScope.toastify('تم اضافة موظف بنجاح', 1);
-                    $location.path('/editEmployee/' + res.data.id);
-                }).catch((rej) => console.log(rej))
 
+
+            }
+            else {
+                $scope.changeRequest = {
+                    EntityType: 'Employee', EntityId: $scope.updateEmployeeId, OldValue: null,
+                    NewValue: $scope.employee, ChangedBy: $rootScope.LogedInUser.username
+                }
+                employeeService.addNewEmployee($scope.employee)
+                    .then((res) => {
+                        $rootScope.toastify('تم اضافة موظف بنجاح', 1);
+                        $location.path('/editEmployee/' + res.data.id);
+                    }).catch((rej) => console.log(rej))
+
+            }
         }
+
+        
 
        
 
@@ -977,7 +1082,10 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
     
 })
 
-app.controller('dashboardCtrl', function ($scope, employeeService, itemService, $location, $http, $timeout, $rootScope,NgTableParams) {
+app.controller('dashboardCtrl', function ($scope, employeeService, itemService, $location, $http, $timeout, $rootScope, NgTableParams) {
+
+
+    $scope.IsAdmin = $rootScope.LogedInUser.userType == 0;
 
     $scope.loadNumbers = function () {
         employeeService.getNumberOfActiveEmployees().then((res) => {
@@ -1013,4 +1121,88 @@ app.controller('dashboardCtrl', function ($scope, employeeService, itemService, 
         }
     );
     $scope.requestsTableParams.settings().counts = [];
+
+    $scope.confirmAcceptRequest = function (requestId) {
+        Swal.fire({
+            title: 'هل انت متأكد من الموافقة على الطلب؟',
+            text: "",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'نعم',
+            cancelButtonText: 'لا'
+        }).then((result) => {
+            if (result.isConfirmed) $scope.acceptRequest(requestId);
+        });
+    }
+
+    $scope.confirmRejectRequest = function (requestId) {
+        Swal.fire({
+            title: 'هل انت متأكد من رفض الطلب؟',
+            text: "",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'نعم',
+            cancelButtonText: 'لا'
+        }).then((result) => {
+            if (result.isConfirmed) $scope.rejectRequest(requestId);
+        });
+    }
+
+    $scope.acceptRequest = function (requestId) {
+       
+        $http.post('/ChangeRequest/AcceptChangeRequest', { ChangeRequestId: requestId, ApprovedBy: $rootScope.LogedInUser.username }).then((res) => {
+            $rootScope.toastify('تم الموافقة على الطلب وتعديل البيانات بنجاح', 1);
+            $scope.loadChangeRequests();
+        })
+    }
+
+    $scope.rejectRequest = function (requestId) {
+
+        $http.post('/ChangeRequest/RejectChangeRequest', { ChangeRequestId: requestId, ApprovedBy: $rootScope.LogedInUser.username }).then((res) => {
+            $rootScope.toastify('تم رفض طلب تعديل البيانات بنجاح', 1);
+            $scope.loadChangeRequests();
+        })
+    }
+
+    $scope.selectedRequest = {};
+    $scope.differences = [];
+    $scope.data = {};
+
+    $scope.showDetails = function (request) {
+        $scope.selectedRequest = request;
+        $http.post('/ChangeRequest/GetDifferences', { ChangeRequestId: request.RequestId, EntityId: request.EntityId }).then((res) => {
+            $scope.entityType = res.data.type;
+            $scope.isAdd = res.data.IsAdd;
+            if (res.data.IsAdd) {
+                
+                $scope.data = res.data.entity;
+            } 
+            if (!res.data.IsAdd && res.data.type == 'employee') {
+
+                $scope.oldData = res.data.oldEntity;
+                $scope.newData = res.data.newEntity;
+            }
+            if (res.data.IsAdd && res.data.type == 'item') {
+                $scope.data = res.data.entity;
+            }
+            if (!res.data.IsAdd && res.data.type == 'item') {
+                $scope.data = res.data.entity;
+                $scope.itemReq = res.data.itemReq;
+                
+            }
+            if (res.data.IsAdd && res.data.type == 'issuance') {
+                $scope.data = res.data.entity;
+                $scope.issuanceEmployee = res.data.employee;
+                $scope.itemIssued = res.data.item;
+                console.log($scope.data)
+            }
+
+            console.log($scope.data)
+                
+        })
+    }
 })

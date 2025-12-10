@@ -16,7 +16,9 @@ namespace PublicSafety.Services.DTOs
         public string NewValue { get; set; }
         public string ChangedBy { get; set; }
         public string RequestDate { get; set; }
-        public string Status { get; set; }
+        public int Status { get; set; }
         public string AdminComment { get; set; }
+        public string ApprovedBy { get; set; }
+        public string ApprovedDate { get; set; }
     }
 }
