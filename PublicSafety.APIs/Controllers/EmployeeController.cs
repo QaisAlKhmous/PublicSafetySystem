@@ -67,5 +67,13 @@ namespace PublicSafety.APIs.Controllers
 
             return Json(number, JsonRequestBehavior.AllowGet);
         }
+
+        [HttpGet]
+        public JsonResult GetEmployeeEntitlements(Guid EmployeeId)
+        {
+            var entitlements = EntitlementService.GetEntitlementsByEmployeeId(EmployeeId);
+
+            return Json(entitlements, JsonRequestBehavior.AllowGet);
+        }
     }
 }

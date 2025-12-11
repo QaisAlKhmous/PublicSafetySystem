@@ -1000,6 +1000,8 @@
     <Content Include="Views\Home\AddEmployee.cshtml" />
     <Content Include="Views\Account\Login.cshtml" />
     <Content Include="Views\Home\Dashboard.cshtml" />
+    <Content Include="Views\Home\Issuances.cshtml" />
+    <Content Include="Views\Home\Entitlements.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

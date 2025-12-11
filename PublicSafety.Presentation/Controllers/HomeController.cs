@@ -46,6 +46,14 @@ namespace PublicSafety.Presentation.Controllers
         {
             return View();
         }
+        public ActionResult Issuances()
+        {
+            return View();
+        }
+        public ActionResult Entitlements()
+        {
+            return View();
+        }
 
         public ActionResult Contact()
         {

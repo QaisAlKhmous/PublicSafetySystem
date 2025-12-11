@@ -38,258 +38,261 @@
     </div>
 </div>
 
-<div class="card" ng-show="IsAdmin">
-    <div class="card-header text-center text-dark txt-large">
-        طلبات  تعديل المعلومات 
-    </div>
-    <div class="card-body">
-        <table class="table table-hover table-product" style="width:100%;text-align:center;" ng-table="requestsTableParams">
+
+    <div class="card" ng-show="IsAdmin">
+        <div class="card-header text-center text-dark txt-large">
+            طلبات  تعديل المعلومات
+        </div>
+        <div class="card-body">
+            <table class="table table-hover table-product" style="width:100%;text-align:center;" ng-table="requestsTableParams">
 
 
-            <tr ng-repeat="request in $data" ng-click="showDetails(request)" style="cursor:pointer;" data-bs-toggle="modal" data-bs-target="#diffModalForm">
-                <td data-title="'#'">{{$index + 1}}</td>
-                <td data-title="'بواسطة'">{{request.ChangedBy}}</td>
-                <td data-title="'الجدول'">
-                    <span ng-show="request.EntityType == 'Employee'">الموظفين</span>
-                    <span ng-show="request.EntityType == 'Item'">المواد</span>
-                    <span ng-show="request.EntityType == 'Issuance'">الصرف</span>
-                </td>
-                <td data-title="'تاريخ التعديل'">{{request.RequestDate}}</td>
-                <td data-title="'تاريخ الرفض/الموافقة'">{{request.ApprovedDate}}</td>
-                <td data-title="'الحالة'">
-                    <span class="badge badge-warning txt-small" ng-show="request.Status == 0">قيد الانتظار</span>
-                    <span class="badge badge-success txt-small" ng-show="request.Status == 1">موافق عليه</span>
-                    <span class="badge badge-danger txt-small" ng-show="request.Status == 2">مرفوض</span>
-                </td>
-                <td data-title="'الاجراءات'">
+                <tr ng-repeat="request in $data" ng-click="showDetails(request)" style="cursor:pointer;" data-bs-toggle="modal" data-bs-target="#diffModalForm">
+                    <td data-title="'#'">{{$index + 1}}</td>
+                    <td data-title="'بواسطة'">{{request.ChangedBy}}</td>
+                    <td data-title="'الجدول'">
+                        <span ng-show="request.EntityType == 'Employee'">الموظفين</span>
+                        <span ng-show="request.EntityType == 'Item'">المواد</span>
+                        <span ng-show="request.EntityType == 'Issuance'">الصرف</span>
+                    </td>
+                    <td data-title="'تاريخ التعديل'">{{request.RequestDate}}</td>
+                    <td data-title="'تاريخ الرفض/الموافقة'">{{request.ApprovedDate}}</td>
+                    <td data-title="'الحالة'">
+                        <span class="badge badge-warning txt-small" ng-show="request.Status == 0">قيد الانتظار</span>
+                        <span class="badge badge-success txt-small" ng-show="request.Status == 1">موافق عليه</span>
+                        <span class="badge badge-danger txt-small" ng-show="request.Status == 2">مرفوض</span>
+                    </td>
+                    <td data-title="'الاجراءات'">
 
-                    <button class="btn btn-danger txt-small"
-                            ng-class="{'disabled': request.Status != 0}"
-                            ng-disabled="request.Status != 0"
-                            ng-click="confirmRejectRequest(request.RequestId); $event.stopPropagation();">
-                        رفض
-                    </button>
-                    <button ng-class="{'disabled': request.Status != 0}"
-                            ng-disabled="request.Status != 0" ng-click="confirmAcceptRequest(request.RequestId); $event.stopPropagation();" class="btn btn-info txt-small">
-                        موافقة
-                    </button>
-                </td>
+                        <button class="btn btn-danger txt-small"
+                                ng-class="{'disabled': request.Status != 0}"
+                                ng-disabled="request.Status != 0"
+                                ng-click="confirmRejectRequest(request.RequestId); $event.stopPropagation();">
+                            رفض
+                        </button>
+                        <button ng-class="{'disabled': request.Status != 0}"
+                                ng-disabled="request.Status != 0" ng-click="confirmAcceptRequest(request.RequestId); $event.stopPropagation();" class="btn btn-info txt-small">
+                            موافقة
+                        </button>
+                    </td>
 
-            </tr>
+                </tr>
 
-        </table>
-    </div>
-</div>
-
-<div class="modal fade" id="diffModalForm" tabindex="-1" aria-labelledby="diffModalForm" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" id="exampleModalFormTitle" ng-show="entityType == 'employee' && isAdd">اضافة موظف</h4>
-                <h4 class="modal-title" id="exampleModalFormTitle" ng-show="entityType == 'employee' && !isAdd">تعديل موظف</h4>
-                <h4 class="modal-title" id="exampleModalFormTitle" ng-show="entityType == 'item' && isAdd">اضافة مادة</h4>
-                <h4 class="modal-title" id="exampleModalFormTitle" ng-show="entityType == 'issuance' && isAdd">صرف مادة</h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-
-
-                <table class="table table-dark" ng-show="entityType == 'employee' && isAdd">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th scope="col">الحقل</th>
-                            <th scope="col">القيمة</th>
-
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td scope="row">الاسم</td>
-                            <td>{{data.FullName}}</td>
-                        </tr>
-                        <tr>
-                            <td scope="row">المسمى الوظيفي</td>
-                            <td>{{data.JobTitle}}</td>
-                        </tr>
-                        <tr>
-                            <td scope="row">الدائرة</td>
-                            <td>{{data.Section}}</td>
-                        </tr>
-                        <tr>
-                            <td scope="row">الوحدة التنظيمية</td>
-                            <td>{{data.Department}}</td>
-                        </tr>
-                        <tr>
-                            <td scope="row">تاريخ التوظيف</td>
-                            <td>{{data.EmploymentDate}}</td>
-                        </tr>
-                        <tr>
-                            <td scope="row">الايميل</td>
-                            <td>{{data.Email}}</td>
-                        </tr>
-                        <tr>
-                            <td scope="row">رقم الجوال</td>
-                            <td>{{data.Phone}}</td>
-                        </tr>
-                        <tr>
-                            <td scope="row">موقع العمل</td>
-                            <td ng-show="data.WorkLocation == 'Amman'">عمان</td>
-                            <td ng-show="data.WorkLocation == 'Khaldieh'">الخالدية</td>
-                        </tr>
-
-                    </tbody>
-                </table>
-                <table class="table table-dark" ng-show="entityType == 'employee' && !isAdd">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th scope="col">الحقل</th>
-                            <th scope="col">قبل التعديل</th>
-                            <th scope="col">بعد التعديل</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td scope="row">الاسم</td>
-                            <td>{{oldData.FullName}}</td>
-                            <td>{{newData.FullName}}</td>
-                        </tr>
-                        <tr>
-                            <td scope="row">المسمى الوظيفي</td>
-                            <td>{{oldData.JobTitle}}</td>
-                            <td>{{newData.JobTitle}}</td>
-
-                        </tr>
-                        <tr>
-                            <td scope="row">الدائرة</td>
-                            <td>{{oldData.Section}}</td>
-                            <td>{{newData.Section}}</td>
-
-                        </tr>
-                        <tr>
-                            <td scope="row">الوحدة التنظيمية</td>
-                            <td>{{oldData.Department}}</td>
-                            <td>{{newData.Department}}</td>
-
-                        </tr>
-                        <tr>
-                            <td scope="row">تاريخ التوظيف</td>
-                            <td>{{oldData.EmploymentDate}}</td>
-                            <td>{{newData.EmploymentDate}}</td>
-
-                        </tr>
-                        <tr>
-                            <td scope="row">الايميل</td>
-                            <td>{{oldData.Email}}</td>
-                            <td>{{newData.Email}}</td>
-
-                        </tr>
-                        <tr>
-                            <td scope="row">رقم الجوال</td>
-                            <td>{{oldData.Phone}}</td>
-                            <td>{{newData.Phone}}</td>
-
-                        </tr>
-                        <tr>
-                            <td scope="row">موقع العمل</td>
-                            <td ng-show="oldData.WorkLocation == 'Amman'">عمان</td>
-                            <td ng-show="oldData.WorkLocation == 'Khaldieh'">الخالدية</td>
-                            <td ng-show="newData.WorkLocation == 'Amman'">عمان</td>
-                            <td ng-show="newData.WorkLocation == 'Khaldieh'">الخالدية</td>
-                        </tr>
-
-                    </tbody>
-                </table>
-                <table class="table table-dark" ng-show="entityType == 'item' && isAdd">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th scope="col">الحقل</th>
-                            <th scope="col">القيمة</th>
-
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td scope="row">الاسم</td>
-                            <td>{{data.Name}}</td>
-                        </tr>
-                        <tr>
-                            <td scope="row">الوصف</td>
-                            <td>{{data.Description}}</td>
-                        </tr>
-                        <tr>
-                            <td scope="row">الكمية</td>
-                            <td>{{data.Quantity}}</td>
-                        </tr>
-
-
-                    </tbody>
-                </table>
-
-                <table class="table table-dark" ng-show="entityType == 'issuance' && isAdd">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th scope="col">الحقل</th>
-                            <th scope="col">القيمة</th>
-
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td scope="row">الموظف</td>
-                            <td>{{issuanceEmployee}}</td>
-                        </tr>
-                        <tr>
-                            <td scope="row">المادة</td>
-                            <td>{{itemIssued}}</td>
-                        </tr>
-                        <tr>
-                            <td scope="row">النوع</td>
-                            <td ng-show="data.Type == 'Exception'">استثناء</td>
-                            <td ng-show="data.Type == 'Damaged'">بدل تلف</td>
-                        </tr>
-                        <tr ng-show="data.Type = 'Exception'">
-                            <td scope="row">سبب الاستثناء</td>
-                            <td ng-show="data.ExceptionReason">{{data.ExceptionReason}}</td>
-                            <td ng-show="!data.ExceptionReason">لا يوجد</td>
-                        </tr>
-
-                        <tr>
-                            <td scope="row">تاريخ الصرف</td>
-                            <td>{{data.IssuanceDate}}</td>
-                        </tr>
-
-
-                    </tbody>
-                </table>
-                <table class="table table-dark" ng-show="entityType == 'item' && !IsAdd">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th scope="col">الحقل</th>
-                            <th scope="col">قبل التعديل</th>
-                            <th scope="col">بعد التعديل</th>
-
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td scope="row">المادة</td>
-                            <td>{{data.Name}}</td>
-                            <td>{{data.Name}}</td>
-                        </tr>
-                        <tr>
-                            <td scope="row">الكمية</td>
-                            <td>{{data.Quantity}}</td>
-                            <td ng-show="itemReq.IsIncrease">{{data.Quantity + itemReq.Quantity}}</td>
-                            <td ng-show="!itemReq.IsIncrease">{{data.Quantity - itemReq.Quantity}}</td>
-                        </tr>
-
-                       
-
-
-                    </tbody>
-                </table>
-            </div>
-           
+            </table>
         </div>
     </div>
-</div>
+
+    <div class="modal fade" id="diffModalForm" tabindex="-1" aria-labelledby="diffModalForm" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="exampleModalFormTitle" ng-show="entityType == 'employee' && isAdd">اضافة موظف</h4>
+                    <h4 class="modal-title" id="exampleModalFormTitle" ng-show="entityType == 'employee' && !isAdd">تعديل موظف</h4>
+                    <h4 class="modal-title" id="exampleModalFormTitle" ng-show="entityType == 'item' && isAdd">اضافة مادة</h4>
+                    <h4 class="modal-title" id="exampleModalFormTitle" ng-show="entityType == 'issuance' && isAdd">صرف مادة</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+
+
+                    <table class="table table-dark" ng-show="entityType == 'employee' && isAdd">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th scope="col">الحقل</th>
+                                <th scope="col">القيمة</th>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td scope="row">الاسم</td>
+                                <td>{{data.FullName}}</td>
+                            </tr>
+                            <tr>
+                                <td scope="row">المسمى الوظيفي</td>
+                                <td>{{data.JobTitle}}</td>
+                            </tr>
+                            <tr>
+                                <td scope="row">الدائرة</td>
+                                <td>{{data.Section}}</td>
+                            </tr>
+                            <tr>
+                                <td scope="row">الوحدة التنظيمية</td>
+                                <td>{{data.Department}}</td>
+                            </tr>
+                            <tr>
+                                <td scope="row">تاريخ التوظيف</td>
+                                <td>{{data.EmploymentDate}}</td>
+                            </tr>
+                            <tr>
+                                <td scope="row">الايميل</td>
+                                <td>{{data.Email}}</td>
+                            </tr>
+                            <tr>
+                                <td scope="row">رقم الجوال</td>
+                                <td>{{data.Phone}}</td>
+                            </tr>
+                            <tr>
+                                <td scope="row">موقع العمل</td>
+                                <td ng-show="data.WorkLocation == 'Amman'">عمان</td>
+                                <td ng-show="data.WorkLocation == 'Khaldieh'">الخالدية</td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                    <table class="table table-dark" ng-show="entityType == 'employee' && !isAdd">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th scope="col">الحقل</th>
+                                <th scope="col">قبل التعديل</th>
+                                <th scope="col">بعد التعديل</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td scope="row">الاسم</td>
+                                <td>{{oldData.FullName}}</td>
+                                <td>{{newData.FullName}}</td>
+                            </tr>
+                            <tr>
+                                <td scope="row">المسمى الوظيفي</td>
+                                <td>{{oldData.JobTitle}}</td>
+                                <td>{{newData.JobTitle}}</td>
+
+                            </tr>
+                            <tr>
+                                <td scope="row">الدائرة</td>
+                                <td>{{oldData.Section}}</td>
+                                <td>{{newData.Section}}</td>
+
+                            </tr>
+                            <tr>
+                                <td scope="row">الوحدة التنظيمية</td>
+                                <td>{{oldData.Department}}</td>
+                                <td>{{newData.Department}}</td>
+
+                            </tr>
+                            <tr>
+                                <td scope="row">تاريخ التوظيف</td>
+                                <td>{{oldData.EmploymentDate}}</td>
+                                <td>{{newData.EmploymentDate}}</td>
+
+                            </tr>
+                            <tr>
+                                <td scope="row">الايميل</td>
+                                <td>{{oldData.Email}}</td>
+                                <td>{{newData.Email}}</td>
+
+                            </tr>
+                            <tr>
+                                <td scope="row">رقم الجوال</td>
+                                <td>{{oldData.Phone}}</td>
+                                <td>{{newData.Phone}}</td>
+
+                            </tr>
+                            <tr>
+                                <td scope="row">موقع العمل</td>
+                                <td ng-show="oldData.WorkLocation == 'Amman'">عمان</td>
+                                <td ng-show="oldData.WorkLocation == 'Khaldieh'">الخالدية</td>
+                                <td ng-show="newData.WorkLocation == 'Amman'">عمان</td>
+                                <td ng-show="newData.WorkLocation == 'Khaldieh'">الخالدية</td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                    <table class="table table-dark" ng-show="entityType == 'item' && isAdd">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th scope="col">الحقل</th>
+                                <th scope="col">القيمة</th>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td scope="row">الاسم</td>
+                                <td>{{data.Name}}</td>
+                            </tr>
+                            <tr>
+                                <td scope="row">الوصف</td>
+                                <td>{{data.Description}}</td>
+                            </tr>
+                            <tr>
+                                <td scope="row">الكمية</td>
+                                <td>{{data.Quantity}}</td>
+                            </tr>
+
+
+                        </tbody>
+                    </table>
+
+                    <table class="table table-dark" ng-show="entityType == 'issuance' && isAdd">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th scope="col">الحقل</th>
+                                <th scope="col">القيمة</th>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td scope="row">الموظف</td>
+                                <td>{{issuanceEmployee}}</td>
+                            </tr>
+                            <tr>
+                                <td scope="row">المادة</td>
+                                <td>{{itemIssued}}</td>
+                            </tr>
+                            <tr>
+                                <td scope="row">النوع</td>
+                                <td ng-show="data.Type == 'Exception'">استثناء</td>
+                                <td ng-show="data.Type == 'Damaged'">بدل تلف</td>
+                            </tr>
+                            <tr ng-show="data.Type = 'Exception'">
+                                <td scope="row">سبب الاستثناء</td>
+                                <td ng-show="data.ExceptionReason">{{data.ExceptionReason}}</td>
+                                <td ng-show="!data.ExceptionReason">لا يوجد</td>
+                            </tr>
+
+                            <tr>
+                                <td scope="row">تاريخ الصرف</td>
+                                <td>{{data.IssuanceDate}}</td>
+                            </tr>
+
+
+                        </tbody>
+                    </table>
+                    <table class="table table-dark" ng-show="entityType == 'item' && !IsAdd">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th scope="col">الحقل</th>
+                                <th scope="col">قبل التعديل</th>
+                                <th scope="col">بعد التعديل</th>
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td scope="row">المادة</td>
+                                <td>{{data.Name}}</td>
+                                <td>{{data.Name}}</td>
+                            </tr>
+                            <tr>
+                                <td scope="row">الكمية</td>
+                                <td>{{data.Quantity}}</td>
+                                <td ng-show="itemReq.IsIncrease">{{data.Quantity + itemReq.Quantity}}</td>
+                                <td ng-show="!itemReq.IsIncrease">{{data.Quantity - itemReq.Quantity}}</td>
+                            </tr>
+
+
+
+
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+

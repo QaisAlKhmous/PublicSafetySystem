@@ -134,6 +134,7 @@
     <Compile Include="DTOs\DepartmentDTO.cs" />
     <Compile Include="DTOs\DisposalDTO.cs" />
     <Compile Include="DTOs\EmployeeDTO.cs" />
+    <Compile Include="DTOs\IssuanceDTO.cs" />
     <Compile Include="DTOs\itemRequestDTO.cs" />
     <Compile Include="DTOs\ItemsDTO.cs" />
     <Compile Include="DTOs\JobTitleCategoryDTO.cs" />
@@ -146,6 +147,7 @@
     <Compile Include="DTOs\UserDTO.cs" />
     <Compile Include="EmailService.cs" />
     <Compile Include="EmployeeService.cs" />
+    <Compile Include="EntitlementService.cs" />
     <Compile Include="ExcelService.cs" />
     <Compile Include="IssuanceService.cs" />
     <Compile Include="ItemService.cs" />

@@ -58,12 +58,12 @@ namespace PublicSafety.Services
                 SectionId = employee.SectionId,
                 DepartmentId = employee.DepartmentId,
                 JobTitleId = employee.JobTitleId,
-                Active = true,
+                Active = employee.Active,
                 Notes = employee.Notes,
                 CreationDate = DateTime.Now,
                 WorkLocation = (enWorkLocation)Enum.Parse(typeof(enWorkLocation), employee.WorkLocation),
                 HealthInsuranceFile = employee.HealthInsuranceFile,
-                JobTitleUpdateDate = DateTime.Now
+                JobTitleUpdateDate = DateTime.Parse(employee.EmploymentDate)
             };
 
             return EmployeeRepo.AddNewEmployeee(newEmployee);

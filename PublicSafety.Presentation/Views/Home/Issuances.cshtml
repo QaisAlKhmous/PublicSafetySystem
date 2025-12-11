@@ -1,0 +1,51 @@
+﻿
+@{
+    ViewBag.Title = "Issuances";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="content">
+
+
+    <!-- Products Inventory -->
+    <div class="card card-default">
+        <div class="card-header">
+            <h2>قائمة المواد المصروفة الى ({{employee.FullName}})</h2>
+
+
+           
+
+        </div>
+        <div class="card-body">
+            <div class="collapse" id="collapse-data-tables">
+
+            </div>
+            <table class="table table-hover table-product" style="width:100%;text-align:center;" ng-table="issuancesTableParams">
+
+
+                <tr ng-repeat="issuance in $data">
+                    <td data-title="'#'">{{$index + 1}}</td>
+                    <td data-title="'اسم المادة'">{{issuance.Item}}</td>
+                    <td data-title="'الكمية'">{{issuance.Quantity}}</td>
+                    <td data-title="'نوع الصرف'">
+                        <span ng-show="issuance.Type == 'Exception'">استثناء</span>
+                        <span ng-show="issuance.Type == 'Damaged'">بدل تلف</span>
+                        <span ng-show="issuance.Type == 'Entitled'">مستحق</span>
+                    </td>
+                    <td data-title="'تاريخ الصرف'">{{issuance.IssuanceDate}}</td>
+                    <td data-title="'صرف بواسطة'">{{issuance.CreatedBy}}</td>
+
+
+                </tr>
+
+            </table>
+            <h4 ng-show="issuances.length == 0" class="d-flex justify-content-center mt-2 text-danger" >لا يوجد مواد مصروفة الى هذا الموظف حتى الان</h4>
+
+
+
+
+        </div>
+    </div>
+</div>
+

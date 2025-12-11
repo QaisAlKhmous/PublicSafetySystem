@@ -1,0 +1,49 @@
+﻿
+@{
+    ViewBag.Title = "Entitlements";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="content">
+
+
+    <!-- Products Inventory -->
+    <div class="card card-default">
+        <div class="card-header">
+            <h2>قائمة المستحقات ل ({{employee.FullName}})</h2>
+
+
+
+
+        </div>
+        <div class="card-body">
+            <div class="collapse" id="collapse-data-tables">
+
+            </div>
+            <table class="table table-hover table-product" style="width:100%;text-align:center;" ng-table="entitlementsTableParams">
+
+
+                <tr ng-repeat="entitlement in $data">
+                    <td data-title="'#'">{{$index + 1}}</td>
+                    <td data-title="'اسم المادة'">{{entitlement.ItemName}}</td>
+                    <td data-title="'الكمية المستحقة'">{{entitlement.EntitledQty}}</td>
+                    <td data-title="'تاريخ الاستحقاق'">{{entitlement.EntitlementYear}}</td>
+                    <td data-title="'الكمية المصروفة'">{{entitlement.IssuedQty}}</td>
+                    <td data-title="'الحالة'">
+                        <span ng-show="entitlement.IsIssued" class="text-success">مستلم</span>
+                        <span ng-show="!entitlement.IsIssued" class="text-danger">غير مستلم</span>
+                    </td>
+                  
+
+
+                </tr>
+
+            </table>
+            <h4 ng-show="entitlements.length == 0" class="d-flex justify-content-center mt-2 text-danger">لا يوجد مستحقات لهذا الموظف</h4>
+
+
+
+
+        </div>
+    </div>
+</div>

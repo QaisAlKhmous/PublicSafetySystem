@@ -57,6 +57,7 @@
     <Compile Include="Entities\Department.cs" />
     <Compile Include="Entities\Disposal.cs" />
     <Compile Include="Entities\Employee.cs" />
+    <Compile Include="Entities\Entitlement.cs" />
     <Compile Include="Entities\Issuance.cs" />
     <Compile Include="Entities\Item.cs" />
     <Compile Include="Entities\JobTitle.cs" />

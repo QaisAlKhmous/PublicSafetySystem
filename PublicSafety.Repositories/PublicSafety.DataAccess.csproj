@@ -167,6 +167,7 @@
     <Compile Include="Repositories\DepartmentRepo.cs" />
     <Compile Include="Repositories\DisposalRepo.cs" />
     <Compile Include="Repositories\EmployeeRepo.cs" />
+    <Compile Include="Repositories\EntitlementRepo.cs" />
     <Compile Include="Repositories\IssuanceRepo.cs" />
     <Compile Include="Repositories\ItemRepo.cs" />
     <Compile Include="Repositories\JobTitleRepo.cs" />

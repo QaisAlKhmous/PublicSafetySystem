@@ -32,5 +32,10 @@ namespace PublicSafety.APIs.Controllers
                 message = "تم الاصدار بنجاح"
             });
         }
+        [HttpGet]
+        public JsonResult GetIssuancesByEmployeeId(Guid EmployeeId)
+        {
+            return Json(IssuanceService.GetIssuancesByEmployeeId(EmployeeId),JsonRequestBehavior.AllowGet);
+        }
     }
 }

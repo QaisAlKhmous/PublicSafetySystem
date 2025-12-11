@@ -133,8 +133,12 @@
                                 <button type="button" class="btn btn-success dropdown-toggle actions" data-bs-toggle="dropdown"></button>
                                 <ul class="dropdown-menu">
                                     <li><a class="dropdown-item" href="#!/editEmployee/{{employee.EmployeeId}}">تعديل</a></li>
+                                    <li><hr class="dropdown-divider" ng-show="employee.Active"></li>
                                     <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#exceptionModalForm" ng-click="loadException(employee.EmployeeId)" ng-show="employee.Active">بدل استثناء</a></li>
-                                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#damageModalForm" ng-click="loadDamaged(employee.EmployeeId)" ng-show="employee.Active">بدل تلف مادة</a></li>
+                                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#damageModalForm" ng-click="loadDamaged(employee.EmployeeId)" ng-show="employee.Active">استلام تلف مادة</a></li>
+                                    <li><hr class="dropdown-divider" ng-show="employee.Active"></li>
+                                    <li><a class="dropdown-item" href="#!/issuances/{{employee.EmployeeId}}" ng-show="employee.Active">سجل الصرف</a></li>
+                                    <li><a class="dropdown-item" href="#!/entitlements/{{employee.EmployeeId}}" ng-show="employee.Active">سجل المستحقات</a></li>
                                     <li><hr class="dropdown-divider" ng-show="employee.Active"></li>
                                     <li><a class="dropdown-item text-danger" href="" ng-click="confirmDelete(employee.EmployeeId)" ng-show="employee.Active">استقال الموظف</a></li>
                                 </ul>
@@ -203,7 +207,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalFormTitle">اضافة بدل تلف مادة</h5>
+                <h5 class="modal-title" id="exampleModalFormTitle">اضافة استلام تلف مادة</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">

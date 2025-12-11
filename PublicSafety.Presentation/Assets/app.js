@@ -36,6 +36,14 @@ app.config(function ($routeProvider) {
             controller: 'addEmployeeCtrl'
 
         })
+        .when("/issuances/:employeeId", {
+            templateUrl: '/Home/Issuances',
+            controller: 'issuanceCtrl'
+        })
+        .when("/entitlements/:employeeId", {
+            templateUrl: '/Home/Entitlements',
+            controller: 'entitlementCtrl'
+        })
         
        
 
@@ -205,7 +213,7 @@ app.controller('sidebarCtrl', function ($scope, $rootScope, $location) {
             $rootScope.setActive(1);
 
         }
-        if (url === '/employees' || url === '/addEmployee' || url.startsWith('/editEmployee')) {
+        if (url === '/employees' || url === '/addEmployee' || url.startsWith('/editEmployee') || url.startsWith("/issuances") || url.startsWith("/entitlements")) {
             $rootScope.setActive(2);
 
         }
@@ -214,6 +222,7 @@ app.controller('sidebarCtrl', function ($scope, $rootScope, $location) {
             $rootScope.setActive(3);
 
         }
+    
 
     });
 })
@@ -755,7 +764,8 @@ app.controller('employeeCtrl', function ($scope, NgTableParams, employeeService,
 
     $scope.deleteEmployee = function (EmployeeId) {
         employeeService.deleteEmployee(EmployeeId).then((res) => {
-            $rootScope.toastify('تم تغيير حالة الموظف الى مستقيل',1)
+            $rootScope.toastify('تم تغيير حالة الموظف الى مستقيل', 1);
+            $scope.getAllEmployees();
         })
     }
    
@@ -914,16 +924,14 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
             }).catch((rej) => console.log(rej))
     }
 
-    $scope.loadCategories = function () {
-        $http.get('/Category/GetAllCategories')
-            .then((res) => {
-                console.log(res);
-                $scope.Categories = res.data;
-            }).catch((rej) => console.log(rej))
+    $scope.loadCategory = function (JobTitleId) {
+        $http.get('/Category/GetCategoryByJobTitleId?JobTitleId=' + JobTitleId).then((res) => {
+            $scope.jobTitleCategory = res.data;
+           
+        })
     }
 
-
-    $scope.loadCategories();
+    
     $scope.loadSections();
     $scope.loadDepartments();
     $scope.loadJobTitles();
@@ -931,7 +939,7 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
     $scope.employee = {
         EmployeeId : null,FullName : '',FirstName: '', SecondName: '', LastName: '', Email: '', Phone: '', IsIntern: false, Notes: '', WorkLocation: 'Amman',
         HealthInsuranceFile: '', DepartmentId: null, SectionId: null, JobTitleId: null, CategoryId: null,
-        EmploymentDate: '',Notes: ''
+        EmploymentDate: '',Notes: '',Active: true
     }
 
     $scope.updateEmployeeId = $routeParams.employeeId;
@@ -1201,8 +1209,66 @@ app.controller('dashboardCtrl', function ($scope, employeeService, itemService, 
                 console.log($scope.data)
             }
 
-            console.log($scope.data)
+           
                 
         })
     }
+
+
+   
+   
+})
+
+
+app.controller('issuanceCtrl', function ($scope, employeeService, itemService, $location, $http, $timeout, $rootScope, NgTableParams, $routeParams) {
+    $scope.loadIssuances = function () {
+        $http.get('/Issuance/GetIssuancesByEmployeeId?EmployeeId=' + $routeParams.employeeId).then((res) => {
+            $scope.issuances = res.data;
+
+            $scope.issuancesTableParams.settings({ dataset: $scope.issuances });
+        })
+    }
+    $scope.loadIssuances();
+
+    $scope.loadEmployee = function () {
+        employeeService.getEmployeeById($routeParams.employeeId).then((res) => {
+            $scope.employee = res.data;
+        })
+    }
+    $scope.loadEmployee();
+    
+    $scope.issuancesTableParams = new NgTableParams(
+        {
+            page: 1,            // start on first page
+            count: 10,          // items per page
+            filter: {},
+            sorting: { Name: "asc" }// initial filter
+        }
+    );
+    $scope.issuancesTableParams.settings().counts = [];
+});
+
+app.controller('entitlementCtrl', function ($scope, employeeService, itemService, $location, $http, $timeout, $rootScope, NgTableParams, $routeParams) {
+    $scope.loadEntitlements = function () {
+        $http.get('/Employee/GetEmployeeEntitlements?EmployeeId=' + $routeParams.employeeId).then((res) => {
+            $scope.entitlements = res.data;
+            $scope.entitlementsTableParams.settings({ dataset: $scope.entitlements });
+        })
+    }
+    $scope.loadEntitlements();
+    $scope.loadEmployee = function () {
+        employeeService.getEmployeeById($routeParams.employeeId).then((res) => {
+            $scope.employee = res.data;
+        })
+    }
+    $scope.entitlementsTableParams = new NgTableParams(
+        {
+            page: 1,            // start on first page
+            count: 10,          // items per page
+            filter: {},
+            sorting: { Name: "asc" }// initial filter
+        }
+    );
+    $scope.entitlementsTableParams.settings().counts = [];
+    $scope.loadEmployee();
 })

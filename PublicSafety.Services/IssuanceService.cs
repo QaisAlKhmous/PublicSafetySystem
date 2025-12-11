@@ -30,8 +30,30 @@ namespace PublicSafety.Services
                 CreatedDate = DateTime.Now,
                 EmployeeId = issuance.EmployeeId
             };
+
+            if((enIssuanceType)Enum.Parse(typeof(enIssuanceType), issuance.Type) == enIssuanceType.Entitled)
+            {
+                newIssuance.IssuanceDate = DateTime.Parse(issuance.IssuanceDate);
+            }
             IssuanceRepo.AddIssuance(newIssuance);
             ItemService.DecreaseItemQuantity(issuance.ItemId, issuance.Quantity);
+        }
+
+        public static IEnumerable<IssuanceDTO> GetIssuancesByEmployeeId(Guid EmployeeId)
+        {
+            var issuances = IssuanceRepo.GetIssuancesByEmployeeId(EmployeeId);
+
+            return issuances.Select(i => new IssuanceDTO()
+            {
+                Item = i.Item.Name,
+                CreatedBy = i.CreatedBy.Username,
+                Quantity = i.Quantity,
+                ExceptionReason = i.ExceptionReason,
+                ExceptionFormPath = i.ExceptionFormPath,
+                IssuanceDate = i.IssuanceDate.ToString("yyyy-MM-dd"),
+                SignedReceiptPath = i.SignedReceiptPath,
+                Type = i.Type.ToString()
+            });
         }
     }
 }

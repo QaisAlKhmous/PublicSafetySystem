@@ -56,15 +56,16 @@
                 </div>
 
                 <div class="row">
-                    <div class="form-group col-6">
+                    <div class="form-group col-4">
                         <label for="exampleFormControlInput5">تاريخ التوظيف</label>
-                        <input ng-model="employee.EmploymentDate" type="text"  name="date" class="form-control rounded-0 bg-light" placeholder="Select date" required />
+                        <input ng-model="employee.EmploymentDate" type="text" name="date" class="form-control rounded-0 bg-light" placeholder="Select date" required />
                     </div>
-                    <div class="form-group col-6">
+                    <div class="form-group col-4">
                         <label for="exampleFormControlSelect12">المسمى الوظيفي</label>
                         <select class="form-control rounded-0 bg-light" name="JobTitle" required
                                 ng-model="employee.JobTitleId"
-                                ng-options="j.JobTitleId as j.Name for j in JobTitles">
+                                ng-options="j.JobTitleId as j.Name for j in JobTitles"
+                                ng-change="loadCategory(employee.JobTitleId)">
                             <option value="" disabled selected>اختر المسمى الوظيفي</option>
                         </select>
                         <div class="invalid-feedback d-block" ng-show="employeeForm.$submitted && !employee.JobTitleId">
@@ -72,12 +73,15 @@
                             يرجى اختيار المسمى الوظيفي
                         </div>
                     </div>
-
+                    <div class="form-group col-4">
+                        <label for="exampleFormControlSelect12">الفئة</label>
+                        <input disabled arabic-only ng-model="jobTitleCategory.Category" type="text" name="LastName" class="form-control rounded-0 bg-light" id="exampleFormControlInput5" placeholder="الفئة">
+                    </div>
                 </div>
 
                 <div class="row">
 
-                    <div class="form-group col-6">
+                    <div class="form-group col-4">
                         <label for="exampleFormControlSelect12">الوحدة التنظيمية</label>
                         <select class="form-control rounded-0 bg-light" required
                                 ng-model="employee.DepartmentId" name="Department"
@@ -90,7 +94,7 @@
                         </div>
 
                     </div>
-                    <div class="form-group col-6">
+                    <div class="form-group col-4">
                         <label for="exampleFormControlSelect12">الدائرة</label>
                         <select class="form-control rounded-0 bg-light"
                                 ng-model="employee.SectionId" name="Section" required
@@ -103,18 +107,7 @@
                         </div>
                     </div>
 
-                </div>
-
-                <div class="row">
-
-                    <div class="form-group col-6">
-                        <label for="exampleFormControlInput5">الحالة</label>
-                        <select class="form-control rounded-0 bg-light" name="IsIntern" ng-model="employee.IsIntern">
-                            <option ng-value="false">موظف</option>
-                            <option ng-value="true">متدرب</option>
-                        </select>
-                    </div>
-                    <div class="form-group col-6">
+                    <div class="form-group col-4">
                         <label for="exampleFormControlPassword4" style="direction: rtl;">موقع العمل</label>
                         <select class="form-control rounded-0 bg-light" name="WorkLocation" ng-model="employee.WorkLocation">
                             <option value="Amman">عمان</option>
@@ -122,6 +115,25 @@
                         </select>
                     </div>
 
+                </div>
+
+                <div class="row">
+
+                    <div class="form-group col-6">
+                        <label for="exampleFormControlInput5">النوع</label>
+                        <select class="form-control rounded-0 bg-light" name="IsIntern" ng-model="employee.IsIntern">
+                            <option ng-value="false">موظف</option>
+                            <option ng-value="true">متدرب</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group col-6">
+                        <label for="exampleFormControlInput5">الحالة</label>
+                        <select class="form-control rounded-0 bg-light" name="IsIntern" ng-model="employee.Active">
+                            <option ng-value="true">نشط</option>
+                            <option ng-value="false">مستقيل</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="row">
 
