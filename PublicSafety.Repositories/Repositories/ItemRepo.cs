@@ -54,6 +54,12 @@ namespace PublicSafety.Repositories.Repositories
             using (var context = new AppDbContext())
             {
                 var item = context.Items.Find(id);
+                if (item == null)
+                    throw new Exception("الصنف غير موجود");
+
+                if (item.Quantity < newQuantity)
+                    throw new Exception("الكمية في المخزون غير كافية");
+
                 item.Quantity -= newQuantity;
                 context.SaveChanges();
             }
@@ -62,7 +68,7 @@ namespace PublicSafety.Repositories.Repositories
         {
             using (var context = new AppDbContext())
             {
-                var item = context.Items.Include(i => i.AddedBy).FirstOrDefault(i => i.ItemId == ItemId);
+                var item = context.Items.Include(i => i.AddedBy).FirstOrDefault(i => i.ItemId == ItemId && i.IsActive);
                 return item;
             }
         }

@@ -1,0 +1,94 @@
+﻿<div class="content">
+
+    <!-- Item Logs -->
+    <div class="card card-default">
+        <div class="card-header">
+            <h2>سجل حركات الصنف ({{selectedItem.Name}})</h2>
+
+            <button class="btn search"
+                    type="button"
+                    ng-click="goBackToItems()">
+                ⬅ الرجوع إلى المواد
+            </button>
+        </div>
+
+        <div class="card-body">
+            <div class="collapse" id="collapse-data-tables"></div>
+
+            <table class="table table-hover table-product"
+                   style="width:100%; text-align:center;"
+                   ng-table="itemLogsTableParams">
+
+                <tr ng-repeat="log in $data">
+                    <td data-title="'#'">
+                        {{$index + 1}}
+                    </td>
+
+                    <td data-title="'اسم الصنف'">
+                        {{log.ItemName}}
+                    </td>
+
+                    <td data-title="'الموظف'">
+                        {{log.EmployeeName || '-'}}
+                    </td>
+
+                    <td data-title="'نوع العملية'">
+                        <span ng-switch="log.ActionType">
+
+                            <span ng-switch-when="Entitled" class="text-success">
+                                صرف استحقاق
+                            </span>
+
+                            <span ng-switch-when="Disposed" class="text-danger">
+                                إتلاف
+                            </span>
+
+                            <span ng-switch-when="Damaged" class="text-warning">
+                                تالف
+                            </span>
+
+                            <span ng-switch-when="Exception" class="text-info">
+                                صرف استثنائي
+                            </span>
+
+                            <span ng-switch-when="StockIncrease" class="text-primary">
+                                زيادة مخزون
+                            </span>
+
+                            <span ng-switch-default class="text-secondary">
+                                غير معروف
+                            </span>
+
+                        </span>
+                    </td>
+
+                    <td data-title="'الكمية'">
+                        {{log.Quantity}}
+                    </td>
+
+                    <td data-title="'سنة الاستحقاق'">
+                        {{log.EntitlementYear || '-'}}
+                    </td>
+
+                    <td data-title="'الملاحظات'">
+                        {{log.Notes}}
+                    </td>
+
+                    <td data-title="'بواسطة'">
+                        {{log.CreatedBy}}
+                    </td>
+
+                    <td data-title="'التاريخ'">
+                        {{log.CreatedDate | date:'yyyy-MM-dd'}}
+                    </td>
+                </tr>
+
+            </table>
+
+            <h4 ng-show="itemLogs.length == 0"
+                class="d-flex justify-content-center mt-2 text-danger">
+                لا يوجد سجل حركات لهذا الصنف
+            </h4>
+        </div>
+    </div>
+</div>

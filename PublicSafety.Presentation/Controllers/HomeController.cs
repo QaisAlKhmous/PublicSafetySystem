@@ -8,8 +8,26 @@ namespace PublicSafety.Presentation.Controllers
 {
     public class HomeController : Controller
     {
+        protected override void OnActionExecuting(ActionExecutingContext filterContext)
+        {
+            var response = filterContext.HttpContext.Response;
+
+            response.Cache.SetCacheability(HttpCacheability.NoCache);
+            response.Cache.SetNoStore();
+            response.Cache.SetExpires(DateTime.UtcNow.AddMinutes(-1));
+
+            // simple auth check
+            if (Request.Cookies["UserInfo"] == null)
+            {
+                filterContext.Result = RedirectToAction("Login", "Account");
+                return;
+            }
+
+            base.OnActionExecuting(filterContext);
+        }
         public ActionResult Index()
         {
+          
             return View();
         }
 
@@ -51,6 +69,10 @@ namespace PublicSafety.Presentation.Controllers
             return View();
         }
         public ActionResult Entitlements()
+        {
+            return View();
+        }
+        public ActionResult ItemLogs()
         {
             return View();
         }

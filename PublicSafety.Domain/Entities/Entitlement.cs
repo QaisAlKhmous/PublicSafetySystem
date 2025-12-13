@@ -11,6 +11,8 @@ namespace PublicSafety.Domain.Entities
         public Guid EmployeeId { get; set; }
         public string FullName { get; set; }
         public Guid MatrixItemId { get; set; }
+        public Guid ItemId { get; set; }
+        public string CategoryName { get; set; }
         public string ItemName { get; set; }
         public int EntitledQty { get; set; }
         public int EntitlementYear { get; set; }

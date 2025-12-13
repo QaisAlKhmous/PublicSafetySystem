@@ -25,6 +25,20 @@ namespace PublicSafety.APIs.Controllers
 
         }
 
+        [HttpGet]
+        public JsonResult GetItemById(Guid Id)
+        {
+           
+
+            return Json(ItemService.GetItemById(Id), JsonRequestBehavior.AllowGet);
+
+
+
+
+
+        }
+
+
         [HttpPost]
         public JsonResult AddItem(ItemsDTO item)
         {
@@ -53,9 +67,9 @@ namespace PublicSafety.APIs.Controllers
         }
 
         [HttpPost]
-        public JsonResult IncreaseQuantity(Guid id,int quantity)
+        public JsonResult IncreaseQuantity(Guid id,int quantity,string CreatedBy)
         {
-            ItemService.IncreaseItemQuantity(id, quantity);
+            ItemService.IncreaseItemQuantity(id, quantity, CreatedBy);
 
             return Json("Updated Successfully!");
 

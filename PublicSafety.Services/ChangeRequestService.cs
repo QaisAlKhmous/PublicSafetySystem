@@ -82,10 +82,15 @@ namespace PublicSafety.Services
                     ItemService.AddItem(JsonSerializer.Deserialize<ItemsDTO>(changeRequest.NewValue));
                     break;
                 case enEntityType.Matrix:
-                    MatrixService.AddNewMatrix(JsonSerializer.Deserialize<MatrixDTO>(changeRequest.NewValue).CategoryId);
+                    MatrixService.CreateNewMatrixVersion
+(JsonSerializer.Deserialize<MatrixDTO>(changeRequest.NewValue).CategoryId);
                     break;
                 case enEntityType.Issuance:
-                    IssuanceService.AddNewIssuance(JsonSerializer.Deserialize<AddIssuanceDTO>(changeRequest.NewValue));
+                    var issuance = JsonSerializer.Deserialize<AddIssuanceDTO>(changeRequest.NewValue);
+                    if ((enIssuanceType)Enum.Parse(typeof(enIssuanceType), issuance.Type) == enIssuanceType.Entitled)
+                        IssuanceService.AddNewEntitledIssuance(issuance);
+                    else
+                        IssuanceService.AddNewIssuance(issuance);
                     break;
             }
         }
@@ -104,11 +109,11 @@ namespace PublicSafety.Services
                     var item = JsonSerializer.Deserialize<itemRequestDTO>(changeRequest.OldValue);
 
                    if(item.IsIncrease)
-                        ItemService.IncreaseItemQuantity(changeRequest.EntityId, item.Quantity);
+                        ItemService.IncreaseItemQuantity(changeRequest.EntityId, item.Quantity,changeRequest.ChangedBy);
                    else ItemService.DecreaseItemQuantity(changeRequest.EntityId, item.Quantity);
                         break;
                 case enEntityType.Matrix:
-                    MatrixService.AddNewMatrix(JsonSerializer.Deserialize<MatrixDTO>(changeRequest.NewValue).CategoryId);
+                    MatrixService.CreateNewMatrixVersion(JsonSerializer.Deserialize<MatrixDTO>(changeRequest.NewValue).CategoryId);
                     break;
             }
         }

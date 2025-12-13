@@ -134,7 +134,9 @@
     <Compile Include="DTOs\DepartmentDTO.cs" />
     <Compile Include="DTOs\DisposalDTO.cs" />
     <Compile Include="DTOs\EmployeeDTO.cs" />
+    <Compile Include="DTOs\EmployeeJobTitleHistoryDTO.cs" />
     <Compile Include="DTOs\IssuanceDTO.cs" />
+    <Compile Include="DTOs\ItemLogDTO.cs" />
     <Compile Include="DTOs\itemRequestDTO.cs" />
     <Compile Include="DTOs\ItemsDTO.cs" />
     <Compile Include="DTOs\JobTitleCategoryDTO.cs" />
@@ -146,13 +148,16 @@
     <Compile Include="DTOs\UpdateMatrixItemDTO.cs" />
     <Compile Include="DTOs\UserDTO.cs" />
     <Compile Include="EmailService.cs" />
+    <Compile Include="EmployeeJobTitleHistoryService.cs" />
     <Compile Include="EmployeeService.cs" />
     <Compile Include="EntitlementService.cs" />
     <Compile Include="ExcelService.cs" />
     <Compile Include="IssuanceService.cs" />
+    <Compile Include="ItemLogService.cs" />
     <Compile Include="ItemService.cs" />
     <Compile Include="JobTitleService.cs" />
     <Compile Include="MatrixService.cs" />
+    <Compile Include="PlanningService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SectionService.cs" />
     <Compile Include="SecurityService.cs" />

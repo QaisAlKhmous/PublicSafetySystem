@@ -160,18 +160,41 @@
     <Compile Include="Migrations\202512101301299_add_MatrixItem_toIssuances.Designer.cs">
       <DependentUpon>202512101301299_add_MatrixItem_toIssuances.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202512120834296_add_EmployeeJobTitleHistories.cs" />
+    <Compile Include="Migrations\202512120834296_add_EmployeeJobTitleHistories.Designer.cs">
+      <DependentUpon>202512120834296_add_EmployeeJobTitleHistories.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202512120858070_make_EndDate_null_Jobtitlehistory.cs" />
+    <Compile Include="Migrations\202512120858070_make_EndDate_null_Jobtitlehistory.Designer.cs">
+      <DependentUpon>202512120858070_make_EndDate_null_Jobtitlehistory.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202512122006437_Add_ItemLogs_Table.cs" />
+    <Compile Include="Migrations\202512122006437_Add_ItemLogs_Table.Designer.cs">
+      <DependentUpon>202512122006437_Add_ItemLogs_Table.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202512122101154_test.cs" />
+    <Compile Include="Migrations\202512122101154_test.Designer.cs">
+      <DependentUpon>202512122101154_test.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202512130943178_Add_ValidFrom_ValidTo_Matrix.cs" />
+    <Compile Include="Migrations\202512130943178_Add_ValidFrom_ValidTo_Matrix.Designer.cs">
+      <DependentUpon>202512130943178_Add_ValidFrom_ValidTo_Matrix.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositories\CategoryRepo.cs" />
     <Compile Include="Repositories\ChangeRequestRepo.cs" />
     <Compile Include="Repositories\DepartmentRepo.cs" />
     <Compile Include="Repositories\DisposalRepo.cs" />
+    <Compile Include="Repositories\EmployeeJobTitleHistoryRepo.cs" />
     <Compile Include="Repositories\EmployeeRepo.cs" />
     <Compile Include="Repositories\EntitlementRepo.cs" />
     <Compile Include="Repositories\IssuanceRepo.cs" />
+    <Compile Include="Repositories\ItemLogRepo.cs" />
     <Compile Include="Repositories\ItemRepo.cs" />
     <Compile Include="Repositories\JobTitleRepo.cs" />
     <Compile Include="Repositories\MatrixRepo.cs" />
+    <Compile Include="Repositories\PlanningRepo.cs" />
     <Compile Include="Repositories\SectionRepo.cs" />
     <Compile Include="Repositories\UserRepo.cs" />
   </ItemGroup>
@@ -227,6 +250,21 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202512101301299_add_MatrixItem_toIssuances.resx">
       <DependentUpon>202512101301299_add_MatrixItem_toIssuances.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202512120834296_add_EmployeeJobTitleHistories.resx">
+      <DependentUpon>202512120834296_add_EmployeeJobTitleHistories.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202512120858070_make_EndDate_null_Jobtitlehistory.resx">
+      <DependentUpon>202512120858070_make_EndDate_null_Jobtitlehistory.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202512122006437_Add_ItemLogs_Table.resx">
+      <DependentUpon>202512122006437_Add_ItemLogs_Table.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202512122101154_test.resx">
+      <DependentUpon>202512122101154_test.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202512130943178_Add_ValidFrom_ValidTo_Matrix.resx">
+      <DependentUpon>202512130943178_Add_ValidFrom_ValidTo_Matrix.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -9,7 +9,11 @@
         <div class="card-header">
             <h2 ng-show="!updateEmployeeId">اضافة موظف</h2>
             <h2 ng-show="updateEmployeeId">تعديل بيانات الموظف ({{employee.FullName}})</h2>
-
+            <button class="btn search"
+                    type="button"
+                    ng-click="goBackToEmployees()">
+                ⬅ الرجوع إلى الموظفين
+            </button>
         </div>
         <div class="card-body">
             <div class="collapse" id="collapse-input-light-bg">
@@ -155,7 +159,7 @@
                     </div>
                     <div class="form-group col-6">
                         <label for="exampleFormControlPassword4">التأمين الصحي</label>
-                        <div id="dropzone" class="dropzone"></div>
+                        <div id="healthInsuranceDropzone" class="dropzone"></div>
                     </div>
 
                 </div>

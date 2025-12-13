@@ -49,30 +49,67 @@ namespace PublicSafety.Repositories.Repositories
             }
         }
 
-        public static Guid? AddNewEmployeee(Employee newEmployee)
+        public static Guid? AddNewEmployee(Employee newEmployee,EmployeeJobTitleHistory newEmployeeJobTitleHistory)
         {
             using (var context = new AppDbContext())
+            using (var transaction = context.Database.BeginTransaction())
             {
-                context.Employees.Add(newEmployee);
-                context.SaveChanges();
+                try
+                {
+                   
+                    context.Employees.Add(newEmployee);
+                    context.SaveChanges(); 
 
-                return newEmployee.EmployeeId;
+                   
+                   
+
+                    context.EmployeeJobTitleHistories.Add(newEmployeeJobTitleHistory);
+                    context.SaveChanges();
+
+                   
+                    transaction.Commit();
+
+                    return newEmployee.EmployeeId;
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw; 
+                }
             }
         }
 
-        public static void ResignEmployee(Guid EmployeeId)
+        public static void ResignEmployee(Guid employeeId)
         {
             using (var context = new AppDbContext())
             {
-                var Employee = context.Employees.FirstOrDefault(e => e.EmployeeId == EmployeeId);
+                var employee = context.Employees
+                    .FirstOrDefault(e => e.EmployeeId == employeeId);
 
-                Employee.RetirementDate = DateTime.Now;
-                Employee.Active = false;
+                if (employee == null)
+                    return;
+
+                var today = DateTime.Today;
+
+                
+                employee.RetirementDate = today;
+                employee.Active = false;
+
+                
+                var activeJobTitle = context.EmployeeJobTitleHistories
+                    .FirstOrDefault(h =>
+                        h.EmployeeId == employeeId &&
+                        h.EndDate == null);
+
+                if (activeJobTitle != null)
+                {
+                    activeJobTitle.EndDate = today;
+                }
 
                 context.SaveChanges();
             }
-
         }
+
 
         public static Employee GetEmployeeById(Guid? Id)
         {
@@ -86,41 +123,54 @@ namespace PublicSafety.Repositories.Repositories
                     .FirstOrDefault(e => e.EmployeeId == Id);
             }
         }
-
-        public static bool UpdateEmployee(Employee updatedEmployee)
+        public static bool UpdateEmployee(
+            Employee employee,
+            EmployeeJobTitleHistory oldJobTitleHistory,
+            EmployeeJobTitleHistory newJobTitleHistory)
         {
             using (var context = new AppDbContext())
+            using (var transaction = context.Database.BeginTransaction())
             {
-                // Load existing employee
-                var employee = context.Employees.Find(updatedEmployee.EmployeeId);
-                if (employee == null) return false;
+                try
+                {
+                    // 🔴 CRITICAL FIX: clear navigation properties
+                    employee.JobTitle = null;
+                    employee.Department = null;
+                    employee.Section = null;
 
-                // Update only the properties you want
-                employee.FirstName = updatedEmployee.FirstName;
-                employee.SecondName = updatedEmployee.SecondName;
-                employee.LastName = updatedEmployee.LastName;
-                employee.FullName = updatedEmployee.FullName;
-                employee.Email = updatedEmployee.Email;
-                employee.Phone = updatedEmployee.Phone;
-                employee.Active = updatedEmployee.Active;
-                employee.IsIntern = updatedEmployee.IsIntern;
-                employee.WorkLocation = updatedEmployee.WorkLocation;
-                employee.Notes = updatedEmployee.Notes;
-                employee.HealthInsuranceFile = updatedEmployee.HealthInsuranceFile;
-                employee.EmploymentDate = updatedEmployee.EmploymentDate;
+                    // 1️⃣ Attach and update employee
+                    context.Employees.Attach(employee);
+                    context.Entry(employee).State = EntityState.Modified;
 
-                // Update FKs only, navigation properties will resolve automatically
-                employee.DepartmentId = updatedEmployee.DepartmentId;
-                employee.SectionId = updatedEmployee.SectionId;
-                employee.JobTitleId = updatedEmployee.JobTitleId;
+                    // 2️⃣ Close old job title history if exists
+                    if (oldJobTitleHistory != null)
+                    {
+                        context.EmployeeJobTitleHistories.Attach(oldJobTitleHistory);
+                        context.Entry(oldJobTitleHistory).State = EntityState.Modified;
+                    }
 
-                // Optional: update RetirementDate, etc.
-                employee.RetirementDate = updatedEmployee.RetirementDate;
+                    // 3️⃣ Insert new job title history if exists
+                    if (newJobTitleHistory != null)
+                    {
+                        context.EmployeeJobTitleHistories.Add(newJobTitleHistory);
+                    }
 
-                context.SaveChanges();
-                return true;
+                    // 4️⃣ Save all changes
+                    context.SaveChanges();
+
+                    // 5️⃣ Commit transaction
+                    transaction.Commit();
+                    return true;
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
             }
         }
+
+
 
         public static int GetNumberOfActiveEmployees()
         {

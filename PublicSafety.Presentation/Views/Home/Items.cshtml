@@ -8,7 +8,7 @@
 
 
 <div class="content">
-   
+
 
     <!-- Products Inventory -->
     <div class="card card-default">
@@ -42,7 +42,8 @@
                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#increaseQuantityModalForm" ng-click="changeSelectedItem(item)">زيادة الرصيد</a></li>
                                 <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#disposeItemModalForm" ng-click="changeSelectedItem(item)">اتلاف كمية</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-danger" href="" ng-click="confirmDelete(item.ItemId)">حذف المادة</a></li>
+                                <li><a class="dropdown-item" href="#!/itemLogs/{{item.ItemId}}">سجل المادة</a></li>
+                                @*<li><a class="dropdown-item text-danger" href="" ng-click="confirmDelete(item.ItemId)">حذف المادة</a></li>*@
                             </ul>
                         </div>
                     </td>
@@ -75,7 +76,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="submit" class="btn btn-primary accept" ng-click="increaseQuantity()">حفظ التغييرات</button>
+                <button type="button" class="btn btn-primary accept" ng-click="increaseQuantity()">حفظ التغييرات</button>
                 <button type="button" class="btn btn-danger closeBtn" data-bs-dismiss="modal">إغلاق</button>
             </div>
         </div>
@@ -111,7 +112,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="submit" class="btn btn-primary accept" ng-click="addNewItem()">حفظ التغييرات</button>
+                <button type="button" class="btn btn-primary accept" ng-click="addNewItem()" >حفظ التغييرات</button>
                 <button type="button" class="btn btn-danger closeBtn" data-bs-dismiss="modal">إغلاق</button>
 
             </div>
@@ -120,36 +121,85 @@
 </div>
 
 
-<div class="modal fade" id="disposeItemModalForm" tabindex="-1" aria-labelledby="disposeItemModalForm" aria-hidden="true">
+<div class="modal fade" id="disposeItemModalForm" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
+
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalFormTitle">اضافة مادة</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title">اتلاف مادة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+
             <div class="modal-body">
-                <form>
+                <form name="disposeForm" novalidate>
+
+                    <!-- Quantity -->
                     <div class="form-group">
                         <label>الكمية</label>
-                        <input ng-model="disposal.Quantity" type="number" class="form-control" min="0" value="1">
+                        <input type="number"
+                               class="form-control"
+                               name="Quantity"
+                               ng-model="disposal.Quantity"
+                               min="1"
+                               required>
+
+                        <div class="invalid-feedback d-block"
+                             ng-show="disposeForm.$submitted && disposeForm.Quantity.$invalid">
+                            يرجى إدخال كمية صحيحة
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="exampleInputEmail1">تاريخ الاتلاف</label>
-                        <input type="text" name="date" class="form-control" placeholder="Select date" />
-                    </div>
-                    <div class="form-group">
-                        <label for="exampleInputPassword1">نموذج التوقيع</label>
-                        <input ng-model="disposal.DisposalFormPath" type="file" id="fileInput" class="form-control">
+                    <!-- Disposal date -->
+                    <div class="form-group mt-2">
+                        <label>تاريخ الاتلاف</label>
+                        <input type="text"
+                               class="form-control"
+                               name="date"
+                               ng-model="disposal.DisposalDate"
+                               placeholder="Select date"
+                               required>
 
+                        <div class="invalid-feedback d-block"
+                             ng-show="disposeForm.$submitted && disposeForm.DisposalDate.$invalid">
+                            يرجى اختيار تاريخ الاتلاف
+                        </div>
+                    </div>
+
+                    <!-- Dropzone -->
+                    <div class="form-group mt-3">
+                        <label>نموذج التوقيع</label>
+
+                        <div id="disposeFormDropzone"
+                             class="dropzone"
+                             ng-class="{'border-danger': disposeForm.$submitted && !disposal.DisposalFormPath}">
+                        </div>
+
+                        <!-- Hidden required input -->
+                        <input type="hidden"
+                               name="DisposalFile"
+                               ng-model="disposal.DisposalFormPath"
+                               required>
+
+                        <div class="invalid-feedback d-block"
+                             ng-show="disposeForm.$submitted && !disposal.DisposalFormPath">
+                            يرجى رفع نموذج التوقيع
+                        </div>
                     </div>
 
                 </form>
             </div>
+
             <div class="modal-footer">
-                <button type="submit" class="btn btn-primary accept" ng-click="dispose()">حفظ التغييرات</button>
-                <button type="button" class="btn btn-danger closeBtn" data-bs-dismiss="modal">إغلاق</button>
+                <button class="btn btn-primary accept" type="button"
+                        ng-click="dispose()">
+                    حفظ التغييرات
+                </button>
+                <button class="btn btn-danger closeBtn" 
+                        data-bs-dismiss="modal">
+                    إغلاق
+                </button>
             </div>
+
         </div>
     </div>
 </div>

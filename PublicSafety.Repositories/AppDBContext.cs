@@ -12,7 +12,7 @@ namespace PublicSafety.Repositories
     public class AppDbContext : DbContext
     {
 
-        public AppDbContext() : base("Data Source=localhost\\SQLEXPRESS;Initial Catalog=PublicSafety;User ID=Qais;Password=Qais_2004;TrustServerCertificate=True") { }
+        public AppDbContext() : base("Server = .;Database = PublicSafety; Integrated Security = SSPI; TrustServerCertificate = True") { }
 
         public DbSet<User> Users { get; set; }
         public DbSet<Department> Departments { get; set; }
@@ -28,7 +28,8 @@ namespace PublicSafety.Repositories
 
         public DbSet<MatrixItem> MatrixItems { get; set; }
         public DbSet<ChangeRequest> ChangeRequests { get; set; }
-
+        public DbSet<EmployeeJobTitleHistory> EmployeeJobTitleHistories { get; set; }
+        public DbSet<ItemLog> ItemLogs { get; set; }
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
 
@@ -188,12 +189,78 @@ namespace PublicSafety.Repositories
               .HasForeignKey(m => m.CategoryId)
               .WillCascadeOnDelete(false);
 
+            modelBuilder.Entity<Matrix>()
+            .Property(m => m.ValidTo)
+            .IsOptional();
+            modelBuilder.Entity<Matrix>()
+           .Property(m => m.ValidFrom)
+           .IsRequired();
 
             modelBuilder.Entity<Item>()
             .HasRequired(i => i.AddedBy)
             .WithMany(u => u.Items)
             .HasForeignKey(m => m.AddedById)
             .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<EmployeeJobTitleHistory>()
+          .HasRequired(i => i.Employee)
+          .WithMany(u => u.EmployeeJobTitleHistories)
+          .HasForeignKey(m => m.EmployeeId)
+          .WillCascadeOnDelete(false);
+
+           modelBuilder.Entity<EmployeeJobTitleHistory>()
+          .HasRequired(i => i.JobTitle)
+          .WithMany(u => u.EmployeeJobTitleHistories)
+          .HasForeignKey(m => m.JobTitleId)
+          .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<EmployeeJobTitleHistory>()
+                .Property(cr => cr.EndDate)
+                .IsOptional();
+
+            modelBuilder.Entity<ItemLog>()
+           .HasKey(x => x.ItemLogId);
+
+            modelBuilder.Entity<ItemLog>()
+                .Property(x => x.ActionType)
+                .IsRequired();
+
+            modelBuilder.Entity<ItemLog>()
+                .Property(x => x.Quantity)
+                .IsRequired();
+
+            modelBuilder.Entity<ItemLog>()
+                .Property(x => x.CreatedDate)
+                .IsRequired();
+
+            modelBuilder.Entity<ItemLog>()
+                .HasOptional(x => x.Employee)
+                .WithMany()
+                .HasForeignKey(x => x.EmployeeId);
+
+            modelBuilder.Entity<ItemLog>()
+                .HasRequired(x => x.Item)
+                .WithMany()
+                .HasForeignKey(x => x.ItemId)
+            .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<ItemLog>()
+                .HasOptional(x => x.MatrixItem)
+                .WithMany()
+                .HasForeignKey(x => x.MatrixItemId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<ItemLog>()
+                .HasOptional(x => x.Issuance)
+                .WithMany()
+                .HasForeignKey(x => x.IssuanceId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<ItemLog>()
+              .HasRequired(x => x.CreatedBy)
+              .WithMany()
+              .HasForeignKey(x => x.CreatedById)
+              .WillCascadeOnDelete(false);
 
             base.OnModelCreating(modelBuilder);
         }

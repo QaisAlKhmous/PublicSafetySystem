@@ -86,8 +86,10 @@
     <Compile Include="Controllers\EmployeeController.cs" />
     <Compile Include="Controllers\IssuanceController.cs" />
     <Compile Include="Controllers\ItemController.cs" />
+    <Compile Include="Controllers\ItemLogController.cs" />
     <Compile Include="Controllers\JobTitleController.cs" />
     <Compile Include="Controllers\MatrixController.cs" />
+    <Compile Include="Controllers\PlanningController.cs" />
     <Compile Include="Controllers\SectionController.cs" />
     <Compile Include="Controllers\UploadController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -11,7 +11,7 @@ namespace PublicSafety.Domain.Entities
     
     public class Employee
     {
-        public Guid? EmployeeId { get; set; }
+        public Guid EmployeeId { get; set; }
         public string FullName { get; set; }
         public string FirstName { get; set; }
         public string SecondName { get; set; }
@@ -34,7 +34,7 @@ namespace PublicSafety.Domain.Entities
         public DateTime EmploymentDate { get; set; }
         public DateTime? RetirementDate { get; set; }
         public ICollection<Issuance> Issuances { get; set; }
-
+        public ICollection<EmployeeJobTitleHistory> EmployeeJobTitleHistories { get; set; }
         public DateTime JobTitleUpdateDate { get; set; }
        
     }

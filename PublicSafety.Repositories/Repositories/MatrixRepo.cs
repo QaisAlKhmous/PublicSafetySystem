@@ -40,21 +40,27 @@ namespace PublicSafety.Repositories.Repositories
             }
         }
 
-        public static void DeactivateMatrix(Guid MatrixId)
+        public static void DeactivateMatrix(Guid matrixId, AppDbContext context)
         {
-            using (var context = new AppDbContext())
-            {
-                var matrix = context.Matrices.Find(MatrixId);
-                matrix.IsActive = false;
+            var matrix = context.Matrices.Find(matrixId);
+            if (matrix == null) return;
 
-                context.SaveChanges();
-            }
+            matrix.ValidTo = DateTime.Now;
+            matrix.IsActive = false; // اختياري
         }
         public static Matrix GetMatrixByCategory(Guid CategoryId)
         {
             using(var context = new AppDbContext())
             {
                 return context.Matrices.FirstOrDefault(m => m.CategoryId == CategoryId && m.IsActive == true);
+            }
+        }
+
+        public static Matrix GetMatrixByMatrixId(Guid MatrixId)
+        {
+            using (var context = new AppDbContext())
+            {
+                return context.Matrices.Find(MatrixId);
             }
         }
 
@@ -74,16 +80,20 @@ namespace PublicSafety.Repositories.Repositories
             }
         }
 
-        public static Guid AddNewMatrix(Guid CategoryId,int Version)
+        public static Matrix CreateNewMatrix(Guid categoryId, int version, AppDbContext context)
         {
-            using (var context = new AppDbContext())
+            var matrix = new Matrix
             {
-                var matrix = new Matrix() { CategoryId = CategoryId, MatrixId = Guid.NewGuid(), IsActive = true, Version = Version };
-               context.Matrices.Add(matrix);
-                context.SaveChanges();
+                MatrixId = Guid.NewGuid(),
+                CategoryId = categoryId,
+                Version = version,
+                ValidFrom = DateTime.Now,
+                ValidTo = null,
+                IsActive = true // اختياري
+            };
 
-                return matrix.MatrixId;
-            }
+            context.Matrices.Add(matrix);
+            return matrix;
         }
 
         public static Guid AddNewItemInMatrix(MatrixItem matrixItem)
@@ -124,6 +134,243 @@ namespace PublicSafety.Repositories.Repositories
 
             }
         }
+
+        public static void CreateNewMatrixVersionWithUpdatedItem(
+    Guid matrixItemId,
+    int newQuantity,
+    int newFrequency)
+        {
+            using (var context = new AppDbContext())
+            using (var transaction = context.Database.BeginTransaction())
+            {
+                try
+                {
+                    // 1️⃣ Load matrix item + matrix
+                    var oldMatrixItem = context.MatrixItems
+                        .Include(mi => mi.Matrix)
+                        .FirstOrDefault(mi => mi.MatrixItemId == matrixItemId);
+
+                    if (oldMatrixItem == null)
+                        throw new Exception("Matrix item not found");
+
+                    var oldMatrix = oldMatrixItem.Matrix;
+
+                    // 2️⃣ Deactivate old matrix
+                    oldMatrix.IsActive = false;
+                    oldMatrix.ValidTo = DateTime.Now;
+                    context.Entry(oldMatrix).State = EntityState.Modified;
+
+                    // 3️⃣ Create new matrix version
+                    var newMatrix = new Matrix
+                    {
+                        MatrixId = Guid.NewGuid(),
+                        CategoryId = oldMatrix.CategoryId,
+                        Version = oldMatrix.Version + 1,
+                        IsActive = true,
+                        ValidFrom = DateTime.Now,
+                        ValidTo = null
+                    };
+
+                    context.Matrices.Add(newMatrix);
+
+                    // 4️⃣ Copy all matrix items
+                    var oldItems = context.MatrixItems
+                        .Where(mi => mi.MatrixId == oldMatrix.MatrixId)
+                        .ToList();
+
+                    foreach (var oldItem in oldItems)
+                    {
+                        var newItem = new MatrixItem
+                        {
+                            MatrixItemId = Guid.NewGuid(),
+                            MatrixId = newMatrix.MatrixId,
+                            ItemId = oldItem.ItemId,
+
+                            Quantity = oldItem.MatrixItemId == matrixItemId
+                                ? newQuantity
+                                : oldItem.Quantity,
+
+                            Frequency = oldItem.MatrixItemId == matrixItemId
+                                ? newFrequency
+                                : oldItem.Frequency,
+                            CreatedById = oldItem.CreatedById,
+                            CreatedDate = DateTime.Now
+                        };
+
+                        context.MatrixItems.Add(newItem);
+                    }
+
+                    // 5️⃣ Persist
+                    context.SaveChanges();
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+        }
+
+        public static Guid CreateNewMatrixVersionWithNewItem(
+    Guid oldMatrixId,
+    Guid itemId,
+    int quantity,
+    int frequency,
+    Guid createdById)
+        {
+            using (var context = new AppDbContext())
+            using (var transaction = context.Database.BeginTransaction())
+            {
+                try
+                {
+                    // 1️⃣ Load old matrix
+                    var oldMatrix = context.Matrices
+                        .FirstOrDefault(m => m.MatrixId == oldMatrixId);
+
+                    if (oldMatrix == null)
+                        throw new Exception("Matrix not found");
+
+                    // 2️⃣ Deactivate old matrix
+                    oldMatrix.IsActive = false;
+                    oldMatrix.ValidTo = DateTime.Now;
+                    context.Entry(oldMatrix).State = EntityState.Modified;
+
+                    // 3️⃣ Create new matrix version
+                    var newMatrix = new Matrix
+                    {
+                        MatrixId = Guid.NewGuid(),
+                        CategoryId = oldMatrix.CategoryId,
+                        Version = oldMatrix.Version + 1,
+                        IsActive = true,
+                        ValidFrom = DateTime.Now,
+                        ValidTo = null
+
+                    };
+
+                    context.Matrices.Add(newMatrix);
+
+                    // 4️⃣ Copy old matrix items
+                    var oldItems = context.MatrixItems
+                        .Where(mi => mi.MatrixId == oldMatrix.MatrixId)
+                        .ToList();
+
+                    foreach (var oldItem in oldItems)
+                    {
+                        var newItem = new MatrixItem
+                        {
+                            MatrixItemId = Guid.NewGuid(),
+                            MatrixId = newMatrix.MatrixId,
+                            ItemId = oldItem.ItemId,
+                            Quantity = oldItem.Quantity,
+                            Frequency = oldItem.Frequency,
+                            CreatedDate = DateTime.Now,
+                            CreatedById = createdById
+                        };
+
+                        context.MatrixItems.Add(newItem);
+                    }
+
+                    // 5️⃣ Add the NEW matrix item
+                    var addedItem = new MatrixItem
+                    {
+                        MatrixItemId = Guid.NewGuid(),
+                        MatrixId = newMatrix.MatrixId,
+                        ItemId = itemId,
+                        Quantity = quantity,
+                        Frequency = frequency,
+                        CreatedDate = DateTime.Now,
+                        CreatedById = createdById
+                    };
+
+                    context.MatrixItems.Add(addedItem);
+
+                    // 6️⃣ Save & commit
+                    context.SaveChanges();
+                    transaction.Commit();
+
+                    return addedItem.MatrixItemId;
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+        }
+        public static void CreateNewMatrixVersionWithoutItem(Guid matrixItemId)
+        {
+            using (var context = new AppDbContext())
+            using (var transaction = context.Database.BeginTransaction())
+            {
+                try
+                {
+                    // 1️⃣ Load matrix item + matrix
+                    var matrixItem = context.MatrixItems
+                        .Include(mi => mi.Matrix)
+                        .FirstOrDefault(mi => mi.MatrixItemId == matrixItemId);
+
+                    if (matrixItem == null)
+                        throw new Exception("Matrix item not found");
+
+                    var oldMatrix = matrixItem.Matrix;
+
+                    // 2️⃣ Deactivate old matrix
+                    oldMatrix.IsActive = false;
+                    oldMatrix.ValidTo = DateTime.Now;
+                    context.Entry(oldMatrix).State = EntityState.Modified;
+
+                    // 3️⃣ Create new matrix version
+                    var newMatrix = new Matrix
+                    {
+                        MatrixId = Guid.NewGuid(),
+                        CategoryId = oldMatrix.CategoryId,
+                        Version = oldMatrix.Version + 1,
+                        IsActive = true,
+                        ValidFrom = DateTime.Now,
+                        ValidTo = null
+
+                    };
+
+                    context.Matrices.Add(newMatrix);
+
+                    // 4️⃣ Copy all matrix items EXCEPT the deleted one
+                    var oldItems = context.MatrixItems
+                        .Where(mi => mi.MatrixId == oldMatrix.MatrixId)
+                        .ToList();
+
+                    foreach (var oldItem in oldItems)
+                    {
+                        if (oldItem.MatrixItemId == matrixItemId)
+                            continue; // 🚫 skip deleted item
+
+                        var newItem = new MatrixItem
+                        {
+                            MatrixItemId = Guid.NewGuid(),
+                            MatrixId = newMatrix.MatrixId,
+                            ItemId = oldItem.ItemId,
+                            Quantity = oldItem.Quantity,
+                            Frequency = oldItem.Frequency,
+                            CreatedDate = DateTime.Now,
+                            CreatedById = matrixItem.CreatedById
+                        };
+
+                        context.MatrixItems.Add(newItem);
+                    }
+
+                    // 5️⃣ Save & commit
+                    context.SaveChanges();
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+        }
+
+
 
     }
 }

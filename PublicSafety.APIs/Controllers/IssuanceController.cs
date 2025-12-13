@@ -32,6 +32,27 @@ namespace PublicSafety.APIs.Controllers
                 message = "تم الاصدار بنجاح"
             });
         }
+        public JsonResult AddNewEntitledIssuance(AddIssuanceDTO issuance)
+        {
+            var item = ItemService.GetItemById(issuance.ItemId);
+
+            if (item.Quantity < issuance.Quantity)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "الكمية المطلوبة أكبر من المتوفرة!"
+                });
+            }
+           
+            IssuanceService.AddNewEntitledIssuance(issuance);
+
+            return Json(new
+            {
+                success = true,
+                message = "تم الاصدار بنجاح"
+            });
+        }
         [HttpGet]
         public JsonResult GetIssuancesByEmployeeId(Guid EmployeeId)
         {

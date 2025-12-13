@@ -23,12 +23,12 @@
     <aside class="left-sidebar" id="left-sidebar">
         <div id="sidebar" class="sidebar sidebar-with-footer">
             <!-- Aplication Brand -->
-            
-                <a href="/index.html" class="text-center">
-                    <img src="~/Assets/images/logo.png" alt="Mono" class="w-75">
-     
-                </a>
-        
+
+            <a href="/index.html" class="text-center">
+                <img src="~/Assets/images/logo.png" alt="Mono" class="w-75">
+
+            </a>
+
             <!-- begin sidebar scrollbar -->
             <div class="sidebar-left" data-simplebar style="height: 100%;">
                 <!-- sidebar menu -->
@@ -43,9 +43,9 @@
                         </a>
                     </li>
 
-                    <li class="" ng-class="{'active': activeItem == 1}">
+                    <li class="" ng-class="{'active': activeItem == 1}" ng-show="IsAdmin">
                         <a class="sidenav-item-link justify-content-between" href="#!/matrices">
-                            <i class="mdi mdi-file-document-box"></i>   
+                            <i class="mdi mdi-file-document-box"></i>
                             <span class="nav-text">المصفوفات</span>
                         </a>
                     </li>
@@ -69,13 +69,26 @@
 
 
             </div>
+            <div class="sidebar-footer">
+                <div class="sidebar-footer-content">
+   
+                    
+                            
+                            <a href="@Url.Action("Logout", "Account")" class="btn btn-danger w-100">
+                                تسجيل الخروج
+                            </a>
+                       
+                       
+                
+                </div>
+            </div>
         </div>
 
 
 
 
     </aside>S
-
+    
 
 
     <!-- ====================================
@@ -83,7 +96,7 @@
     ===================================== -->
     <div class="page-wrapper">
 
-  
+
 
         <!-- ====================================
         ——— CONTENT WRAPPER

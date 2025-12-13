@@ -13,6 +13,8 @@ namespace PublicSafety.Domain.Entities
         public Category Category { get; set; }
         public int Version { get; set; }
         public bool IsActive { get; set; }
+        public DateTime ValidFrom   { get; set; }
+        public DateTime? ValidTo { get; set; }
         public ICollection<MatrixItem> MatrixItems { get; set; }
     }
 }

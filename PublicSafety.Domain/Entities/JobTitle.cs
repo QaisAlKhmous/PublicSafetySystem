@@ -15,6 +15,7 @@ namespace PublicSafety.Domain.Entities
         public DateTime UpdatedDate { get; set; }
         public virtual ICollection<Employee> Employees { get; set; }
         public ICollection<JobTitleCategory> jobTitleCategories { get; set; }
+        public ICollection<EmployeeJobTitleHistory> EmployeeJobTitleHistories { get; set; }
 
     }
 }

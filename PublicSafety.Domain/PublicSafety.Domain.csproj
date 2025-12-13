@@ -57,13 +57,17 @@
     <Compile Include="Entities\Department.cs" />
     <Compile Include="Entities\Disposal.cs" />
     <Compile Include="Entities\Employee.cs" />
+    <Compile Include="Entities\EmployeeJobTitleHistory.cs" />
     <Compile Include="Entities\Entitlement.cs" />
     <Compile Include="Entities\Issuance.cs" />
     <Compile Include="Entities\Item.cs" />
+    <Compile Include="Entities\ItemLog.cs" />
     <Compile Include="Entities\JobTitle.cs" />
     <Compile Include="Entities\JobTitleCategory.cs" />
     <Compile Include="Entities\Matrix.cs" />
     <Compile Include="Entities\MatrixItem.cs" />
+    <Compile Include="Entities\PlanningItemDetails.cs" />
+    <Compile Include="Entities\PlanningOverview.cs" />
     <Compile Include="Entities\Section.cs" />
     <Compile Include="Entities\User.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

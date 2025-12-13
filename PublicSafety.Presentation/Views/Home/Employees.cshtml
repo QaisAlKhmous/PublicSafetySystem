@@ -52,7 +52,7 @@
 
 
 
-               
+
 
                 <!-- فلتر الحالة -->
                 <div class="col-md-2 mb-2">
@@ -156,95 +156,165 @@
 
 
 
-<div class="modal fade" id="exceptionModalForm" tabindex="-1" aria-labelledby="exceptionModalForm" aria-hidden="true">
+<div class="modal fade" id="exceptionModalForm" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
+
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalFormTitle">اضافة استثناء</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title">اضافة استثناء</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+
             <div class="modal-body">
-                <form name="exceptionForm">
+                <form name="exceptionForm" novalidate>
+
+                    <!-- Item -->
                     <div class="form-group">
                         <label>اسم المادة</label>
-                        <select class="form-control rounded-0 bg-light"
-                                ng-model="issuance.ItemId" name="Section" required
+                        <select class="form-control"
+                                ng-model="issuance.ItemId"
+                                name="ItemId"
+                                required
                                 ng-options="i.ItemId as i.Name for i in items">
-                            <option value="" disabled selected>اختر اسم المادة</option>
+                            <option value="">اختر اسم المادة</option>
                         </select>
-                        <div class="invalid-feedback d-block" ng-show="exceptionForm.$submitted && !issuance.ItemId">
-                            <i class="bx bx-radio-circle"></i>
+
+                        <div class="invalid-feedback d-block"
+                             ng-show="exceptionForm.$submitted && exceptionForm.ItemId.$invalid">
                             يرجى اختيار مادة
                         </div>
                     </div>
 
+                    <!-- Quantity -->
                     <div class="form-group">
                         <label>الكمية</label>
-                        <input ng-model="issuance.Quantity" type="number" class="form-control" min="0" value="1">
+                        <input type="number"
+                               class="form-control"
+                               ng-model="issuance.Quantity"
+                               min="1">
                     </div>
 
+                    <!-- Reason -->
                     <div class="form-group">
-                        <label for="exampleInputEmail1">السبب</label>
-                        <input ng-model="issuance.ExceptionReason" type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="ادخل السبب">
+                        <label>السبب</label>
+                        <input type="text"
+                               class="form-control"
+                               ng-model="issuance.ExceptionReason">
                     </div>
 
+                    <!-- Dropzone -->
                     <div class="form-group">
-                        <div id="dropzone" class="dropzone"></div>
+                        <label>نموذج الاستثناء</label>
+                        <div id="exceptionFormDropzone"
+                             class="dropzone"
+                             ng-class="{'border-danger': exceptionForm.$submitted && !issuance.ExceptionFormPath}">
+                        </div>
+
+                        <!-- Hidden required input -->
+                        <input type="hidden"
+                               name="ExceptionFile"
+                               ng-model="issuance.ExceptionFormPath"
+                               required>
+
+                        <div class="invalid-feedback d-block"
+                             ng-show="exceptionForm.$submitted && !issuance.ExceptionFormPath">
+                            يرجى رفع ملف
+                        </div>
                     </div>
+
                 </form>
             </div>
+
             <div class="modal-footer">
-                <button type="submit" class="btn btn-primary accept" ng-click="issueDamage()">حفظ التغييرات</button>
-                <button type="button" class="btn btn-danger closeBtn" data-bs-dismiss="modal">إغلاق</button>
+                <button class="btn btn-primary accept" ng-click="issueException()" type="button">
+                    حفظ التغييرات
+                </button>
+                <button class="btn btn-danger closeBtn" data-bs-dismiss="modal">
+                    إغلاق
+                </button>
             </div>
+
         </div>
     </div>
 </div>
 
 
 
-<div class="modal fade" id="damageModalForm" tabindex="-1" aria-labelledby="damageModalForm" aria-hidden="true">
+
+<div class="modal fade" id="damageModalForm" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
+
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalFormTitle">اضافة استلام تلف مادة</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h5 class="modal-title">اضافة استلام تلف مادة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+
             <div class="modal-body">
-                <form name="damageForm">
+                <form name="damageForm" novalidate>
+
+                    <!-- Item -->
                     <div class="form-group">
                         <label>اسم المادة</label>
-                        <select class="form-control rounded-0 bg-light"
-                                ng-model="issuance.ItemId" name="Section" required
+                        <select class="form-control"
+                                ng-model="issuance.ItemId"
+                                name="ItemId"
+                                required
                                 ng-options="i.ItemId as i.Name for i in items">
-                            <option value="" disabled selected>اختر اسم المادة</option>
+                            <option value="">اختر اسم المادة</option>
                         </select>
-                        <div class="invalid-feedback d-block" ng-show="damageForm.$submitted && !issuance.ItemId">
-                            <i class="bx bx-radio-circle"></i>
+
+                        <div class="invalid-feedback d-block"
+                             ng-show="damageForm.$submitted && damageForm.ItemId.$invalid">
                             يرجى اختيار مادة
                         </div>
                     </div>
 
+                    <!-- Quantity -->
                     <div class="form-group">
                         <label>الكمية</label>
-                        <input ng-model="issuance.Quantity" type="number" class="form-control" min="0" value="1">
+                        <input type="number"
+                               class="form-control"
+                               ng-model="issuance.Quantity" required
+                               min="1">
                     </div>
 
-
-
+                    <!-- Dropzone -->
                     <div class="form-group">
-                        <div id="dropzone" class="dropzone"></div>
+                        <label>نموذج الاستلام</label>
+                        <div id="damageFormDropzone"
+                             class="dropzone"
+                             ng-class="{'border-danger': damageForm.$submitted && !issuance.SignedReceiptPath}">
+                        </div>
+
+                        <!-- Hidden required input -->
+                        <input type="hidden"
+                               name="SignedReceiptFile"
+                               ng-model="issuance.SignedReceiptPath"
+                               required>
+
+                        <div class="invalid-feedback d-block"
+                             ng-show="damageForm.$submitted && !issuance.SignedReceiptPath">
+                            يرجى رفع ملف
+                        </div>
                     </div>
+
                 </form>
             </div>
-            <div class="modal-footer">
-                <button type="submit" class="btn btn-primary accept" ng-click="issueDamage()">حفظ التغييرات</button>
-                <button type="button" class="btn btn-danger closeBtn" data-bs-dismiss="modal">إغلاق</button>
 
+            <div class="modal-footer">
+                <button class="btn btn-primary accept" ng-click="issueDamage()" type="button">
+                    حفظ التغييرات
+                </button>
+                <button class="btn btn-danger closeBtn" data-bs-dismiss="modal">
+                    إغلاق
+                </button>
             </div>
+
         </div>
     </div>
 </div>
+
 
 <div class="modal fade" id="uploadEmployeesModal" tabindex="-1" aria-labelledby="uploadEmployeesModal" aria-hidden="true">
     <div class="modal-dialog">
@@ -255,9 +325,9 @@
             </div>
             <div class="modal-body">
                 <div>
-                    
+
                     <input type="file" file-model="excelFile" accept=".xlsx" />
-                    
+
                 </div>
 
                 <div ng-show="uploadResult">

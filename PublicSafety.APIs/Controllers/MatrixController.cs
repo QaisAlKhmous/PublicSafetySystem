@@ -59,8 +59,7 @@ namespace PublicSafety.APIs.Controllers
         [HttpPost]
         public JsonResult AddNewMatrix(Guid CategoryId)
         {
-
-            var id = MatrixService.AddNewMatrix(CategoryId);
+            var id = MatrixService.CreateNewMatrixVersion(CategoryId);
 
             return Json(id);
         }

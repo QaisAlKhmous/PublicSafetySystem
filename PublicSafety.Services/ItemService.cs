@@ -38,10 +38,53 @@ namespace PublicSafety.Services
             ItemRepo.DeleteItem(id);
         }
 
-        public static void IncreaseItemQuantity(Guid id, int AddedQuantity)
+        public static void IncreaseItemQuantity(Guid itemId, int addedQuantity, string createdBy)
         {
-            ItemRepo.IncreaseItemQuantity(id, AddedQuantity);
+            using (var context = new AppDbContext())
+            using (var transaction = context.Database.BeginTransaction())
+            {
+                try
+                {
+                    var user = UserService.GetUserByUsername(createdBy);
+
+                    var item = context.Items.Find(itemId);
+                    if (item == null)
+                        throw new Exception("الصنف غير موجود");
+
+                    item.Quantity += addedQuantity;
+
+                    // إضافة سجل في ItemLogs
+                    var log = new ItemLog
+                    {
+                        ItemLogId = Guid.NewGuid(),
+                        EmployeeId = null, // زيادة مخزون ليست لموظف
+                        ItemId = itemId,
+                        MatrixItemId = null,
+                        IssuanceId = null,
+
+                        ActionType = enItemActionType.StockIncrease,
+                        Quantity = addedQuantity,
+                        EntitlementYear = null,
+
+                        Notes = $"زيادة كمية الصنف في المخزون بمقدار {addedQuantity}",
+
+                        CreatedById = user.UserId,
+                        CreatedDate = DateTime.Now
+                    };
+
+                    context.ItemLogs.Add(log);
+
+                    context.SaveChanges();
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
         }
+
 
         public static void DecreaseItemQuantity(Guid id, int AddedQuantity)
         {

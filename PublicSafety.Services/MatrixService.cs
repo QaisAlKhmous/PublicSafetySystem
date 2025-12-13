@@ -1,4 +1,5 @@
 ﻿using PublicSafety.Domain.Entities;
+using PublicSafety.Repositories;
 using PublicSafety.Repositories.Repositories;
 using PublicSafety.Services.DTOs;
 using System;
@@ -62,41 +63,66 @@ namespace PublicSafety.Services
             return MatrixRepo.IsMatrixExistsForCategory(CategoryId);
         }
 
-        public static Guid AddNewMatrix(Guid CategoryId)
+        public static Guid CreateNewMatrixVersion(Guid categoryId)
         {
-            var matrix = GetMatrixByCategory(CategoryId);
-            Guid id = Guid.NewGuid();
-            if(matrix != null)
+            using (var context = new AppDbContext())
+            using (var transaction = context.Database.BeginTransaction())
             {
-                id = MatrixRepo.AddNewMatrix(CategoryId, matrix.Version + 1);
-                MatrixRepo.DeactivateMatrix(matrix.MatrixId);
+                try
+                {
+                    var currentMatrix = context.Matrices
+                        .Where(m => m.CategoryId == categoryId && m.ValidTo == null)
+                        .FirstOrDefault();
+
+                    int newVersion = 1;
+
+                    if (currentMatrix != null)
+                    {
+                        newVersion = currentMatrix.Version + 1;
+                       MatrixRepo.DeactivateMatrix(currentMatrix.MatrixId, context);
+                    }
+
+                    var newMatrix =MatrixRepo.CreateNewMatrix(categoryId, newVersion, context);
+
+                    context.SaveChanges();
+                    transaction.Commit();
+
+                    return newMatrix.MatrixId;
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
             }
-            else
-            {
-                id = MatrixRepo.AddNewMatrix(CategoryId, 1);
-            }
-            return id;
         }
 
-        public static Guid AddNewMatrixItem(MatrixItemDTO matrixItem)
+
+        public static Guid AddNewMatrixItem(MatrixItemDTO dto)
         {
-            var newMatrixItem = new Domain.Entities.MatrixItem()
-            {
-                ItemId = matrixItem.ItemId,
-                MatrixId = matrixItem.MatrixId,
-                CreatedById = UserService.GetUserByUsername(matrixItem.CreatedBy).UserId,
-                Frequency = matrixItem.Frequency,
-                Quantity = matrixItem.Quantity,
-                MatrixItemId = Guid.NewGuid(),
-                CreatedDate = DateTime.Now
-            };
-            return MatrixRepo.AddNewItemInMatrix(newMatrixItem);
+            if (dto == null)
+                throw new ArgumentNullException(nameof(dto));
+
+            var user = UserService.GetUserByUsername(dto.CreatedBy);
+            if (user == null)
+                throw new Exception("Invalid user");
+
+            return MatrixRepo.CreateNewMatrixVersionWithNewItem(
+                dto.MatrixId,
+                dto.ItemId,
+                dto.Quantity,
+                dto.Frequency,
+                user.UserId
+            );
         }
 
-        public static void DeleteMatrixItem(Guid MatrixItemId)
+        public static void DeleteMatrixItem(Guid matrixItemId)
         {
-            MatrixRepo.DeleteMatrixItem(MatrixItemId);
+            var matrixItem = MatrixRepo.GetMatrixItemById(matrixItemId);
+            if (matrixItem == null)
+                throw new Exception("Matrix item not found");
 
+            MatrixRepo.CreateNewMatrixVersionWithoutItem(matrixItemId);
         }
         public static MatrixItemDTO GetMatrixItemById(Guid MatrixItemId)
         {
@@ -108,14 +134,21 @@ namespace PublicSafety.Services
 
         }
 
-        public static void UpdateMatrixItem(UpdateMatrixItemDTO matrixItem)
+        public static void UpdateMatrixItem(UpdateMatrixItemDTO dto)
         {
-            var exMatrixItem = MatrixRepo.GetMatrixItemById(matrixItem.MatrixItemId);
-            exMatrixItem.Frequency = matrixItem.Frequency;
-            exMatrixItem.Quantity = matrixItem.Quantity;
+            if (dto == null)
+                throw new ArgumentNullException(nameof(dto));
 
-            MatrixRepo.UpdateMatrixItem(exMatrixItem);
+            var matrixItem = MatrixRepo.GetMatrixItemById(dto.MatrixItemId);
+            if (matrixItem == null)
+                throw new Exception("Matrix item not found");
 
+            
+            MatrixRepo.CreateNewMatrixVersionWithUpdatedItem(
+                dto.MatrixItemId,
+                dto.Quantity,
+                dto.Frequency
+            );
         }
     }
 }

@@ -11,6 +11,7 @@ namespace PublicSafety.Services.DTOs
         public Guid IssuanceId { get; set; }
         public Guid EmployeeId { get; set; }
         public Guid ItemId { get; set; }
+        public Guid? MatrixItemId { get; set; }
         public int Quantity { get; set; }
         public string Type { get; set; }
         public string ExceptionReason { get; set; }

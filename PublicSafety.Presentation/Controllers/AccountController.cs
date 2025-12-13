@@ -58,5 +58,20 @@ namespace PublicSafety.Presentation.Controllers
 
 
         }
+
+
+        public ActionResult Logout()
+        {
+            if (Request.Cookies["UserInfo"] != null)
+            {
+                Response.Cookies["UserInfo"].Expires = DateTime.Now.AddDays(-1);
+            }
+
+            Response.Cache.SetCacheability(HttpCacheability.NoCache);
+            Response.Cache.SetNoStore();
+            Response.Cache.SetExpires(DateTime.UtcNow.AddMinutes(-1));
+
+            return RedirectToAction("Login", "Account");
+        }
     }
 }

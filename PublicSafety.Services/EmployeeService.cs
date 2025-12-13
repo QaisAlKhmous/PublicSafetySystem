@@ -66,7 +66,16 @@ namespace PublicSafety.Services
                 JobTitleUpdateDate = DateTime.Parse(employee.EmploymentDate)
             };
 
-            return EmployeeRepo.AddNewEmployeee(newEmployee);
+            var JobTitleHistory = new EmployeeJobTitleHistory()
+            {
+                EmployeeId = newEmployee.EmployeeId,
+                EmployeeJobTitleHistoryId = Guid.NewGuid(),
+                JobTitleId = newEmployee.JobTitleId,
+                StartDate = newEmployee.JobTitleUpdateDate,
+                EndDate = null
+            };
+
+            return EmployeeRepo.AddNewEmployee(newEmployee,JobTitleHistory);
         }
 
         public static void ResignEmployee(Guid EmployeeId)
@@ -104,11 +113,13 @@ namespace PublicSafety.Services
         public static bool UpdateEmployee(AddEmployeeDTO employee)
         {
             var existingEmployee = EmployeeRepo.GetEmployeeById(employee.EmployeeId);
-
             if (existingEmployee == null)
                 return false;
 
+            // ✅ Save old JobTitleId BEFORE changing it
+            var oldJobTitleId = existingEmployee.JobTitleId;
 
+            // Update normal fields
             existingEmployee.FirstName = employee.FirstName;
             existingEmployee.SecondName = employee.SecondName;
             existingEmployee.LastName = employee.LastName;
@@ -121,23 +132,45 @@ namespace PublicSafety.Services
             existingEmployee.WorkLocation = (enWorkLocation)Enum.Parse(typeof(enWorkLocation), employee.WorkLocation);
             existingEmployee.HealthInsuranceFile = employee.HealthInsuranceFile;
             existingEmployee.DepartmentId = employee.DepartmentId;
-            existingEmployee.HealthInsuranceFile = employee.HealthInsuranceFile;
             existingEmployee.SectionId = employee.SectionId;
-            existingEmployee.JobTitleId = employee.JobTitleId;
             existingEmployee.EmploymentDate = DateTime.Parse(employee.EmploymentDate);
-            
 
-            if(existingEmployee.JobTitleId != employee.JobTitleId)
+
+            if (existingEmployee.Active)
+                existingEmployee.RetirementDate = null;
+
+            bool jobTitleChanged = oldJobTitleId != employee.JobTitleId;
+
+            if (jobTitleChanged)
             {
-                existingEmployee.JobTitleUpdateDate = DateTime.Now;
+                DateTime changeDate = DateTime.Now;
+
+                existingEmployee.JobTitleId = employee.JobTitleId;
+                existingEmployee.JobTitleUpdateDate = changeDate;
+
+                var jobTitleHistory = EmployeeJobTitleHistoryRepo
+                    .GetLastJobTitleHistoryByEmployee(existingEmployee.EmployeeId);
+
+                jobTitleHistory.EndDate = changeDate;
+
+                var newJobTitleHistory = new EmployeeJobTitleHistory
+                {
+                    EmployeeJobTitleHistoryId = Guid.NewGuid(),
+                    EmployeeId = existingEmployee.EmployeeId,
+                    JobTitleId = employee.JobTitleId,
+                    StartDate = changeDate,
+                    EndDate = null
+                };
+
+                return EmployeeRepo.UpdateEmployee(
+                    existingEmployee,
+                    jobTitleHistory,
+                    newJobTitleHistory);
             }
 
-            // TO DO -- Update CategoryId
-
-
-            return EmployeeRepo.UpdateEmployee(existingEmployee);
-
+            return EmployeeRepo.UpdateEmployee(existingEmployee, null, null);
         }
+ 
 
         public static int GetNumberOfActiveEmployees()
         {

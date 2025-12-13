@@ -13,49 +13,48 @@ namespace PublicSafety.APIs.Controllers
     public class UploadController: Controller
     {
         [HttpPost]
-        public JsonResult UploadFile(HttpPostedFileBase uploadFile)
+        public JsonResult UploadFile(HttpPostedFileBase file)
         {
-            string tempId = "file" + "_" + Guid.NewGuid().ToString().Replace("-", "");
-            HttpPostedFileBase File = Request.Files["file"];
-            if (File != null)
+            if (file == null || file.ContentLength == 0)
+                return Json(new { success = false, message = "No file uploaded" });
+
+            string uploadsFolder = Server.MapPath("~/Uploads/");
+            if (!Directory.Exists(uploadsFolder))
+                Directory.CreateDirectory(uploadsFolder);
+
+            string extension = Path.GetExtension(file.FileName);
+            string fileName = $"file_{Guid.NewGuid():N}{extension}";
+            string filePath = Path.Combine(uploadsFolder, fileName);
+
+            file.SaveAs(filePath);
+
+            return Json(new
             {
-                if (File.ContentLength > 0)
-                {
-                    string ext = Path.GetExtension(File.FileName);
-                    tempId = tempId + ext;
-
-                    string uploadDir = HttpContext.Server.MapPath("~/Uploads/");
-
-                    if (!Directory.Exists(uploadDir))
-                    {
-                        Directory.CreateDirectory(uploadDir);
-                    }
-
-                    string filePath = Path.Combine(uploadDir, tempId);
-
-                    File.SaveAs(filePath);
-                }
-            }
-
-            return Json(new { tempId = tempId });
+                success = true,
+                fileName = fileName
+            });
         }
 
 
         [HttpGet]
-        public ActionResult GetUploadedFile(string fileName)
+        public ActionResult Download(string fileName)
         {
-            if (string.IsNullOrEmpty(fileName))
-                return HttpNotFound();
+            if (string.IsNullOrWhiteSpace(fileName))
+                return new HttpStatusCodeResult(400);
 
-            string filePath = Server.MapPath("~" + fileName);
+            fileName = Path.GetFileName(fileName); // security
 
-            if (!System.IO.File.Exists(filePath))
-                return HttpNotFound();
+            string fullPath = Path.Combine(Server.MapPath("~/Uploads/"), fileName);
 
-            // Determine content type
-            string contentType = MimeMapping.GetMimeMapping(filePath);
+            if (!System.IO.File.Exists(fullPath))
+                return HttpNotFound("File not found: " + fileName);
 
-            return File(filePath, contentType, fileName);
+            // FORCE download (no browser preview)
+            return File(
+                fullPath,
+                "application/octet-stream",
+                fileName
+            );
         }
 
 

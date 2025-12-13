@@ -9,11 +9,17 @@
 
     <!-- Products Inventory -->
     <div class="card card-default">
-        <div class="card-header">
-            <h2>قائمة المستحقات ل ({{employee.FullName}})</h2>
+        <div class="card-header d-flex justify-content-between align-items-center">
 
+           
+            <h2 class="mb-0">قائمة المستحقات ل ({{employee.FullName}})</h2>
 
-
+           
+            <button class="btn search"
+                    type="button"
+                    ng-click="goBackToEmployees()">
+                ⬅ الرجوع إلى الموظفين
+            </button>
 
         </div>
         <div class="card-body">
@@ -26,6 +32,7 @@
                 <tr ng-repeat="entitlement in $data">
                     <td data-title="'#'">{{$index + 1}}</td>
                     <td data-title="'اسم المادة'">{{entitlement.ItemName}}</td>
+                    <td data-title="'الفئة'">{{entitlement.CategoryName}}</td>
                     <td data-title="'الكمية المستحقة'">{{entitlement.EntitledQty}}</td>
                     <td data-title="'تاريخ الاستحقاق'">{{entitlement.EntitlementYear}}</td>
                     <td data-title="'الكمية المصروفة'">{{entitlement.IssuedQty}}</td>
@@ -33,7 +40,9 @@
                         <span ng-show="entitlement.IsIssued" class="text-success">مستلم</span>
                         <span ng-show="!entitlement.IsIssued" class="text-danger">غير مستلم</span>
                     </td>
-                  
+                    <td data-title="'الاجراءات'">
+                        <button type="button" class="btn btn-success " data-bs-toggle="modal" data-bs-target="#issueModalForm" ng-disabled="entitlement.IsIssued" ng-click="selectEntitlment(entitlement)">تسليم</button>
+                    </td>
 
 
                 </tr>
@@ -47,3 +56,75 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="issueModalForm" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    صرف مادة ({{selectedEntitlement.ItemName}})
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <form name="entitlementForm" novalidate>
+
+                    <!-- Quantity -->
+                    <div class="form-group">
+                        <label>الكمية المراد صرفها</label>
+                        <input type="number"
+                               class="form-control"
+                               name="Quantity"
+                               ng-model="issuance.Quantity"
+                               min="1"
+                               max="{{selectedEntitlement.RemainingQty}}"
+                               ng-keydown="blockTyping($event)"
+                               ng-change="validateQuantity()"
+                               required>
+
+                        <div class="invalid-feedback d-block"
+                             ng-show="entitlementForm.$submitted && entitlementForm.Quantity.$invalid">
+                            يرجى إدخال كمية صحيحة
+                        </div>
+                    </div>
+
+                    <!-- Dropzone -->
+                    <div class="form-group mt-3">
+                        <label>نموذج الاستلام</label>
+
+                        <div id="entitlementReceiptDropzone"
+                             class="dropzone"
+                             ng-class="{'border-danger': entitlementForm.$submitted && !issuance.SignedReceiptPath}">
+                        </div>
+
+                        <input type="hidden"
+                               name="SignedReceiptFile"
+                               ng-model="issuance.SignedReceiptPath"
+                               required>
+
+                        <div class="invalid-feedback d-block"
+                             ng-show="entitlementForm.$submitted && !issuance.SignedReceiptPath">
+                            يرجى رفع نموذج الاستلام
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-primary accept"
+                        ng-click="issueEntitlemet()">
+                    حفظ التغييرات
+                </button>
+                <button class="btn btn-danger closeBtn"
+                        data-bs-dismiss="modal">
+                    إغلاق
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
