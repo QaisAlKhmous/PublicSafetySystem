@@ -11,52 +11,54 @@ namespace PublicSafety.Presentation.Controllers
     public class AccountController : Controller
     {
         [HttpGet]
-        public ActionResult Login()
+        public ActionResult Login(string returnUrl)
         {
+           
+            HttpCookie userCookie = Request.Cookies["UserInfo"];
+
+            if (userCookie != null)
+            {
+                
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                {
+                    return Redirect(returnUrl);
+                }
+
+                return RedirectToAction("Index", "Home");
+            }
+
+            
+            ViewBag.ReturnUrl = returnUrl;
             return View();
         }
 
         [HttpPost]
-        public ActionResult Login(string Username, string Password)
+        public ActionResult Login(string Username, string Password, string returnUrl)
         {
+            
             var LogedInUser = UserService.Login(Username, Password);
 
-            if (LogedInUser == null)
+            if (LogedInUser == null || !LogedInUser.IsPassword)
             {
-
-                ViewBag.LoginError = "اسم المستخدم او كلمة لمرور خاطئة";
-
+                ViewBag.LoginError = "اسم المستخدم أو كلمة المرور خاطئة";
+                ViewBag.ReturnUrl = returnUrl;
                 return View();
             }
-
-
-            if (!LogedInUser.IsPassword)
-            {
-                ViewBag.LoginError = "اسم المستخدم او كلمة لمرور خاطئة";
-
-
-                return View();
-            }
-
-
-           
-
-           
 
             HttpCookie userCookie = new HttpCookie("UserInfo");
-            userCookie.HttpOnly = false;
+            userCookie.HttpOnly = false; 
             userCookie["Username"] = Username;
             userCookie["UserId"] = LogedInUser.UserId.ToString();
             userCookie["Type"] = LogedInUser.Type.ToString();
-            userCookie.Expires = DateTime.Now.AddHours(1);
+            userCookie.Expires = DateTime.Now.AddDays(7);
             Response.Cookies.Add(userCookie);
 
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
 
             return RedirectToAction("Index", "Home");
-
-
-
-
         }
 
 

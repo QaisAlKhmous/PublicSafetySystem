@@ -16,14 +16,14 @@
 
     <div class="card-header">
         <div class="d-flex justify-content-end">
-            <div ng-show="selectedCategory">
+            @*<div ng-show="selectedCategory">
                 <div ng-show="matrixExists">
                     <button class="btn btn-primary blue"
                             ng-click="confirmCreateMatrix()">
                         تغيير المصفوفة
                     </button>
                 </div>
-            </div>
+            </div>*@
 
         </div>
             <div ng-show="selectedCategory">
@@ -32,10 +32,10 @@
                         <h3>لا يوجد مصفوفات لهذه الفئة</h3>
                     </div>
                     <div class="d-flex justify-content-center mt-2">
-                        <button class="btn btn-primary"
+                        @*<button class="btn btn-primary"
                                 ng-click="confirmCreateMatrix()">
                             إنشاء مصفوفة
-                        </button>
+                        </button>*@
                     </div>
                    
 
@@ -65,7 +65,7 @@
                             <th>اسم العنصر</th>
                             <th>كمية الاستحقاق</th>
                             <th>التكرار</th>
-                            <th>الاجراءات</th>
+                            @*<th>الاجراءات</th>*@
                         </tr>
                     </thead>
 
@@ -74,11 +74,11 @@
                             <td>{{$index + 1}}</td>
                             <td>{{matrixItem.ItemName}}</td>
                             <td>{{matrixItem.Quantity}}</td>
-                            <td>{{matrixItem.Frequency}}</td>
-                            <td>
+                            <td>{{frequencyMap(matrixItem.Frequency)}}</td>
+                            @*<td>
                                 <button ng-click="confirmDelete(matrixItem.MatrixItemId)" class="btn btn-outline-danger">حذف</button>
                                 <button ng-click="loadUpdateMatrixItem(matrixItem)" data-bs-toggle="modal" data-bs-target="#editItemModalForm" class="btn btn-outline-info">تعديل</button>
-                            </td>
+                            </td>*@
                         </tr>
                     </tbody>
                 </table>
@@ -86,10 +86,10 @@
                 <div ng-show="matrixItems.length === 0" class="d-flex justify-content-center p-2">
                     <h4>لا يوجد عناصر في المصفوفة النشطة</h4>
                 </div>
-                <button class="btn btn-success add"
+                @*<button class="btn btn-success add"
                         ng-click="loadAddItem()" data-bs-toggle="modal" data-bs-target="#addItemModalForm">
                     إضافة عنصر
-                </button>
+                </button>*@
                 <br><br>
 
 

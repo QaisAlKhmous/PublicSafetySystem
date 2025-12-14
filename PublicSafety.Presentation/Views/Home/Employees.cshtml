@@ -54,7 +54,6 @@
 
 
 
-                <!-- فلتر الحالة -->
                 <div class="col-md-2 mb-2">
                     <select ng-model="employeesTableParams.filter().Active" class="form-control">
                         <option value="">الكل</option>
@@ -63,7 +62,7 @@
                     </select>
                 </div>
 
-                <!-- Dropdown البحث -->
+  
                 <div class="d-flex justify-content-between col-md-5 mb-2 align-items-center">
                     <div class="btn-group">
                         <button type="button" class="search btn btn-secondary dropdown-toggle w-100 ml-2" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -78,7 +77,7 @@
                     </div>
 
 
-                    <!-- حقول البحث -->
+           
 
                     <input type="text" ng-show="searchBy === 0" ng-model="employeesTableParams.filter().FullName" placeholder="الاسم" class="form-control" />
                     <input type="text" ng-show="searchBy === 1" ng-model="employeesTableParams.filter().Section" placeholder="الدائرة" class="form-control" />
@@ -89,7 +88,7 @@
 
 
 
-                <!-- زر إضافة موظف -->
+              
                 <div class="col-md-3 mb-2 text-start">
                     <button type="button" class="btn btn-info add" style="width:200px" ng-click="GoToAddPage()">إضافة موظف</button>
                 </div>

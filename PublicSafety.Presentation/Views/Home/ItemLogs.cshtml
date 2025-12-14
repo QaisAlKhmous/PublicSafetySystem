@@ -13,6 +13,41 @@
         </div>
 
         <div class="card-body">
+
+            <div class="row mb-2 align-items-end">
+                <div class="col-md-4">
+                    <label>نوع العملية</label>
+                    <select class="form-control"
+                            ng-model="itemLogsTableParams.filter().ActionType"
+                            ng-change="applyFilters()">
+                        <option value="">الكل</option>
+                        <option value="Entitled">صرف استحقاق</option>
+                        <option value="Disposed">إتلاف</option>
+                        <option value="Damaged">بدل تالف</option>
+                        <option value="Exception">صرف استثنائي</option>
+                        <option value="StockIncrease">زيادة مخزون</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label>من تاريخ</label>
+                    <input type="date"
+                           class="form-control"
+                           ng-model="filters.FromDate"
+                           ng-change="applyFilters()" />
+                </div>
+
+                <div class="col-md-3">
+                    <label>إلى تاريخ</label>
+                    <input type="date"
+                           class="form-control"
+                           ng-model="filters.ToDate"
+                           ng-change="applyFilters()" />
+                </div>
+            </div>
+
+            
+
             <div class="collapse" id="collapse-data-tables"></div>
 
             <table class="table table-hover table-product"
@@ -44,7 +79,7 @@
                             </span>
 
                             <span ng-switch-when="Damaged" class="text-warning">
-                                تالف
+                                بدل تالف
                             </span>
 
                             <span ng-switch-when="Exception" class="text-info">
@@ -78,7 +113,7 @@
                         {{log.CreatedBy}}
                     </td>
 
-                    <td data-title="'التاريخ'">
+                    <td data-title="'التاريخ'" sortable="'CreatedDate'">
                         {{log.CreatedDate | date:'yyyy-MM-dd'}}
                     </td>
                 </tr>

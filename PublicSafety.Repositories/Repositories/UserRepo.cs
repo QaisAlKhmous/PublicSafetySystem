@@ -18,5 +18,23 @@ namespace PublicSafety.Repositories.Repositories
                 return context.Users.Where(u => u.Username == username).FirstOrDefault();
             }
         }
+
+        public static User GetUserById(Guid Id)
+        {
+            using (var context = new AppDbContext())
+            {
+                return context.Users.Find(Id);
+            }
+        }
+
+        public static IEnumerable<string> GetAdminEmails()
+        {
+            using (var context = new AppDbContext())
+            {
+                return context.Users.Where(u => u.Type == enType.admin).Select(u => u.Email).ToList();
+            }
+        }
+
+
     }
 }

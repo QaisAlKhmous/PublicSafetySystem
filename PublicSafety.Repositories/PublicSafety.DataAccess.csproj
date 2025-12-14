@@ -180,6 +180,10 @@
     <Compile Include="Migrations\202512130943178_Add_ValidFrom_ValidTo_Matrix.Designer.cs">
       <DependentUpon>202512130943178_Add_ValidFrom_ValidTo_Matrix.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202512140643242_add_email_user.cs" />
+    <Compile Include="Migrations\202512140643242_add_email_user.Designer.cs">
+      <DependentUpon>202512140643242_add_email_user.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositories\CategoryRepo.cs" />
@@ -265,6 +269,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202512130943178_Add_ValidFrom_ValidTo_Matrix.resx">
       <DependentUpon>202512130943178_Add_ValidFrom_ValidTo_Matrix.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202512140643242_add_email_user.resx">
+      <DependentUpon>202512140643242_add_email_user.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

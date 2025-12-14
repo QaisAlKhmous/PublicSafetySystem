@@ -1007,6 +1007,7 @@
     <Content Include="Views\Home\Dashboard.cshtml" />
     <Content Include="Views\Home\Issuances.cshtml" />
     <Content Include="Views\Home\Entitlements.cshtml" />
+    <Content Include="Views\Home\Requests.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

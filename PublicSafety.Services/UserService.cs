@@ -15,7 +15,13 @@ namespace PublicSafety.Services
         public static UserDTO GetUserByUsername(string Username)
         {
             var user = UserRepo.GetUserByUsername(Username);
-            return new UserDTO() { UserId = user.UserId,Username = user.Username};
+            return new UserDTO() { UserId = user.UserId,Username = user.Username,Type = (int)user.Type};
+        }
+
+        public static UserDTO GetUserByUserId(Guid UserId)
+        {
+            var user = UserRepo.GetUserById(UserId);
+            return new UserDTO() { UserId = user.UserId, Username = user.Username };
         }
 
         public static LoginResultDTO Login(string Username,string Password)

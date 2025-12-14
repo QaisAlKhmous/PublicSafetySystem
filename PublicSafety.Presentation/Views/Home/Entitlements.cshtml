@@ -23,7 +23,30 @@
 
         </div>
         <div class="card-body">
-            <div class="collapse" id="collapse-data-tables">
+            <div class="row mb-3">
+
+                <div class="col-md-4">
+                    <label>اسم المادة</label>
+                    <select class="form-control"
+                            ng-model="entitlementsTableParams.filter().ItemName"
+                            name="ItemId"
+                            ng-options="i.Name as i.Name for i in items">
+                        <option value="">الكل</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label>سنة الاستحقاق</label>
+                    <select class="form-control"
+                            ng-model="entitlementsTableParams.filter().EntitlementYear">
+                        <option value="">الكل</option>
+                        <option value="2020">2020</option>
+                        <option value="2021">2021</option>
+                        <option value="2022">2022</option>
+                        <option value="2023">2023</option>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                    </select>
+                </div>
 
             </div>
             <table class="table table-hover table-product" style="width:100%;text-align:center;" ng-table="entitlementsTableParams">

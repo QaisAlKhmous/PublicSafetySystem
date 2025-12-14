@@ -1,4 +1,5 @@
-﻿using DocumentFormat.OpenXml.Office2016.Excel;
+﻿using AdminDashboard.Services;
+using DocumentFormat.OpenXml.Office2016.Excel;
 using PublicSafety.Domain.Entities;
 using PublicSafety.Repositories;
 using PublicSafety.Repositories.Repositories;
@@ -18,13 +19,14 @@ namespace PublicSafety.Services
     {
         public static void AddNewChangeRequest(ChangeRequestDTO changeRequest)
         {
+            var user = UserService.GetUserByUsername(changeRequest.ChangedBy);
             var newChangeRequest = new ChangeRequest()
             {
                 RequestId = Guid.NewGuid(),
                 OldValue = changeRequest.OldValue,
                 NewValue = changeRequest.NewValue,
                 AdminComment = changeRequest.AdminComment,
-                ChangedById = UserService.GetUserByUsername(changeRequest.ChangedBy).UserId,
+                ChangedById = user.UserId,
                 RequestDate = DateTime.Now,
                 EntityId = changeRequest.EntityId,
                 Status = enRequestStatus.pending,
@@ -33,6 +35,8 @@ namespace PublicSafety.Services
 
             };
            ChangeRequestRepo.AddNewChangeRequest(newChangeRequest);
+            if(user.Type != 0)
+            EmailService.NotifyAdminsForApproval(newChangeRequest);
         }
 
         public static IEnumerable<ChangeRequestDTO> GetAllChangeRequests()

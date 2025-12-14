@@ -17,7 +17,9 @@ namespace PublicSafety.Domain.Entities
         public Guid UserId { get; set; }
         public string Username { get; set; }
         public string PasswordHash { get; set; }
+        public string Email { get; set; }
         public enType Type { get; set; }
+
         public ICollection<Disposal> Disposals { get; set; }
         public ICollection<Disposal> ApprovedDisposals { get; set; }
         public ICollection<MatrixItem> MatrixItems { get; set; }

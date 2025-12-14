@@ -12,7 +12,7 @@ namespace PublicSafety.Repositories
     public class AppDbContext : DbContext
     {
 
-        public AppDbContext() : base("Server = .;Database = PublicSafety; Integrated Security = SSPI; TrustServerCertificate = True") { }
+        public AppDbContext() : base("Data Source=localhost\\SQLEXPRESS;Initial Catalog=PublicSafety;User ID=Qais;Password=Qais_2004;TrustServerCertificate=True") { }
 
         public DbSet<User> Users { get; set; }
         public DbSet<Department> Departments { get; set; }

@@ -1,206 +1,96 @@
-﻿using System;
+﻿using PublicSafety.Domain.Entities;
+using PublicSafety.Repositories.Repositories;
+using PublicSafety.Services;
+using PublicSafety.Services.DTOs;
+using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
+using System.Net;
 using System.Net.Mail;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace AdminDashboard.Services
 {
     public class EmailService
     {
-        public static void SendResetPasswordEmail(string to, string subject, string name, string password)
+
+        private static string GetEntityTypeArabic(enEntityType type)
         {
-            var client = new SmtpClient();
-            client.EnableSsl = true;
-
-            var mail = new MailMessage();
-            mail.To.Add(to);
-            mail.Subject = subject;
-            mail.IsBodyHtml = true;
-
-
-
-            string htmlBody = $@"
-<!DOCTYPE html>
-<html>
-<body style='margin:0; padding:0; background-color:#f4f4f4; font-family:Segoe UI, Tahoma, Geneva, Verdana, sans-serif;'>
-
-<table width='100%' cellpadding='0' cellspacing='0' border='0'>
-    <tr>
-        <td align='center' style='padding:50px 0;'>
-            <table width='600' cellpadding='0' cellspacing='0' border='0' style='background-color:#ffffff; padding:30px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.1);'>
-                <tr>
-                    <td>
-                        <h1 style='color:#4CAF50; margin:0 0 20px 0;'>Hello {name},</h1>
-                        <p style='font-size:16px; line-height:1.5; color:#333333; margin:0 0 20px 0;'>Your password has been successfully reset. You can now log in with your new password.</p>
-                        <p style='font-size:16px; line-height:1.5; color:#333333; margin:0 0 20px 0;'>Your new password is <span style='color:#4CAF50;'>{password}</span>.</p>
-                        <a href='https://localhost:44312/#!/' style='display:inline-block; padding:10px 20px; background-color:#4CAF50; color:#ffffff; text-decoration:none; border-radius:5px;'>Login Now</a>
-                    </td>
-                </tr>
-            </table>
-        </td>
-    </tr>
-</table>
-
-</body>
-</html>
-";
-            mail.Body = htmlBody;
-
-            client.Send(mail);
-        }
-
-
-
-
-
-        public static void SendEmail(List<string> toEmails, string subject, string body)
-        {
-            var client = new SmtpClient();
-            client.EnableSsl = true;
-
-            var mail = new MailMessage();
-            foreach (var Email in toEmails)
+            switch (type)
             {
-                mail.To.Add(Email);
+                case enEntityType.Employee:
+                    return "الموظف";
+
+                case enEntityType.Item:
+                    return "الصنف";
+
+                case enEntityType.Matrix:
+                    return "المصفوفة";
+
+                case enEntityType.Issuance:
+                    return "الصرف";
+
+                default:
+                    return "غير معروف";
             }
+        }
+        public static void NotifyAdminsForApproval(ChangeRequest request)
+        {
+            string systemUrl =
+    ConfigurationManager.AppSettings["SystemBaseUrl"];
 
-            mail.Subject = subject;
-            mail.IsBodyHtml = true;
+            string returnUrl = "/Home/Index#!/requests";
+
+            string link =
+                $"{systemUrl}/Account/Login?ReturnUrl={HttpUtility.UrlEncode(returnUrl)}";
+
+            var subject = "طلب تعديل جديد بانتظار الموافقة";
+
+            var body = $@"
+تم تقديم طلب تعديل جديد في النظام ويحتاج إلى موافقتكم.
+
+بيانات الطلب:
+------------------------
+المستخدم: {UserService.GetUserByUserId(request.ChangedById).Username}
+نوع الطلب: {GetEntityTypeArabic(request.EntityType)}
+رقم الطلب: {request.RequestId}
+تاريخ الطلب: {request.RequestDate:yyyy-MM-dd HH:mm}
+
+يرجى الدخول إلى النظام عبر الرابط التالي لمراجعة الطلب:
+{link}
 
 
+";
 
-            string htmlBody = body;
-            mail.Body = htmlBody;
+ 
 
-            client.Send(mail);
+
+            //foreach (var adminEmail in admins)
+            {
+                SendEmail("qmohammad.kh@gmail.com", subject, body);
+            }
         }
 
-        public static void SendRegApprovedEmail(string to, string subject, string name)
+        private static void SendEmail(string to, string subject, string body)
         {
-            var client = new SmtpClient();
-            client.EnableSsl = true;
+            var message = new MailMessage();
+            message.From = new MailAddress("noreply@yourdomain.com", "مستودع السلامة العامة");
+            message.To.Add(to);
+            message.Subject = subject;
+            message.Body = body;
+            message.IsBodyHtml = false;
 
-            var mail = new MailMessage();
-            mail.To.Add(to);
-            mail.Subject = subject;
-            mail.IsBodyHtml = true;
+            var smtp = new SmtpClient("smtp.gmail.com", 587)
+            {
+                Credentials = new NetworkCredential("qmohammad.kh@gmail.com", "wmjx tjqo zvpb ornz"),
+                EnableSsl = true
+            };
 
-
-
-            string htmlBody = $@"
-<!DOCTYPE html>
-<html>
-<body style='margin:0; padding:0; background-color:#f4f4f4; font-family:Segoe UI, Tahoma, Geneva, Verdana, sans-serif;'>
-
-<table width='100%' cellpadding='0' cellspacing='0' border='0'>
-    <tr>
-        <td align='center' style='padding:50px 0;'>
-            <table width='600' cellpadding='0' cellspacing='0' border='0' style='background-color:#ffffff; padding:30px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.1);'>
-                <tr>
-                    <td>
-                        <h1 style='color:#4CAF50; margin:0 0 20px 0;'>Hello {name},</h1>
-                        <p style='font-size:16px; line-height:1.5; color:#333333; margin:0 0 20px 0;'>We are glad to tell you that your registeration request has beed <span style='color:#4CAF50;'>approved</span>. You can now log in.</p>
-                       
-                        <a href='https://localhost:44312/#!/' style='display:inline-block; padding:10px 20px; background-color:#4CAF50; color:#ffffff; text-decoration:none; border-radius:5px;'>Login Now</a>
-                    </td>
-                </tr>
-            </table>
-        </td>
-    </tr>
-</table>
-
-</body>
-</html>
-";
-            mail.Body = htmlBody;
-
-            client.Send(mail);
-        }
-
-        public static void SendRegRejectedEmail(string to, string subject, string name)
-        {
-            var client = new SmtpClient();
-            client.EnableSsl = true;
-
-            var mail = new MailMessage();
-            mail.To.Add(to);
-            mail.Subject = subject;
-            mail.IsBodyHtml = true;
-
-
-
-            string htmlBody = $@"
-<!DOCTYPE html>
-<html>
-<body style='margin:0; padding:0; background-color:#f4f4f4; font-family:Segoe UI, Tahoma, Geneva, Verdana, sans-serif;'>
-
-<table width='100%' cellpadding='0' cellspacing='0' border='0'>
-    <tr>
-        <td align='center' style='padding:50px 0;'>
-            <table width='600' cellpadding='0' cellspacing='0' border='0' style='background-color:#ffffff; padding:30px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.1);'>
-                <tr>
-                    <td>
-                        <h1 style='color:#4CAF50; margin:0 0 20px 0;'>Hello {name},</h1>
-                        <p style='font-size:16px; line-height:1.5; color:#333333; margin:0 0 20px 0;'>We are sorry to tell you that your registeration request has beed <span style='color:#4CAF50;'>rejected</span>.</p>
-                        <p style='font-size:16px; line-height:1.5; color:#333333; margin:0 0 20px 0;'>Contact admin if you have any concerns</p>
-   
-                    </td>
-                </tr>
-            </table>
-        </td>
-    </tr>
-</table>
-
-</body>
-</html>
-";
-            mail.Body = htmlBody;
-
-            client.Send(mail);
-        }
-
-        public static void SendUnlockedEmail(string to, string subject, string name)
-        {
-            var client = new SmtpClient();
-            client.EnableSsl = true;
-
-            var mail = new MailMessage();
-            mail.To.Add(to);
-            mail.Subject = subject;
-            mail.IsBodyHtml = true;
-
-
-
-            string htmlBody = $@"
-<!DOCTYPE html>
-<html>
-<body style='margin:0; padding:0; background-color:#f4f4f4; font-family:Segoe UI, Tahoma, Geneva, Verdana, sans-serif;'>
-
-<table width='100%' cellpadding='0' cellspacing='0' border='0'>
-    <tr>
-        <td align='center' style='padding:50px 0;'>
-            <table width='600' cellpadding='0' cellspacing='0' border='0' style='background-color:#ffffff; padding:30px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.1);'>
-                <tr>
-                    <td>
-                        <h1 style='color:#4CAF50; margin:0 0 20px 0;'>Hello {name},</h1>
-                        <p style='font-size:16px; line-height:1.5; color:#333333; margin:0 0 20px 0;'>Your account is <span style='color:#4CAF50;'>unlocked</span>. You can now log in.</p>
-                       
-                        <a href='https://localhost:44312/#!/' style='display:inline-block; padding:10px 20px; background-color:#4CAF50; color:#ffffff; text-decoration:none; border-radius:5px;'>Login Now</a>
-                    </td>
-                </tr>
-            </table>
-        </td>
-    </tr>
-</table>
-
-</body>
-</html>
-";
-            mail.Body = htmlBody;
-
-            client.Send(mail);
+            smtp.Send(message);
         }
     }
 }

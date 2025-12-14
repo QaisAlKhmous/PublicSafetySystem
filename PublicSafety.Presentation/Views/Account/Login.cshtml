@@ -14,6 +14,8 @@
             <div class="col-md-8 col-lg-6 col-xl-4 offset-xl-1" style="background-color: #8A8B94; border-radius:8px; padding-bottom:10px; padding-top:10px;">
                 <form name="loginForm" method="post" action="@Url.Action("Login", "Account")">
 
+                    <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
+
                     <div class="form-outline mb-4">
                         @Html.Label("اسم المستخدم", new { @class = "form-label", @style = "color: #ffffff;" })
                         <input type="text" class="form-control full-width-input" name="Username" placeholder="Username" required
@@ -27,7 +29,7 @@
                         <div class="input-group">
                             <input type="password" class="form-control full-width-input" name="Password" placeholder="Password" required
                                    style="background-color: #444444; color: #ffffff; border: none;" />
-                            
+
                         </div>
                         @if (ViewBag.LoginError != null)
                         {

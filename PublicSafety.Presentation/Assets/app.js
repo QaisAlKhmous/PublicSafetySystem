@@ -48,6 +48,10 @@ app.config(function ($routeProvider) {
             templateUrl: '/Home/ItemLogs',
             controller: 'itemLogCtrl'
         })
+        .when("/requests", {
+            templateUrl: '/Home/Requests',
+            controller: 'requestsCtrl'
+        })
        
 
 
@@ -260,6 +264,10 @@ app.controller('sidebarCtrl', function ($scope, $rootScope, $location) {
 
         if (url === '/items') {
             $rootScope.setActive(3);
+
+        }
+        if (url === '/requests') {
+            $rootScope.setActive(4);
 
         }
     
@@ -568,6 +576,17 @@ app.controller('matrixCtrl', function ($scope, NgTableParams, matrixService, $ht
             $scope.matrixItems = res.data;
            
         })
+    }
+
+    $scope.frequencyMap = function (freq) {
+        switch (freq) {
+            case 1: return 'سنوياً'; break;
+            case 2: return 'كل سنتين'; break;
+            case 3: return 'كل ثلاثة سنين'; break;
+            case 4: return 'كل أربعة سنين'; break;
+            case 5: return 'كل خمسة سنين'; break;
+            case 6: return 'كل ستة سنين'; break;
+        }
     }
 
     $scope.selectedCategoryChanged = function () {
@@ -1535,14 +1554,79 @@ app.controller('dashboardCtrl', function ($scope, employeeService, itemService, 
 
 
 app.controller('issuanceCtrl', function ($scope, employeeService, itemService, $location, $http, $timeout, $rootScope, NgTableParams, $routeParams) {
+
+
+    $scope.filters = {
+        FromDate: null,
+        ToDate: null
+    };
+
+    $scope.applyFilters = function () {
+
+        var filtered = angular.copy($scope.allIssuances);
+
+        var from = $scope.filters.FromDate
+            ? new Date($scope.filters.FromDate)
+            : null;
+
+        var to = $scope.filters.ToDate
+            ? new Date($scope.filters.ToDate)
+            : null;
+
+        // بداية اليوم
+        if (from) from.setHours(0, 0, 0, 0);
+
+        // نهاية اليوم
+        if (to) to.setHours(23, 59, 59, 999);
+
+        filtered = filtered.filter(x => {
+
+            if (!x.IssuanceDate) return false;
+
+            var d = new Date(x.IssuanceDate);
+
+            if (from && d < from) return false;
+            if (to && d > to) return false;
+
+            return true;
+        });
+
+        $scope.itemLogs = filtered;
+
+        $scope.issuancesTableParams.settings({
+            dataset: $scope.itemLogs
+        });
+
+        $scope.issuancesTableParams.page(1);
+    };
+
+
+    $scope.allIssuances = [];
+
     $scope.loadIssuances = function () {
         $http.get('/Issuance/GetIssuancesByEmployeeId?EmployeeId=' + $routeParams.employeeId).then((res) => {
-            $scope.issuances = res.data;
+            $scope.allIssuances = res.data;
 
-            $scope.issuancesTableParams.settings({ dataset: $scope.issuances });
+            $scope.allIssuances.forEach(x => {
+                x.CreatedDate = new Date(x.CreatedDate);
+            });
+
+            $scope.issuances = angular.copy($scope.allIssuances);
+
+            $scope.issuancesTableParams.settings({
+                dataset: $scope.issuances
+            });
+            
         })
     }
     $scope.loadIssuances();
+
+    $scope.loadItems = function () {
+        $http.get('/Item/GetItems').then((res) => {
+            $scope.items = res.data;
+        })
+    }
+    $scope.loadItems()
 
     $scope.loadEmployee = function () {
         employeeService.getEmployeeById($routeParams.employeeId).then((res) => {
@@ -1569,6 +1653,13 @@ app.controller('entitlementCtrl',
         // =====================
         // Load data
         // =====================
+
+        $scope.loadItems = function () {
+            $http.get('/Item/GetItems').then((res) => {
+                $scope.items = res.data;
+            })
+        }
+        $scope.loadItems();
         $scope.loadEntitlements = function () {
             $http.get('/Employee/GetEmployeeEntitlements?EmployeeId=' + $routeParams.employeeId)
                 .then((res) => {
@@ -1746,10 +1837,65 @@ app.controller('entitlementCtrl',
 app.controller("itemLogCtrl", function ($scope, $http, NgTableParams, $routeParams,itemService) {
 
     $scope.itemLogs = [];
+    $scope.allItemLogs = [];
+ 
+    $scope.filters = {
+        FromDate: null,
+        ToDate: null
+    };
 
-    $scope.itemLogsTableParams = new NgTableParams({}, {
-        dataset: $scope.itemLogs
-    });
+    $scope.applyFilters = function () {
+
+        var filtered = angular.copy($scope.allItemLogs);
+
+        var from = $scope.filters.FromDate
+            ? new Date($scope.filters.FromDate)
+            : null;
+
+        var to = $scope.filters.ToDate
+            ? new Date($scope.filters.ToDate)
+            : null;
+
+        // بداية اليوم
+        if (from) from.setHours(0, 0, 0, 0);
+
+        // نهاية اليوم
+        if (to) to.setHours(23, 59, 59, 999);
+
+        filtered = filtered.filter(x => {
+
+            if (!x.CreatedDate) return false;
+
+            var d = new Date(x.CreatedDate);
+
+            if (from && d < from) return false;
+            if (to && d > to) return false;
+
+            return true;
+        });
+
+        $scope.itemLogs = filtered;
+
+        $scope.itemLogsTableParams.settings({
+            dataset: $scope.itemLogs
+        });
+
+        $scope.itemLogsTableParams.page(1);
+    };
+
+    $scope.resetFilters = function () {
+        $scope.filters = {
+            ActionType: '',
+            CreatedDate: null
+        };
+
+        $scope.itemLogs = angular.copy($scope.allItemLogs);
+
+        $scope.itemLogsTableParams.settings({
+            dataset: $scope.itemLogs
+        });
+    };
+
 
     $scope.loadItem = function () {
         itemService.getItemById($routeParams.itemId).then((res) => {
@@ -1757,22 +1903,153 @@ app.controller("itemLogCtrl", function ($scope, $http, NgTableParams, $routePara
         })
     }
 
+    $scope.itemLogsTableParams = new NgTableParams(
+        {
+            page: 1,
+            count: 10,
+            sorting: {
+                CreatedDate: "desc" // فرز افتراضي
+            }
+        },
+        {
+            dataset: $scope.itemLogs
+        }
+    );
+
     $scope.loadItemLogs = function () {
 
         $http.get("/ItemLog/ByItem?itemId=" + $routeParams.itemId)
             .then(function (res) {
 
-            $scope.itemLogs = res.data;
+                $scope.allItemLogs = res.data;
 
-            $scope.itemLogsTableParams.settings({
-                dataset: $scope.itemLogs
+                $scope.allItemLogs.forEach(x => {
+                    x.CreatedDate = new Date(x.CreatedDate);
+                });
+
+                $scope.itemLogs = angular.copy($scope.allItemLogs);
+
+                $scope.itemLogsTableParams.settings({
+                    dataset: $scope.itemLogs
+                });
+
+            }, function () {
+                alert("حدث خطأ أثناء تحميل سجل الحركات");
             });
-
-        }, function () {
-            alert("حدث خطأ أثناء تحميل سجل الحركات");
-        });
     };
+
     $scope.itemLogsTableParams.settings().counts = [];
     $scope.loadItemLogs();
     $scope.loadItem();
 });
+app.controller("requestsCtrl", function ($scope, employeeService, itemService, $location, $http, $timeout, $rootScope, NgTableParams) {
+
+    $scope.IsAdmin = $rootScope.LogedInUser.userType == 0;
+
+
+    $scope.changeRequests = []
+
+    $scope.loadChangeRequests = function () {
+        $http.get('/ChangeRequest/GetAllChangeRequests').then((res) => {
+            $scope.changeRequests = res.data;
+            $scope.requestsTableParams.settings({ dataset: $scope.changeRequests })
+        })
+    }
+    $scope.loadChangeRequests();
+
+    $scope.requestsTableParams = new NgTableParams(
+        {
+            page: 1,            // start on first page
+            count: 10,          // items per page
+            filter: {},
+            sorting: {}// initial filter
+        }
+    );
+    $scope.requestsTableParams.settings().counts = [];
+
+    $scope.confirmAcceptRequest = function (requestId) {
+        Swal.fire({
+            title: 'هل انت متأكد من الموافقة على الطلب؟',
+            text: "",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'نعم',
+            cancelButtonText: 'لا'
+        }).then((result) => {
+            if (result.isConfirmed) $scope.acceptRequest(requestId);
+        });
+    }
+
+    $scope.confirmRejectRequest = function (requestId) {
+        Swal.fire({
+            title: 'هل انت متأكد من رفض الطلب؟',
+            text: "",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'نعم',
+            cancelButtonText: 'لا'
+        }).then((result) => {
+            if (result.isConfirmed) $scope.rejectRequest(requestId);
+        });
+    }
+
+    $scope.acceptRequest = function (requestId) {
+
+        $http.post('/ChangeRequest/AcceptChangeRequest', { ChangeRequestId: requestId, ApprovedBy: $rootScope.LogedInUser.username }).then((res) => {
+            $rootScope.toastify('تم الموافقة على الطلب وتعديل البيانات بنجاح', 1);
+            $scope.loadChangeRequests();
+        })
+    }
+
+    $scope.rejectRequest = function (requestId) {
+
+        $http.post('/ChangeRequest/RejectChangeRequest', { ChangeRequestId: requestId, ApprovedBy: $rootScope.LogedInUser.username }).then((res) => {
+            $rootScope.toastify('تم رفض طلب تعديل البيانات بنجاح', 1);
+            $scope.loadChangeRequests();
+        })
+    }
+
+    $scope.selectedRequest = {};
+    $scope.differences = [];
+    $scope.data = {};
+
+    $scope.showDetails = function (request) {
+        $scope.selectedRequest = request;
+        $http.post('/ChangeRequest/GetDifferences', { ChangeRequestId: request.RequestId, EntityId: request.EntityId }).then((res) => {
+            $scope.entityType = res.data.type;
+            $scope.isAdd = res.data.IsAdd;
+
+            if (res.data.IsAdd) {
+
+                $scope.data = res.data.entity;
+            }
+            if (!res.data.IsAdd && res.data.type == 'employee') {
+
+                $scope.oldData = res.data.oldEntity;
+                $scope.newData = res.data.newEntity;
+            }
+            if (res.data.IsAdd && res.data.type == 'item') {
+                $scope.data = res.data.entity;
+            }
+            if (!res.data.IsAdd && res.data.type == 'item') {
+                $scope.data = res.data.entity;
+                $scope.itemReq = res.data.itemReq;
+
+            }
+            if (res.data.IsAdd && res.data.type == 'issuance') {
+                $scope.data = res.data.entity;
+                $scope.issuanceEmployee = res.data.employee;
+                $scope.itemIssued = res.data.item;
+                console.log($scope.data)
+            }
+
+
+
+        })
+    }
+
+})

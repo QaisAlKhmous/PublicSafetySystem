@@ -1,4 +1,5 @@
-﻿using PublicSafety.Domain.Entities;
+﻿using AdminDashboard.Services;
+using PublicSafety.Domain.Entities;
 using PublicSafety.Services;
 using PublicSafety.Services.DTOs;
 using System;
@@ -19,6 +20,9 @@ namespace PublicSafety.APIs.Controllers
         {
             ChangeRequestService.AddNewChangeRequest(ChangeRequest);
 
+
+        
+
             return Json(new { success = true });
         }
         [HttpGet]
@@ -31,7 +35,7 @@ namespace PublicSafety.APIs.Controllers
         public JsonResult AcceptChangeRequest(Guid ChangeRequestId,string ApprovedBy)
         {
             ChangeRequestService.AcceptChangeRequest(ChangeRequestId, ApprovedBy);
-
+            
             return Json(new { success = true });
         }
 
