@@ -58,6 +58,7 @@
     <Compile Include="Entities\Disposal.cs" />
     <Compile Include="Entities\Employee.cs" />
     <Compile Include="Entities\EmployeeJobTitleHistory.cs" />
+    <Compile Include="Entities\EmployeesByCategory.cs" />
     <Compile Include="Entities\Entitlement.cs" />
     <Compile Include="Entities\Issuance.cs" />
     <Compile Include="Entities\Item.cs" />

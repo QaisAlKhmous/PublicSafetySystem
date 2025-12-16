@@ -75,7 +75,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary accept" ng-click="increaseQuantity()">حفظ التغييرات</button>
+                <button type="button" class="btn btn-primary accept" ng-click="increaseQuantity()" ng-disabled="isLoading">حفظ التغييرات</button>
                 <button type="button" class="btn btn-danger closeBtn" data-bs-dismiss="modal">إغلاق</button>
             </div>
         </div>
@@ -111,7 +111,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary accept" ng-click="addNewItem()" >حفظ التغييرات</button>
+                <button type="button" class="btn btn-primary accept" ng-click="addNewItem()" ng-disabled="isLoading" >حفظ التغييرات</button>
                 <button type="button" class="btn btn-danger closeBtn" data-bs-dismiss="modal">إغلاق</button>
 
             </div>
@@ -189,7 +189,7 @@
             </div>
 
             <div class="modal-footer">
-                <button class="btn btn-primary accept" type="button"
+                <button class="btn btn-primary accept" type="button" ng-disabled="isLoading"
                         ng-click="dispose()">
                     حفظ التغييرات
                 </button>

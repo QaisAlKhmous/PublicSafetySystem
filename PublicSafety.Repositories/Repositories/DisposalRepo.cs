@@ -18,5 +18,13 @@ namespace PublicSafety.Repositories.Repositories
                 context.SaveChanges();
             }
         }
+
+        public static int GetNumberOfDisposals()
+        {
+            using(var context = new AppDbContext())
+            {
+                return context.Disposals.Count();
+            }
+        }
     }
 }

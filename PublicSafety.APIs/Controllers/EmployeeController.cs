@@ -75,5 +75,13 @@ namespace PublicSafety.APIs.Controllers
 
             return Json(entitlements, JsonRequestBehavior.AllowGet);
         }
+
+        [HttpGet]
+        public JsonResult GetEmployeesByCategory()
+        {
+            var ebc = EmployeeService.GetEmployeesByCategoriesCount();
+
+            return Json(ebc, JsonRequestBehavior.AllowGet);
+        }
     }
 }

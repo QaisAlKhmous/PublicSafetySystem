@@ -231,6 +231,9 @@ app.factory('employeeService', function ($http) {
         },
         getNumberOfInactiveEmployees: function () {
             return $http.get(baseUrl + '/GetNumberOfInactiveEmployees');
+        },
+        getEmployeesByCategoryCount: function () {
+            return $http.get(baseUrl + '/GetEmployeesByCategory');
         }
     };
 });
@@ -284,7 +287,7 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
     $scope.addedQuantity = 0;
     $scope.disposal = { ItemId: null, Quantity: 0, DisposalDate: '', DisposalFormPath: '', CreatedBy: $rootScope.LogedInUser.username , ApprovedBy: "Admin"}
 
-   
+    
 
     $scope.loadItems = function () {
         itemService.getItems().then(function (response) {
@@ -387,9 +390,11 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
     $scope.changeSelectedItem = function (item) {
         $scope.selectedItem = item;
     }
-   
+
+    $scope.isLoading = false;
 
     $scope.increaseQuantity = function () {
+        $scope.isLoading = true;
         if ($rootScope.LogedInUser.userType != 0) {
             $scope.changeRequest.EntityId = $scope.selectedItem.ItemId;
             var item = { Quantity: $scope.addedQuantity, IsIncrease: true };
@@ -397,18 +402,19 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
 
             $http.post('/ChangeRequest/AddNewChangeRequest', { ChangeRequest: $scope.changeRequest }).then((res) => {
                 $rootScope.toastify('تم حفظ الطلب بنجاح, وسيتم مراجعته من الادارة', 1);
-
+                $scope.isLoading = false;
             })
 
         } else {
             itemService.increaseQuantity($scope.selectedItem.ItemId, $scope.addedQuantity, $rootScope.LogedInUser.username).then(function (response) {
                 $scope.loadItems();
                 $rootScope.toastify("تم زيادة رصيد مادة بنجاح", 1);
+                $scope.isLoading = false;
             }, function (error) {
                 console.error("Error deleting items", error);
             });
         }
-       
+        $scope.addedQuantity = 0;
     }
 
     $(document).ready(function () {
@@ -513,6 +519,7 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
     }
 
     $scope.dispose = function () {
+        $scope.isLoading = true;
         $scope.disposeForm.$setSubmitted();
 
         if ($scope.disposeForm.$invalid) {
@@ -530,7 +537,7 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
 
                 $http.post('/ChangeRequest/AddNewChangeRequest', { ChangeRequest: $scope.changeRequest }).then((res) => {
                     $rootScope.toastify('تم حفظ الطلب بنجاح, وسيتم مراجعته من الادارة', 1);
-
+                    $scope.isLoading = false;
                 })
 
             }
@@ -539,6 +546,7 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
                 disposalService.addDisposal($scope.disposal).then(function (response) {
                     $scope.loadItems();
                     $rootScope.toastify("تم اتلاف مادة بنجاح", 1)
+                    $scope.isLoading = false;
                 }, function (error) {
                     console.error("Error deleting items", error);
                 })
@@ -546,6 +554,8 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
 
 
         }
+
+        $scope.disposal.Quantity = 0;
        
     }
 })
@@ -1329,10 +1339,12 @@ app.controller('dashboardCtrl', function ($scope, employeeService, itemService, 
     $scope.planningTableParams.settings().counts = [];
 
     $scope.loadOverview = function () {
+        date = new Date();
         $http.get('/Planning/Overview', {
+           
             params: {
                 fromYear: 2020,
-                toYear: 2029
+                toYear: date.getFullYear() + 4 // 4 years ahead
             }
         }).then(function (res) {
 
@@ -1343,6 +1355,7 @@ app.controller('dashboardCtrl', function ($scope, employeeService, itemService, 
                 dataset: $scope.planningData
             });
 
+            
             // draw chart
             drawChart(res.data);
 
@@ -1354,7 +1367,9 @@ app.controller('dashboardCtrl', function ($scope, employeeService, itemService, 
     function drawChart(data) {
         var years = data.map(x => x.Year);
         var planned = data.map(x => x.Planned);
-        var issued = data.map(x => x.Issued);
+
+        // ✅ استخدم Total
+        var issued = data.map(x => x.Issued ? x.Issued.Total : 0);
 
         var ctx = document.getElementById('planningChart').getContext('2d');
 
@@ -1398,6 +1413,7 @@ app.controller('dashboardCtrl', function ($scope, employeeService, itemService, 
         });
     }
 
+
     $scope.selectedYear = null;
 
     $scope.detailsTableParams = new NgTableParams({}, {
@@ -1438,6 +1454,10 @@ app.controller('dashboardCtrl', function ($scope, employeeService, itemService, 
         })
         itemService.getNumberOfAllItems().then((res) => {
             $scope.itemsCount = res.data;
+        })
+
+        employeeService.getEmployeesByCategoryCount().then((res) => {
+            $scope.employeesByCategory = res.data;
         })
 
         

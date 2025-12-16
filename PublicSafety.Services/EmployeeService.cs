@@ -181,5 +181,10 @@ namespace PublicSafety.Services
             return EmployeeRepo.GetNumberOfInactiveEmployees();
         }
 
+        public static IEnumerable<EmployeesByCategory> GetEmployeesByCategoriesCount()
+        {
+            return EmployeeRepo.GetEmployeesByCategoryCount();
+        }
+
     }
 }

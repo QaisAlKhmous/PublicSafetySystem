@@ -15,37 +15,38 @@ namespace PublicSafety.Services
         {
             using (var context = new AppDbContext())
             {
-                var issued = PlanningRepo.GetIssuedByYear(fromYear, toYear);
-
-                var planned = PlanningRepo.GetPlannedByYear(fromYear, toYear);
-
-                var employeesPerYear =
-                    PlanningRepo.GetEmployeeCountPerYear(context, fromYear, toYear);
+                var issuedByYear = PlanningRepo.GetIssuedByYear(fromYear, toYear); 
+                var planned = PlanningRepo.GetPlannedByYear(fromYear, toYear);     
+                var employeesPerYear = PlanningRepo.GetEmployeeCountPerYear(context, fromYear, toYear); 
 
                 var result = new List<PlanningOverview>();
 
                 for (int year = fromYear; year <= toYear; year++)
                 {
+                    int employeesCount = 0;
+                    employeesPerYear.TryGetValue(year, out employeesCount);
+
+                    int plannedValue = 0;
+                    planned.TryGetValue(year, out plannedValue);
+
+                    IssuedSummary issuedSummary;
+                    if (!issuedByYear.TryGetValue(year, out issuedSummary))
+                        issuedSummary = new IssuedSummary();
+
                     result.Add(new PlanningOverview
                     {
                         Year = year,
-                        EmployeesCount = employeesPerYear.ContainsKey(year)
-                            ? employeesPerYear[year]
-                            : 0,
-
-                        Issued = issued.ContainsKey(year)
-                            ? issued[year]
-                            : 0,
-
-                        Planned = planned.ContainsKey(year)
-                            ? planned[year]
-                            : 0
+                        EmployeesCount = employeesCount,
+                        Planned = plannedValue,
+                        Issued = issuedSummary
                     });
                 }
 
                 return result;
             }
         }
+
+
 
         public static List<PlanningItemDetails> GetPlannedItemDetails(int fromYear, int toYear)
         {

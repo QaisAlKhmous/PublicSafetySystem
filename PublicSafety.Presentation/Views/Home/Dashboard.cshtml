@@ -9,7 +9,7 @@
 
 <div class="content">
 
-    
+
     <div class="d-flex">
 
 
@@ -42,47 +42,8 @@
             </div>
         </div>
     </div>
+
     <div class="row">
-
-
-        <!-- Table -->
-        <div class="col-md-6">
-            <div class="card card-default h-100">
-                <div class="card-header">
-                    <h3>تفاصيل التخطيط</h3>
-                </div>
-
-                <div class="card-body">
-                    <table ng-table="planningTableParams"
-                           class="table table-bordered table-striped text-center" style="cursor:pointer;">
-
-                        <tr ng-repeat="row in $data" ng-click="openYearDetails(row.Year)">
-                            <td data-title="'السنة'">
-                                {{row.Year}}
-                            </td>
-
-                            <td data-title="'عدد الموظفين'">
-                                {{row.EmployeesCount}}
-                            </td>
-
-                            <td data-title="'المخطط'">
-                                {{row.Planned}}
-                            </td>
-
-                            <td data-title="'المصروف'">
-                                {{row.Issued}}
-                            </td>
-                        </tr>
-
-                    </table>
-
-                    <div ng-show="planningData.length === 0"
-                         class="text-danger text-center mt-2">
-                        لا توجد بيانات
-                    </div>
-                </div>
-            </div>
-        </div>
         <!-- Chart -->
         <div class="col-md-6">
             <div class="card card-default h-100">
@@ -93,7 +54,120 @@
                     <canvas id="planningChart" height="160"></canvas>
                 </div>
             </div>
+           
         </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm h-100">
+
+                <!-- Card Header -->
+                <div class="card-header active text-white text-center">
+                    <h5 class="mb-0">
+                        <i class="mdi mdi-account-group"></i>
+                        الموظفون
+                    </h5>
+                </div>
+
+                <!-- Card Body -->
+                <div class="card-body text-center">
+
+                    <!-- Total Employees -->
+                    <h1 class="display-4 font-weight-bold">
+                        {{activeEmployeesCount}}
+                    </h1>
+                    <p class="text-muted mb-3">إجمالي عدد الموظفين</p>
+
+                    <hr />
+
+                    <!-- Employees by Category -->
+                    <ul class="list-group list-group-flush text-right">
+                        <li class="list-group-item d-flex justify-content-between align-items-center"
+                            ng-repeat="c in employeesByCategory">
+                            <span>
+                                <i class="mdi mdi-briefcase-outline text-secondary mr-1"></i>
+                                {{c.CategoryName}}
+                            </span>
+                            <span class="badge badge-primary active badge-pill">
+                                {{c.EmployeeCount}}
+                            </span>
+                        </li>
+                    </ul>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+
+        <!-- Table -->
+        <div class="col-md-12">
+            <div class="card card-default h-100">
+                <div class="card-header">
+                    <h3>تفاصيل التخطيط</h3>
+                </div>
+
+                <div class="card-body">
+
+                    <table ng-table="planningTableParams"
+                           class="table table-bordered table-striped text-center"
+                           style="cursor:pointer;">
+
+                        <!-- HEADER -->
+                        <thead>
+                            <tr>
+                                <th rowspan="2">السنة</th>
+                                <th rowspan="2">عدد الموظفين</th>
+                                <th rowspan="2">المخطط</th>
+                                <th colspan="5">المصروف</th>
+                            </tr>
+                            <tr>
+                                <th>الإجمالي</th>
+                                <th>استحقاق</th>
+                                <th>استثناء</th>
+                                <th>بدل تالف</th>
+                                <th>إتلاف</th>
+                            </tr>
+                        </thead>
+
+                        <!-- BODY -->
+                        <tbody>
+                            <tr class="t-hover" ng-repeat="row in $data"
+                                ng-click="openYearDetails(row.Year)">
+
+                                <td >{{row.Year}}</td>
+
+                                <td>{{row.EmployeesCount}}</td>
+
+                                <td>{{row.Planned}}</td>
+
+                                <!-- Issued Summary -->
+                                <td class="font-weight-bold text-black t-hover">
+                                    {{row.Issued.Total}}
+                                </td>
+
+                                <td>{{row.Issued.Entitled}}</td>
+
+                                <td>{{row.Issued.Exception}}</td>
+
+                                <td>{{row.Issued.Damaged}}</td>
+
+                                <td>{{row.Issued.Disposed}}</td>
+                            </tr>
+                        </tbody>
+
+                    </table>
+
+                    <div ng-show="planningData.length === 0"
+                         class="text-danger text-center mt-2">
+                        لا توجد بيانات
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
     </div>
 
 

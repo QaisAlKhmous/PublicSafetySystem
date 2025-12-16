@@ -270,3 +270,9 @@ button.search {
     background: black !important; /* highlight color */
     color: white !important; /* text color when highlighted */
 }
+.active-text{
+    color: var(--color-hover) !important;
+}
+.t-hover:hover{
+    color:black !important;
+}

@@ -194,5 +194,23 @@ namespace PublicSafety.Repositories.Repositories
                 context.SaveChanges();
             }
         }
+
+        public static IEnumerable<EmployeesByCategory> GetEmployeesByCategoryCount()
+        {
+            using(var context = new AppDbContext())
+            {
+              return  context.Employees.Where(e => e.Active).Join(context.JobTitles, e => e.JobTitleId, jt => jt.JobTitleId, (e, jt) => new { e, jt })
+                    .Join(context.JobTitleCategories, ej => ej.jt.JobTitleId, jtc => jtc.JobTitleId, (ej, jtc) => new { ej, jtc })
+                    .Join(context.Categories, ejc => ejc.jtc.CategoryId, c => c.CategoryId, (ejc, c) => new { ejc.ej.e, c }).
+                    GroupBy(x => new { x.c.CategoryId, x.c.Name })
+                    .Select(g => new EmployeesByCategory {
+                        CategoryId = g.Key.CategoryId,
+                        CategoryName = g.Key.Name,
+                        EmployeeCount = g.Select(x => x.e.EmployeeId).Distinct().Count()
+                    }).ToList();
+                    
+                    
+            }
+        }
     }
 }

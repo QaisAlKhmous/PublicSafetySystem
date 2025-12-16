@@ -11,33 +11,96 @@ namespace PublicSafety.Repositories.Repositories
 {
     public class PlanningRepo
     {
-        public static Dictionary<int, int> GetIssuedByYear(int fromYear, int toYear)
+        public static Dictionary<int, IssuedSummary> GetIssuedByYear(int fromYear, int toYear)
         {
             using (var context = new AppDbContext())
             {
-                return context.Issuances
+                
+                var issuanceData = context.Issuances
                     .Where(x =>
-                        x.Type == enIssuanceType.Entitled &&
                         x.IssuanceDate.Year >= fromYear &&
                         x.IssuanceDate.Year <= toYear)
-                    .GroupBy(x => x.IssuanceDate.Year)
-                    .ToDictionary(
-                        g => g.Key,
-                        g => g.Sum(x => x.Quantity)
-                    );
+                    .GroupBy(x => new
+                    {
+                        Year = x.IssuanceDate.Year,
+                        x.Type
+                    })
+                    .Select(g => new
+                    {
+                        g.Key.Year,
+                        g.Key.Type,
+                        Quantity = g.Sum(x => x.Quantity)
+                    })
+                    .ToList();
+
+                var result = new Dictionary<int, IssuedSummary>();
+
+                foreach (var row in issuanceData)
+                {
+                    if (!result.TryGetValue(row.Year, out var summary))
+                    {
+                        summary = new IssuedSummary();
+                        result[row.Year] = summary;
+                    }
+
+                    switch (row.Type)
+                    {
+                        case enIssuanceType.Entitled:
+                            summary.Entitled += row.Quantity;
+                            break;
+
+                        case enIssuanceType.Exception:
+                            summary.Exception += row.Quantity;
+                            break;
+
+                        case enIssuanceType.Damaged:
+                            summary.Damaged += row.Quantity;
+                            break;
+                    }
+
+                    summary.Total += row.Quantity;
+                }
+
+                
+                var disposalData = context.Disposals
+                    .Where(d =>
+                        d.DisposalDate.Year >= fromYear &&
+                        d.DisposalDate.Year <= toYear)
+                    .GroupBy(d => d.DisposalDate.Year)
+                    .Select(g => new
+                    {
+                        Year = g.Key,
+                        Quantity = g.Sum(x => x.Quantity)
+                    })
+                    .ToList();
+
+                foreach (var row in disposalData)
+                {
+                    if (!result.TryGetValue(row.Year, out var summary))
+                    {
+                        summary = new IssuedSummary();
+                        result[row.Year] = summary;
+                    }
+
+                    summary.Disposed += row.Quantity;
+                    summary.Total += row.Quantity;
+                }
+
+                return result;
             }
         }
+
 
         public static Dictionary<int, int> GetPlannedByYear(int fromYear, int toYear)
         {
             using (var context = new AppDbContext())
             {
-                // 1️⃣ Active Matrix لكل Category
+                
                 var activeMatrixByCategory = context.Matrices
                     .Where(m => m.IsActive)
                     .ToDictionary(m => m.CategoryId, m => m.MatrixId);
 
-                // 2️⃣ MatrixItems مجمّعة حسب MatrixId
+               
                 var matrixItemsByMatrix = context.MatrixItems
                     .Where(mi => activeMatrixByCategory.Values.Contains(mi.MatrixId))
                     .GroupBy(mi => mi.MatrixId)
@@ -50,12 +113,11 @@ namespace PublicSafety.Repositories.Repositories
                         }).ToList()
                     );
 
-                // 3️⃣ الموظفون مع Category + تواريخهم
+               
                 var employees = (
                     from e in context.Employees
                     join jtc in context.JobTitleCategories
                         on e.JobTitleId equals jtc.JobTitleId
-                    where e.Active
                     select new
                     {
                         e.EmployeeId,
@@ -69,28 +131,28 @@ namespace PublicSafety.Repositories.Repositories
 
                 var result = new Dictionary<int, int>();
 
-                // 4️⃣ الحساب سنة بسنة
+                
                 for (int year = fromYear; year <= toYear; year++)
                 {
                     int totalForYear = 0;
 
                     foreach (var emp in employees)
                     {
-                        // هل الموظف فعّال في هذه السنة؟
+                      
                         if (emp.EmploymentYear > year)
                             continue;
 
                         if (emp.RetirementYear.HasValue && emp.RetirementYear.Value < year)
                             continue;
 
-                        // هل له Matrix فعّالة؟
                         if (!activeMatrixByCategory.TryGetValue(emp.CategoryId, out Guid matrixId))
                             continue;
 
-                        var items = matrixItemsByMatrix[matrixId];
+                        var items = matrixItemsByMatrix[matrixId]; 
 
                         foreach (var item in items)
                         {
+                          
                             if ((year - emp.EmploymentYear) % item.Frequency == 0)
                             {
                                 totalForYear += item.Quantity;
@@ -104,6 +166,7 @@ namespace PublicSafety.Repositories.Repositories
                 return result;
             }
         }
+
 
 
 
@@ -125,6 +188,7 @@ namespace PublicSafety.Repositories.Repositories
 
             for (int year = fromYear; year <= toYear; year++)
             {
+                // it counts the retired employee in the year of retirement
                 int count = employees.Count(e =>
                     e.EmploymentDate.Year <= year &&
                     (e.RetirementDate == null || e.RetirementDate.Value.Year >= year)
@@ -140,12 +204,12 @@ namespace PublicSafety.Repositories.Repositories
         {
             using (var context = new AppDbContext())
             {
-                // 1️⃣ Active matrix per category
+              
                 var activeMatrixByCategory = context.Matrices
                     .Where(m => m.IsActive)
                     .ToDictionary(m => m.CategoryId, m => m.MatrixId);
 
-                // 2️⃣ Matrix items (JOIN – no navigation properties)
+              
                 var matrixItemsByMatrix =
                 (
                     from mi in context.MatrixItems
@@ -160,14 +224,14 @@ namespace PublicSafety.Repositories.Repositories
                         mi.Frequency
                     }
                 )
-                .ToList()   // 🔑 materialize first
+                .ToList()  
                 .GroupBy(x => x.MatrixId)
                 .ToDictionary(
                     g => g.Key,
                     g => g.ToList()
                 );
 
-                // 3️⃣ Active employees with category
+               
                 var employees =
                 (
                     from e in context.Employees
@@ -187,20 +251,20 @@ namespace PublicSafety.Repositories.Repositories
 
                 var result = new List<PlanningItemDetails>();
 
-                // 4️⃣ Planning calculation
+              
                 for (int year = fromYear; year <= toYear; year++)
                 {
                     foreach (var emp in employees)
                     {
-                        // employee not yet hired
+                      
                         if (emp.EmploymentYear > year)
                             continue;
 
-                        // employee retired
+                      
                         if (emp.RetirementYear.HasValue && emp.RetirementYear.Value < year)
                             continue;
 
-                        // no active matrix for category
+                      
                         if (!activeMatrixByCategory.TryGetValue(emp.CategoryId, out Guid matrixId))
                             continue;
 
@@ -209,7 +273,7 @@ namespace PublicSafety.Repositories.Repositories
 
                         foreach (var item in items)
                         {
-                            // frequency rule
+                            
                             if ((year - emp.EmploymentYear) % item.Frequency != 0)
                                 continue;
 
