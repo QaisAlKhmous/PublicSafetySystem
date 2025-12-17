@@ -36,9 +36,9 @@ namespace PublicSafety.Presentation.Controllers
         public ActionResult Login(string Username, string Password, string returnUrl)
         {
             
-            var LogedInUser = UserService.Login(Username, Password);
+            var user = UserService.Login(Username, Password);
 
-            if (LogedInUser == null || !LogedInUser.IsPassword)
+            if (user == null || !user.IsPassword)
             {
                 ViewBag.LoginError = "اسم المستخدم أو كلمة المرور خاطئة";
                 ViewBag.ReturnUrl = returnUrl;
@@ -48,10 +48,12 @@ namespace PublicSafety.Presentation.Controllers
             HttpCookie userCookie = new HttpCookie("UserInfo");
             userCookie.HttpOnly = false; 
             userCookie["Username"] = Username;
-            userCookie["UserId"] = LogedInUser.UserId.ToString();
-            userCookie["Type"] = LogedInUser.Type.ToString();
+            userCookie["UserId"] = user.UserId.ToString();
+            userCookie["Type"] = user.Type.ToString();
             userCookie.Expires = DateTime.Now.AddDays(7);
             Response.Cookies.Add(userCookie);
+
+           
 
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
             {

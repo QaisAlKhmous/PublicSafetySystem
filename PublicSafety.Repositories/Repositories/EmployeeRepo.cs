@@ -49,7 +49,7 @@ namespace PublicSafety.Repositories.Repositories
             }
         }
 
-        public static Guid? AddNewEmployee(Employee newEmployee,EmployeeJobTitleHistory newEmployeeJobTitleHistory)
+        public static Guid AddNewEmployee(Employee newEmployee,EmployeeJobTitleHistory newEmployeeJobTitleHistory)
         {
             using (var context = new AppDbContext())
             using (var transaction = context.Database.BeginTransaction())

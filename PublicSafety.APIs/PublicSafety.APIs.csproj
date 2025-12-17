@@ -78,6 +78,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApiResponse.cs" />
     <Compile Include="Class1.cs" />
     <Compile Include="Controllers\CategoryController.cs" />
     <Compile Include="Controllers\ChangeRequestController.cs" />
@@ -92,6 +93,7 @@
     <Compile Include="Controllers\PlanningController.cs" />
     <Compile Include="Controllers\SectionController.cs" />
     <Compile Include="Controllers\UploadController.cs" />
+    <Compile Include="Filters\ApiExceptionFilter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

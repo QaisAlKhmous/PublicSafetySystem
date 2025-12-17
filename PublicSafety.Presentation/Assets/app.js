@@ -278,28 +278,31 @@ app.controller('sidebarCtrl', function ($scope, $rootScope, $location) {
     });
 })
 
-app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, disposalService, $rootScope,$http) {
+app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, disposalService, $rootScope, $http, $timeout) {
 
     $scope.items = [];
     $scope.newItem = { Name: '', Description: '', Quantity: 0, AddedBy: $rootScope.LogedInUser.username }
     $scope.clicked = false;
-    $scope.selectedItem = null;  
+    $scope.selectedItem = null;
     $scope.addedQuantity = 0;
-    $scope.disposal = { ItemId: null, Quantity: 0, DisposalDate: '', DisposalFormPath: '', CreatedBy: $rootScope.LogedInUser.username , ApprovedBy: "Admin"}
+    $scope.disposal = { ItemId: null, Quantity: 0, DisposalDate: '', DisposalFormPath: '', CreatedBy: $rootScope.LogedInUser.username, ApprovedBy: "Admin" }
 
-    
+
 
     $scope.loadItems = function () {
-        itemService.getItems().then(function (response) {
-            $scope.items = response.data;
-            
-            $scope.itemsTableParams.settings({ dataset: $scope.items });
-            
+        $http.get('/Item/GetItems')
+            .then(res => {
+                $scope.itemsTableParams.settings({ dataset: $scope.items });
+                $scope.items = res.data.Data || []
+            }).catch(() => {
+                console.log("eror");
+                $scope.items = []
+            } );
+    }
 
-        }, function (error) {
-            console.error("Error loading items", error);
-        });
-    };
+    $scope.loadItems();
+
+
 
     $scope.itemsTableParams = new NgTableParams(
         {
@@ -334,17 +337,30 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
 
         }
         else {
-            itemService.addItem($scope.newItem).then(function (response) {
-                if (!response.data.success)
-                    $rootScope.toastify('يوجد مادة بهذا الاسم', 0);
-                else {
-                    $scope.loadItems();
-                    $rootScope.toastify('تم اضافة المادة بنجاح', 1);
-                }
+            itemService.addItem($scope.newItem)
+                .then(function (response) {
 
-            }, function (error) {
-                console.error("Error loading items", error);
-            });
+                    if (response.data.Success) {
+                        $scope.loadItems();
+                        $rootScope.toastify('تم اضافة المادة بنجاح', 1);
+                    }
+
+                })
+                .catch(function (error) {
+
+                    if (error.status === 409) {
+                        // item already exists
+                        $rootScope.toastify(error.data.Message, 0);
+                    }
+                    else if (error.status === 400) {
+                        $rootScope.toastify(error.data.Message, 0);
+                    }
+                    else {
+                        $rootScope.toastify('مشكلة في السيرفر', 0);
+                        console.error(error);
+                    }
+
+                });
 
         }
         
@@ -397,7 +413,7 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
         $scope.isLoading = true;
         if ($rootScope.LogedInUser.userType != 0) {
             $scope.changeRequest.EntityId = $scope.selectedItem.ItemId;
-            var item = { Quantity: $scope.addedQuantity, IsIncrease: true };
+            var item = { Quantity: $scope.addedQuantity, IsIncrease: true, OldQty: $scope.selectedItem.Quantity, NewQty: $scope.selectedItem.Quantity + $scope.addedQuantity};
             $scope.changeRequest.OldValue = JSON.stringify(item);
 
             $http.post('/ChangeRequest/AddNewChangeRequest', { ChangeRequest: $scope.changeRequest }).then((res) => {
@@ -407,14 +423,29 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
 
         } else {
             itemService.increaseQuantity($scope.selectedItem.ItemId, $scope.addedQuantity, $rootScope.LogedInUser.username).then(function (response) {
+
+                // Show backend message (admin OR request case)
+                $rootScope.toastify(response.data.Message, 1);
+
+                // Reload only if quantity actually changed
                 $scope.loadItems();
-                $rootScope.toastify("تم زيادة رصيد مادة بنجاح", 1);
-                $scope.isLoading = false;
-            }, function (error) {
-                console.error("Error deleting items", error);
-            });
+
+            })
+                .catch(function (error) {
+
+                    if (error.data && error.data.Message) {
+                        $rootScope.toastify(error.data.Message, 0);
+                    } else {
+                        $rootScope.toastify("مشكلة في السيرفر", 0);
+                    }
+
+                })
+                .finally(function () {
+                    $scope.isLoading = false;
+                    $scope.addedQuantity = 0;
+                });
         }
-        $scope.addedQuantity = 0;
+       
     }
 
     $(document).ready(function () {
@@ -466,22 +497,20 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
     // Clear Dropzone on modal close
     // =====================
     $('#disposeItemModalForm').on('hidden.bs.modal', function () {
-        $scope.$apply(function () {
+        $timeout(function () {
 
             if (disposeDropzone) {
                 disposeDropzone.removeAllFiles(true);
             }
+            $scope.disposal.Quantity = 1;
 
-            $scope.disposal = {
-                Quantity: 1,
-                DisposalDate: '',
-                DisposalFormPath: ''
-            };
+            $scope.disposal.DisposalFormPath = '';
 
             if ($scope.disposeForm) {
                 $scope.disposeForm.$setPristine();
                 $scope.disposeForm.$setUntouched();
             }
+
         });
     });
 
@@ -504,13 +533,13 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
                 var dz = this;
 
                 dz.on("success", function (file, response) {
-                    $scope.$apply(function () {
+                    $timeout(function () {
                         $scope.disposal.DisposalFormPath = response.fileName;
                     });
                 });
 
                 dz.on("removedfile", function () {
-                    $scope.$apply(function () {
+                    $timeout(function () {
                         $scope.disposal.DisposalFormPath = '';
                     });
                 });
@@ -518,11 +547,13 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
         });
     }
 
+
     $scope.dispose = function () {
         $scope.isLoading = true;
         $scope.disposeForm.$setSubmitted();
 
         if ($scope.disposeForm.$invalid) {
+            $scope.isLoading = false;
             return;
         }
 
@@ -532,7 +563,7 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
         } else {
             if ($rootScope.LogedInUser.userType != 0) {
                 $scope.changeRequest.EntityId = $scope.selectedItem.ItemId;
-                var item = { Quantity: $scope.disposal.Quantity, IsIncrease: false };
+                var item = { Quantity: $scope.disposal.Quantity, IsIncrease: false, oldQty: $scope.disposal.Quantity, newQty: $scope.selectedItem.Quantity - $scope.disposal.Quantity};
                 $scope.changeRequest.OldValue = JSON.stringify(item);
 
                 $http.post('/ChangeRequest/AddNewChangeRequest', { ChangeRequest: $scope.changeRequest }).then((res) => {
@@ -543,19 +574,33 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
             }
             else {
 
-                disposalService.addDisposal($scope.disposal).then(function (response) {
-                    $scope.loadItems();
-                    $rootScope.toastify("تم اتلاف مادة بنجاح", 1)
-                    $scope.isLoading = false;
-                }, function (error) {
-                    console.error("Error deleting items", error);
-                })
+                disposalService.addDisposal($scope.disposal)
+                    .then(function (response) {
+
+                        if (response.data && response.data.Success) {
+                            $scope.loadItems();
+                            $rootScope.toastify("تم إتلاف المادة بنجاح", 1);
+
+                            // Close modal (BEST UX)
+                            $('#disposeItemModalForm').modal('hide');
+                        }
+
+                    })
+                    .catch(function (error) {
+                        $rootScope.toastify(
+                            error.data?.Message || "مشكلة في السيرفر",
+                            0
+                        );
+                    })
+                    .finally(function () {
+                        $scope.isLoading = false;
+                    });
             }
 
 
         }
 
-        $scope.disposal.Quantity = 0;
+       
        
     }
 })
@@ -656,12 +701,44 @@ app.controller('matrixCtrl', function ($scope, NgTableParams, matrixService, $ht
     } 
 
     $scope.loadAddItem = function () {
-        $http.get('/Matrix/GetMatrixByCategory?CategoryId=' + $scope.selectedCategory.CategoryId).then((res) => {
-            $scope.addMatrixItem.MatrixId = res.data.MatrixId;
+        $http.get('/Matrix/GetMatrixByCategory', {
+            params: { CategoryId: $scope.selectedCategory.CategoryId }
         })
-        itemService.getItems().then((res) => {
-            $scope.items = res.data;
-        })
+            .then(function (res) {
+
+                if (res.data && res.data.Success && res.data.Data.length > 0) {
+                   
+                    $scope.addMatrixItem.MatrixId = res.data.Data[0].MatrixId;
+                } else {
+                    $scope.addMatrixItem.MatrixId = null;
+                }
+
+            })
+            .catch(function (err) {
+
+                $scope.addMatrixItem.MatrixId = null;
+
+                if (err.data && err.data.Message) {
+                    $rootScope.toastify(err.data.Message, 0);
+                } else {
+                    $rootScope.toastify("مشكلة في السيرفر", 0);
+                }
+
+            });
+
+        itemService.getItems()
+            .then(function (res) {
+
+                if (res.data && res.data.Success) {
+                    $scope.items = res.data.Data || [];
+                } else {
+                    $scope.items = [];
+                }
+
+            })
+            .catch(function () {
+                $scope.items = [];
+            });
     }
 
     
@@ -799,9 +876,20 @@ app.controller('employeeCtrl', function ($scope, $timeout,NgTableParams, employe
 
 
     $scope.loadItems = function () {
-        itemService.getItems().then((res) => {
-            $scope.items = res.data;
-        })
+        itemService.getItems()
+            .then(function (res) {
+
+                if (res.data && res.data.Success) {
+                    $scope.items = res.data.Data || [];
+                } else {
+                    $scope.items = [];
+                }
+
+            })
+            .catch(function () {
+                $scope.items = [];
+            });
+
     }
     $scope.changeRequest = {
         EntityType: 'Issuance', EntityId: '', OldValue: null,
@@ -837,28 +925,37 @@ app.controller('employeeCtrl', function ($scope, $timeout,NgTableParams, employe
             $http.post('/Issuance/AddNewIssuance', $scope.issuance)
                 .then(function (res) {
 
-                    if (res.data.success === false) {
-                        $rootScope.toastify(res.data.message, 0);
-                    } else {
-                        $rootScope.toastify(res.data.message, 1);
+                    
+                    $rootScope.toastify(res.data.Message, 1);
 
-                        $scope.issuance = {
-                            EmployeeId: null,
-                            IssuanceId: null,
-                            ItemId: null,
-                            Quantity: 1,
-                            Type: '',
-                            ExceptionReason: '',
-                            ExceptionFormPath: '',
-                            CreatedBy: $rootScope.LogedInUser.username
-                        };
+                    
+                    $scope.issuance.EmployeeId = null;
+                    $scope.issuance.IssuanceId = null;
+                    $scope.issuance.ItemId = null;
+                    $scope.issuance.Quantity = 1;
+                    $scope.issuance.Type = '';
+                    $scope.issuance.ExceptionReason = '';
+                    $scope.issuance.ExceptionFormPath = '';
+                    $scope.issuance.CreatedBy = $rootScope.LogedInUser.username;
+
+                   
+                    if ($scope.exceptionForm) {
+                        $scope.exceptionForm.$setPristine();
+                        $scope.exceptionForm.$setUntouched();
                         $scope.exceptionForm.$submitted = false;
                     }
                 })
                 .catch(function (err) {
 
-                    $rootScope.toastify(err.data ? err.data.message : 'Something went wrong!', 0);
+                   
+                    if (err.data && err.data.Message) {
+                        $rootScope.toastify(err.data.Message, 0);
+                    } else {
+                        $rootScope.toastify('مشكلة في السيرفر', 0);
+                    }
+
                 });
+
         }
 
 
@@ -973,6 +1070,13 @@ app.controller('employeeCtrl', function ($scope, $timeout,NgTableParams, employe
         employeeService.deleteEmployee(EmployeeId).then((res) => {
             $rootScope.toastify('تم تغيير حالة الموظف الى مستقيل', 1);
             $scope.getAllEmployees();
+        }).catch((err) => {
+            if (err.data && err.data.Message) {
+                $rootScope.toastify(err.data.Message);
+            } else {
+                $rootScope.toastify("مشكلة في السيرفر");
+            }
+
         })
     }
    
@@ -1111,24 +1215,69 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
 
     $scope.loadJobTitles = function () {
         $http.get('/JobTitle/GetAllJobTitles')
-            .then((res) => {
-                $scope.JobTitles = res.data;
-            }).catch((rej) => console.log(rej))
+            .then(function (res) {
+
+                if (res.data && res.data.Success) {
+                    $scope.JobTitles = res.data.Data || [];
+                } else {
+                    $scope.JobTitles = [];
+                }
+
+            })
+            .catch(function (err) {
+
+                if (err.data && err.data.Message) {
+                    console.error(err.data.Message);
+                } else {
+                    console.error("مشكلة في السيرفر");
+                }
+
+                $scope.JobTitles = [];
+            });
+
     }
 
 
     $scope.loadDepartments = function () {
         $http.get('/Department/GetAllDepartments')
-            .then((res) => {
-                $scope.Departments = res.data;
-            }).catch((rej) => console.log(rej))
-    }
+            .then(function (res) {
+
+                if (res.data && res.data.Success) {
+                    $scope.Departments = res.data.Data;
+                } else {
+                    $scope.Departments = [];
+                }
+
+            })
+            .catch(function (err) {
+
+                if (err.data && err.data.Message) {
+                    console.error(err.data.Message);
+                } else {
+                    console.error("مشكلة في السيرفر");
+                }
+
+                $scope.Departments = [];
+            });
+    };
+
 
     $scope.loadSections = function () {
         $http.get('/Section/GetAllSections')
-            .then((res) => {
-                $scope.Sections = res.data;
-            }).catch((rej) => console.log(rej))
+            .then(function (res) {
+
+                if (res.data && res.data.Success) {
+                    $scope.Sections = res.data.Data || [];
+                } else {
+                    $scope.Sections = [];
+                }
+
+            })
+            .catch(function (err) {
+                console.error(err);
+                $scope.Sections = [];
+            });
+
     }
 
     $scope.loadCategory = function (JobTitleId) {
@@ -1163,7 +1312,7 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
             employeeService.getEmployeeById($scope.updateEmployeeId)
                 .then((res) => {
                   
-                    $scope.employee = res.data;
+                    $scope.employee = res.data.Data;
                     $scope.changeRequest = {
                         EntityType: 'Employee', EntityId: $scope.updateEmployeeId, OldValue: JSON.stringify($scope.employee),
                         NewValue: '', ChangedBy: $rootScope.LogedInUser.username
@@ -1171,6 +1320,13 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
 
                     // Init dropzone AFTER employee is loaded
                     initHealthInsuranceDropzone();
+                }).catch((err) => {
+
+                    if (err.data && err.data.Message) {
+                        $rootScope.toastify(err.data.Message);
+                    } else {
+                        $rootScope.toastify("مشكلة في السيرفر");
+                    }
                 })
         }
     }
@@ -1202,7 +1358,13 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
                 employeeService.updateEmployee($scope.employee)
                     .then((res) => {
                         $rootScope.toastify('تم تعديل بيانات الموظف بنجاح', 1);
-                    }).catch((rej) => console.log(rej))
+                    }).catch((err) => {
+                        if (err.data && err.data.Message) {
+                            $rootScope.toastify(err.data.Message, 0);
+                        } else {
+                            $rootScope.toastify("مشكلة في السيرفر", 0);
+                        }
+                    })
 
 
             }
@@ -1214,8 +1376,14 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
                 employeeService.addNewEmployee($scope.employee)
                     .then((res) => {
                         $rootScope.toastify('تم اضافة موظف بنجاح', 1);
-                        $location.path('/editEmployee/' + res.data.id);
-                    }).catch((rej) => console.log(rej))
+                        $location.path('/editEmployee/' + res.data.Data);
+                    }).catch((err) => {
+                        if (err.data && err.data.Message) {
+                            $rootScope.toastify(err.data.Message, 0);
+                        } else {
+                            $rootScope.toastify("مشكلة في السيرفر",0);
+                        }
+                    })
 
             }
         }
@@ -1328,52 +1496,83 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
     
 })
 
-app.controller('dashboardCtrl', function ($scope, employeeService, itemService, $location, $http, $timeout, $rootScope, NgTableParams) {
+app.controller('dashboardCtrl', function (
+    $scope,
+    employeeService,
+    itemService,
+    $location,
+    $http,
+    $timeout,
+    $rootScope,
+    NgTableParams
+) {
+
+    /* =====================
+       PLANNING OVERVIEW
+    ===================== */
 
     $scope.planningData = [];
 
-    // ng-table init
     $scope.planningTableParams = new NgTableParams({}, {
         dataset: $scope.planningData
     });
     $scope.planningTableParams.settings().counts = [];
 
     $scope.loadOverview = function () {
-        date = new Date();
+
+        var date = new Date();
+
         $http.get('/Planning/Overview', {
-           
             params: {
                 fromYear: 2020,
-                toYear: date.getFullYear() + 4 // 4 years ahead
+                toYear: date.getFullYear() + 4
             }
-        }).then(function (res) {
+        })
+            .then(function (res) {
 
-            $scope.planningData = res.data;
+                if (res.data && res.data.Success) {
 
-            // update table
-            $scope.planningTableParams.settings({
-                dataset: $scope.planningData
+                    $scope.planningData = res.data.Data || [];
+
+                    drawChart($scope.planningData);
+
+                    $scope.planningTableParams.settings({
+                        dataset: $scope.planningData
+                    });
+
+                } else {
+                    resetPlanning();
+                }
+
+            })
+            .catch(function (err) {
+
+                $rootScope.toastify(
+                    err.data?.Message || "مشكلة في السيرفر",
+                    0
+                );
+
+                resetPlanning();
             });
-
-            
-            // draw chart
-            drawChart(res.data);
-
-        }, function () {
-            alert("حدث خطأ أثناء تحميل بيانات التخطيط");
-        });
     };
 
+    function resetPlanning() {
+        $scope.planningData = [];
+        $scope.planningTableParams.settings({ dataset: [] });
+    }
+
     function drawChart(data) {
+
+        if (!data || !data.length) return;
+
         var years = data.map(x => x.Year);
         var planned = data.map(x => x.Planned);
-
-        // ✅ استخدم Total
         var issued = data.map(x => x.Issued ? x.Issued.Total : 0);
 
-        var ctx = document.getElementById('planningChart').getContext('2d');
+        var canvas = document.getElementById('planningChart');
+        if (!canvas) return;
 
-        new Chart(ctx, {
+        new Chart(canvas.getContext('2d'), {
             type: 'line',
             data: {
                 labels: years,
@@ -1413,6 +1612,9 @@ app.controller('dashboardCtrl', function ($scope, employeeService, itemService, 
         });
     }
 
+    /* =====================
+       YEAR DETAILS
+    ===================== */
 
     $scope.selectedYear = null;
 
@@ -1422,155 +1624,78 @@ app.controller('dashboardCtrl', function ($scope, employeeService, itemService, 
     $scope.detailsTableParams.settings().counts = [];
 
     $scope.openYearDetails = function (year) {
+
         $scope.selectedYear = year;
 
         $http.get('/Planning/PlannedItemsByYear', {
             params: { year: year }
-        }).then(function (res) {
+        })
+            .then(function (res) {
 
-            $scope.detailsTableParams.settings({
-                dataset: res.data
+                $scope.detailsTableParams.settings({
+                    dataset: res.data?.Data || []
+                });
+
+                new bootstrap.Modal(
+                    document.getElementById('planningDetailsModal')
+                ).show();
+
+            })
+            .catch(function (err) {
+
+                $rootScope.toastify(
+                    err.data?.Message || "مشكلة في السيرفر",
+                    0
+                );
+
+                $scope.detailsTableParams.settings({ dataset: [] });
             });
-
-            var modal = new bootstrap.Modal(
-                document.getElementById('planningDetailsModal')
-            );
-            modal.show();
-        });
     };
 
-
-    // load on page open
-    $scope.loadOverview();
+    /* =====================
+       COUNTERS
+    ===================== */
 
     $scope.IsAdmin = $rootScope.LogedInUser.userType == 0;
 
     $scope.loadNumbers = function () {
-        employeeService.getNumberOfActiveEmployees().then((res) => {
-            $scope.activeEmployeesCount = res.data;
-        })
-        employeeService.getNumberOfInactiveEmployees().then((res) => {
-            $scope.inactiveEmployeesCount = res.data;
-        })
-        itemService.getNumberOfAllItems().then((res) => {
-            $scope.itemsCount = res.data;
-        })
 
-        employeeService.getEmployeesByCategoryCount().then((res) => {
-            $scope.employeesByCategory = res.data;
-        })
+        employeeService.getNumberOfActiveEmployees()
+            .then(res => $scope.activeEmployeesCount = res.data.Data)
+            .catch(() => $scope.activeEmployeesCount = 0);
 
-        
-    }
+        employeeService.getNumberOfInactiveEmployees()
+            .then(res => $scope.inactiveEmployeesCount = res.data.Data)
+            .catch(() => $scope.inactiveEmployeesCount = 0);
+
+        itemService.getNumberOfAllItems()
+            .then(res => {
+                if (res.data.Success) {
+                    $scope.itemsCount = res.data.Data;
+                } else {
+                    $scope.itemsCount = 0;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                $scope.itemsCount = 0;
+            });
+
+        employeeService.getEmployeesByCategoryCount()
+            .then(res => $scope.employeesByCategory = res.data.Data || [])
+            .catch(() => $scope.employeesByCategory = []);
+    };
+
+    /* =====================
+       INIT
+    ===================== */
+
+    $scope.loadOverview();
     $scope.loadNumbers();
 
-    $scope.changeRequests = []
-
-    $scope.loadChangeRequests = function () {
-        $http.get('/ChangeRequest/GetAllChangeRequests').then((res) => {
-            $scope.changeRequests = res.data;
-            $scope.requestsTableParams.settings({ dataset: $scope.changeRequests } )
-        })
-    }
-    $scope.loadChangeRequests();
-
-    $scope.requestsTableParams = new NgTableParams(
-        {
-            page: 1,            // start on first page
-            count: 10,          // items per page
-            filter: {},
-            sorting: { }// initial filter
-        }
-    );
-    $scope.requestsTableParams.settings().counts = [];
-
-    $scope.confirmAcceptRequest = function (requestId) {
-        Swal.fire({
-            title: 'هل انت متأكد من الموافقة على الطلب؟',
-            text: "",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'نعم',
-            cancelButtonText: 'لا'
-        }).then((result) => {
-            if (result.isConfirmed) $scope.acceptRequest(requestId);
-        });
-    }
-
-    $scope.confirmRejectRequest = function (requestId) {
-        Swal.fire({
-            title: 'هل انت متأكد من رفض الطلب؟',
-            text: "",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'نعم',
-            cancelButtonText: 'لا'
-        }).then((result) => {
-            if (result.isConfirmed) $scope.rejectRequest(requestId);
-        });
-    }
-
-    $scope.acceptRequest = function (requestId) {
-       
-        $http.post('/ChangeRequest/AcceptChangeRequest', { ChangeRequestId: requestId, ApprovedBy: $rootScope.LogedInUser.username }).then((res) => {
-            $rootScope.toastify('تم الموافقة على الطلب وتعديل البيانات بنجاح', 1);
-            $scope.loadChangeRequests();
-        })
-    }
-
-    $scope.rejectRequest = function (requestId) {
-
-        $http.post('/ChangeRequest/RejectChangeRequest', { ChangeRequestId: requestId, ApprovedBy: $rootScope.LogedInUser.username }).then((res) => {
-            $rootScope.toastify('تم رفض طلب تعديل البيانات بنجاح', 1);
-            $scope.loadChangeRequests();
-        })
-    }
-
-    $scope.selectedRequest = {};
-    $scope.differences = [];
     $scope.data = {};
 
-    $scope.showDetails = function (request) {
-        $scope.selectedRequest = request;
-        $http.post('/ChangeRequest/GetDifferences', { ChangeRequestId: request.RequestId, EntityId: request.EntityId }).then((res) => {
-            $scope.entityType = res.data.type;
-            $scope.isAdd = res.data.IsAdd;
-
-            if (res.data.IsAdd) {
-                
-                $scope.data = res.data.entity;
-            } 
-            if (!res.data.IsAdd && res.data.type == 'employee') {
-
-                $scope.oldData = res.data.oldEntity;
-                $scope.newData = res.data.newEntity;
-            }
-            if (res.data.IsAdd && res.data.type == 'item') {
-                $scope.data = res.data.entity;
-            }
-            if (!res.data.IsAdd && res.data.type == 'item') {
-                $scope.data = res.data.entity;
-                $scope.itemReq = res.data.itemReq;
-                
-            }
-            if (res.data.IsAdd && res.data.type == 'issuance') {
-                $scope.data = res.data.entity;
-                $scope.issuanceEmployee = res.data.employee;
-                $scope.itemIssued = res.data.item;
-                console.log($scope.data)
-            }
-
-           
-                
-        })
-    }
-
-  
-})
+});
 
 
 app.controller('issuanceCtrl', function ($scope, employeeService, itemService, $location, $http, $timeout, $rootScope, NgTableParams, $routeParams) {
@@ -1624,27 +1749,53 @@ app.controller('issuanceCtrl', function ($scope, employeeService, itemService, $
     $scope.allIssuances = [];
 
     $scope.loadIssuances = function () {
-        $http.get('/Issuance/GetIssuancesByEmployeeId?EmployeeId=' + $routeParams.employeeId).then((res) => {
-            $scope.allIssuances = res.data;
-
-            $scope.allIssuances.forEach(x => {
-                x.CreatedDate = new Date(x.CreatedDate);
-            });
-
-            $scope.issuances = angular.copy($scope.allIssuances);
-
-            $scope.issuancesTableParams.settings({
-                dataset: $scope.issuances
-            });
-            
+        $http.get('/Issuance/GetIssuancesByEmployeeId', {
+            params: { EmployeeId: $routeParams.employeeId }
         })
+            .then(function (res) {
+
+                if (res.data && res.data.Success) {
+
+                    $scope.allIssuances = res.data.Data || [];
+
+                    $scope.allIssuances.forEach(function (x) {
+                        if (x.CreatedDate) {
+                            x.CreatedDate = new Date(x.CreatedDate);
+                        }
+                    });
+
+                    $scope.issuances = angular.copy($scope.allIssuances);
+
+                    $scope.issuancesTableParams.settings({
+                        dataset: $scope.issuances
+                    });
+
+                } else {
+                    $scope.allIssuances = [];
+                    $scope.issuancesTableParams.settings({ dataset: [] });
+                }
+
+            })
+            .catch(function (err) {
+
+                if (err.data && err.data.Message) {
+                    $rootScope.toastify(err.data.Message, 0);
+                } else {
+                    $rootScope.toastify("مشكلة في السيرفر", 0);
+                }
+
+                $scope.allIssuances = [];
+                $scope.issuancesTableParams.settings({ dataset: [] });
+
+            });
+
     }
     $scope.loadIssuances();
 
     $scope.loadItems = function () {
-        $http.get('/Item/GetItems').then((res) => {
-            $scope.items = res.data;
-        })
+        $http.get('/Item/GetItems')
+            .then(res => $scope.items = res.data.Data || [])
+            .catch(() => $scope.items = []);
     }
     $scope.loadItems()
 
@@ -1675,22 +1826,25 @@ app.controller('entitlementCtrl',
         // =====================
 
         $scope.loadItems = function () {
-            $http.get('/Item/GetItems').then((res) => {
-                $scope.items = res.data;
-            })
+            $http.get('/Item/GetItems')
+                .then(res => $scope.items = res.data.Data || [])
+                .catch(() => $scope.items = []);
         }
         $scope.loadItems();
         $scope.loadEntitlements = function () {
             $http.get('/Employee/GetEmployeeEntitlements?EmployeeId=' + $routeParams.employeeId)
                 .then((res) => {
-                    $scope.entitlements = res.data;
+                    $scope.entitlements = res.data.Data;
                     $scope.entitlementsTableParams.settings({ dataset: $scope.entitlements });
                 });
         };
 
         $scope.loadEmployee = function () {
             employeeService.getEmployeeById($routeParams.employeeId).then((res) => {
-                $scope.employee = res.data;
+                $scope.employee = res.data.Data;
+            }).catch((res) => {
+                if (res.data && res.data.Message)
+                    $scope.toastify(res.data.Message, 0);
             });
         };
 
@@ -1821,12 +1975,24 @@ app.controller('entitlementCtrl',
                     $scope.addChangeRequest();
 
                 } else {
-                    $http.post('/Issuance/AddNewEntitledIssuance', { issuance: $scope.issuance })
-                        .then(() => {
-                            $rootScope.toastify('تم صرف المادة بنجاح', 1);
+                    $http.post('/Issuance/AddNewEntitledIssuance', $scope.issuance)
+                        .then(function (res) {
+
+                            $rootScope.toastify(res.data.Message, 1);
                             $('#issueModalForm').modal('hide');
                             $scope.loadEntitlements();
+
+                        })
+                        .catch(function (err) {
+
+                            if (err.data && err.data.Message) {
+                                $rootScope.toastify(err.data.Message, 0);
+                            } else {
+                                $rootScope.toastify('مشكلة في السيرفر', 0);
+                            }
+
                         });
+
                 }
 
              
@@ -1919,7 +2085,14 @@ app.controller("itemLogCtrl", function ($scope, $http, NgTableParams, $routePara
 
     $scope.loadItem = function () {
         itemService.getItemById($routeParams.itemId).then((res) => {
-            $scope.selectedItem = res.data;
+            $scope.selectedItem = res.data.Data;
+        }).catch((err) => {
+            if (err.data && err.data.Message) {
+                $rootScope.toastify(err.data.Message);
+            } else {
+                $rootScope.toastify("مشكلة في السيرفر");
+            }
+
         })
     }
 
@@ -1938,24 +2111,45 @@ app.controller("itemLogCtrl", function ($scope, $http, NgTableParams, $routePara
 
     $scope.loadItemLogs = function () {
 
-        $http.get("/ItemLog/ByItem?itemId=" + $routeParams.itemId)
+        $http.get('/ItemLog/ByItem', {
+            params: { itemId: $routeParams.itemId }
+        })
             .then(function (res) {
 
-                $scope.allItemLogs = res.data;
+                if (res.data && res.data.Success) {
 
-                $scope.allItemLogs.forEach(x => {
-                    x.CreatedDate = new Date(x.CreatedDate);
-                });
+                    $scope.allItemLogs = res.data.Data || [];
 
-                $scope.itemLogs = angular.copy($scope.allItemLogs);
+                    $scope.allItemLogs.forEach(function (x) {
+                        if (x.CreatedDate) {
+                            x.CreatedDate = new Date(x.CreatedDate);
+                        }
+                    });
 
-                $scope.itemLogsTableParams.settings({
-                    dataset: $scope.itemLogs
-                });
+                    $scope.itemLogs = angular.copy($scope.allItemLogs);
 
-            }, function () {
-                alert("حدث خطأ أثناء تحميل سجل الحركات");
+                    $scope.itemLogsTableParams.settings({
+                        dataset: $scope.itemLogs
+                    });
+
+                } else {
+                    $scope.allItemLogs = [];
+                    $scope.itemLogsTableParams.settings({ dataset: [] });
+                }
+
+            })
+            .catch(function (err) {
+
+                if (err.data && err.data.Message) {
+                    $rootScope.toastify(err.data.Message, 0);
+                } else {
+                    $rootScope.toastify("حدث خطأ أثناء تحميل سجل الحركات", 0);
+                }
+
+                $scope.allItemLogs = [];
+                $scope.itemLogsTableParams.settings({ dataset: [] });
             });
+
     };
 
     $scope.itemLogsTableParams.settings().counts = [];
@@ -2038,11 +2232,12 @@ app.controller("requestsCtrl", function ($scope, employeeService, itemService, $
     $scope.data = {};
 
     $scope.showDetails = function (request) {
+       
         $scope.selectedRequest = request;
         $http.post('/ChangeRequest/GetDifferences', { ChangeRequestId: request.RequestId, EntityId: request.EntityId }).then((res) => {
             $scope.entityType = res.data.type;
             $scope.isAdd = res.data.IsAdd;
-
+            console.log(res.data);
             if (res.data.IsAdd) {
 
                 $scope.data = res.data.entity;
@@ -2058,6 +2253,9 @@ app.controller("requestsCtrl", function ($scope, employeeService, itemService, $
             if (!res.data.IsAdd && res.data.type == 'item') {
                 $scope.data = res.data.entity;
                 $scope.itemReq = res.data.itemReq;
+                $scope.oldQty = res.data.OldQty;
+                $scope.newQty = res.data.NewQty;
+
 
             }
             if (res.data.IsAdd && res.data.type == 'issuance') {

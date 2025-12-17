@@ -10,5 +10,7 @@ namespace PublicSafety.Services.DTOs
     {
         public int Quantity { get; set; }
         public bool IsIncrease { get; set; }
+        public int OldQty { get; set; }
+        public int NewQty { get; set; }
     }
 }

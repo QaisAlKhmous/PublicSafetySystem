@@ -1,4 +1,5 @@
 ﻿using PublicSafety.Services;
+using PublicSafety.Services.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,8 +14,39 @@ namespace PublicSafety.APIs.Controllers
         [HttpGet]
         public JsonResult ByItem(Guid itemId)
         {
-            var logs = ItemLogService.GetItemLogsByItem(itemId);
-            return Json(logs,JsonRequestBehavior.AllowGet);
+            if (itemId == Guid.Empty)
+            {
+                Response.StatusCode = 400;
+                return Json(new ApiResponse<List<ItemLogDTO>>
+                {
+                    Success = false,
+                    Message = "معرّف المادة غير صالح",
+                    Data = new List<ItemLogDTO>()
+                }, JsonRequestBehavior.AllowGet);
+            }
+
+            try
+            {
+                var logs = ItemLogService.GetItemLogsByItem(itemId);
+
+                return Json(new ApiResponse<List<ItemLogDTO>>
+                {
+                    Success = true,
+                    Message = null,
+                    Data = logs ?? new List<ItemLogDTO>()
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception)
+            {
+                Response.StatusCode = 500;
+                return Json(new ApiResponse<List<ItemLogDTO>>
+                {
+                    Success = false,
+                    Message = "مشكلة في السيرفر",
+                    Data = new List<ItemLogDTO>()
+                }, JsonRequestBehavior.AllowGet);
+            }
         }
+
     }
 }

@@ -18,6 +18,8 @@ namespace PublicSafety.APIs.Controllers
         [HttpPost]
         public JsonResult AddNewChangeRequest(ChangeRequestDTO ChangeRequest)
         {
+
+
             ChangeRequestService.AddNewChangeRequest(ChangeRequest);
 
 
@@ -25,6 +27,9 @@ namespace PublicSafety.APIs.Controllers
 
             return Json(new { success = true });
         }
+
+
+
         [HttpGet]
         public JsonResult GetAllChangeRequests()
         {
@@ -52,6 +57,8 @@ namespace PublicSafety.APIs.Controllers
         [HttpPost]
         public JsonResult GetDifferences(Guid ChangeRequestId,Guid EntityId)
         {
+
+
             var changeRequest = ChangeRequestService.GetChangeRequestById(ChangeRequestId);
 
             if(changeRequest.OldValue == null)
@@ -59,6 +66,7 @@ namespace PublicSafety.APIs.Controllers
                 switch ((enEntityType)Enum.Parse(typeof(enEntityType), changeRequest.EntityType))
                 {
                     case enEntityType.Employee:
+
                         AddEmployeeDTO employee = JsonSerializer.Deserialize<AddEmployeeDTO>(changeRequest.NewValue);
 
                         EmployeeDTO emp = new EmployeeDTO()
@@ -78,12 +86,14 @@ namespace PublicSafety.APIs.Controllers
                        
 
                     case enEntityType.Item:
+
                         var item = JsonSerializer.Deserialize<ItemsDTO>(changeRequest.NewValue);
                         
                         return Json(new { entity = item, type = "item", IsAdd = true });
                        
                        
                     case enEntityType.Issuance:
+
                         var issuance = JsonSerializer.Deserialize<AddIssuanceDTO>(changeRequest.NewValue);
                         string EmployeeName = EmployeeService.GetEmployeeById(issuance.EmployeeId).FullName;
                         string itemIssued = ItemService.GetItemById(issuance.ItemId).Name;
@@ -133,7 +143,7 @@ namespace PublicSafety.APIs.Controllers
                     case enEntityType.Item:
                         var itemReq = JsonSerializer.Deserialize<itemRequestDTO>(changeRequest.OldValue);
                         var item = ItemService.GetItemById(changeRequest.EntityId);
-                        return Json(new { entity = item, type = "item", IsAdd = false, itemReq = itemReq }, JsonRequestBehavior.AllowGet);
+                        return Json(new { entity = item, type = "item", IsAdd = false, itemReq = itemReq,OldQty = itemReq.OldQty,NewQty = itemReq.NewQty }, JsonRequestBehavior.AllowGet);
 
                     
                    

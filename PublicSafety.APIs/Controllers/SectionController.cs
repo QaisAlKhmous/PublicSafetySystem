@@ -1,4 +1,5 @@
 ﻿using PublicSafety.Services;
+using PublicSafety.Services.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,11 +15,29 @@ namespace PublicSafety.APIs.Controllers
         [HttpGet]
         public JsonResult GetAllSections()
         {
-            var Sections = SectionService.GetAllSections();
+            try
+            {
+                var sections = SectionService.GetAllSections();
 
-            return Json(Sections, JsonRequestBehavior.AllowGet);
-
+                return Json(new ApiResponse<IEnumerable<SectionDTO>>
+                {
+                    Success = true,
+                    Message = null,
+                    Data = sections ?? new List<SectionDTO>()
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception)
+            {
+                Response.StatusCode = 500;
+                return Json(new ApiResponse<IEnumerable<SectionDTO>>
+                {
+                    Success = false,
+                    Message = "مشكلة في السيرفر",
+                    Data = new List<SectionDTO>()
+                }, JsonRequestBehavior.AllowGet);
+            }
         }
+
 
 
     }

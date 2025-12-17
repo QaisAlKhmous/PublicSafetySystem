@@ -1,4 +1,5 @@
 ﻿using PublicSafety.Services;
+using PublicSafety.Services.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,10 +14,27 @@ namespace PublicSafety.APIs.Controllers
         [HttpGet]
         public JsonResult GetAllJobTitles()
         {
-            var JobTitles = JobTitleService.GetAllJobTitles();
+            try
+            {
+                var jobTitles = JobTitleService.GetAllJobTitles();
 
-            return Json(JobTitles, JsonRequestBehavior.AllowGet);
-
+                return Json(new ApiResponse<IEnumerable<JobTitleDTO>>
+                {
+                    Success = true,
+                    Message = null,
+                    Data = jobTitles ?? new List<JobTitleDTO>()
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception)
+            {
+                Response.StatusCode = 500;
+                return Json(new ApiResponse<List<JobTitleDTO>>
+                {
+                    Success = false,
+                    Message = "مشكلة في السيرفر",
+                    Data = new List<JobTitleDTO>()
+                }, JsonRequestBehavior.AllowGet);
+            }
         }
 
     }

@@ -22,12 +22,55 @@ namespace PublicSafety.APIs.Controllers
         //}
 
         [HttpGet]
-        public JsonResult GetMatrixByCategory(Guid CategoryId)
+        public JsonResult GetMatrixByCategory(Guid categoryId)
         {
-            var matrix =  MatrixService.GetMatrixByCategory(CategoryId);
+            if (categoryId == Guid.Empty)
+            {
+                Response.StatusCode = 400;
+                return Json(new ApiResponse<List<MatrixDTO>>
+                {
+                    Success = false,
+                    Message = "معرّف الفئة غير صالح",
+                    Data = new List<MatrixDTO>()
+                }, JsonRequestBehavior.AllowGet);
+            }
 
-            return Json(matrix,JsonRequestBehavior.AllowGet);
+            try
+            {
+                var matrix = MatrixService.GetMatrixByCategory(categoryId);
+                
+                if(matrix == null)
+                {
+                    Response.StatusCode = 404;
+                    return Json(new ApiResponse<IEnumerable<MatrixDTO>>
+                    {
+                        Success = false,
+                        Message = null,
+                        Data = new List<MatrixDTO>()
+                    }, JsonRequestBehavior.AllowGet);
+                }
+                   
+
+
+                return Json(new ApiResponse<MatrixDTO>
+                {
+                    Success = true,
+                    Message = null,
+                    Data = matrix
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception)
+            {
+                Response.StatusCode = 500;
+                return Json(new ApiResponse<MatrixDTO>
+                {
+                    Success = false,
+                    Message = "مشكلة في السيرفر",
+                    Data =new MatrixDTO()
+                }, JsonRequestBehavior.AllowGet);
+            }
         }
+
 
         [HttpGet]
         public JsonResult GetItemsByMatrix(Guid MatrxiId)

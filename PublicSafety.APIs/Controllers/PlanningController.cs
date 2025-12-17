@@ -1,4 +1,5 @@
-﻿using PublicSafety.Services;
+﻿using PublicSafety.Domain.Entities;
+using PublicSafety.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,15 +14,77 @@ namespace PublicSafety.APIs.Controllers
         [HttpGet]
         public JsonResult Overview(int fromYear, int toYear)
         {
-            var data = PlanningService.GetOverview(fromYear, toYear);
-            return Json(data, JsonRequestBehavior.AllowGet);
+            if (fromYear <= 0 || toYear <= 0 || fromYear > toYear)
+            {
+                Response.StatusCode = 400;
+                return Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "نطاق السنوات غير صالح",
+                    Data = null
+                }, JsonRequestBehavior.AllowGet);
+            }
+
+            try
+            {
+                var data = PlanningService.GetOverview(fromYear, toYear);
+
+                return Json(new ApiResponse<List<PlanningOverview>>
+                {
+                    Success = true,
+                    Message = null,
+                    Data = data
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception)
+            {
+                Response.StatusCode = 500;
+                return Json(new ApiResponse<List<PlanningOverview>>
+                {
+                    Success = false,
+                    Message = "مشكلة في السيرفر",
+                    Data = null
+                }, JsonRequestBehavior.AllowGet);
+            }
         }
+
 
         [HttpGet]
         public JsonResult PlannedItemsByYear(int year)
         {
-            var data = PlanningService.GetPlannedItemDetails(year, year);
-            return Json(data, JsonRequestBehavior.AllowGet);
+            if (year <= 0)
+            {
+                Response.StatusCode = 400;
+                return Json(new ApiResponse<List<PlanningItemDetails>>
+                {
+                    Success = false,
+                    Message = "السنة غير صالحة",
+                    Data = new List<PlanningItemDetails>()
+                }, JsonRequestBehavior.AllowGet);
+            }
+
+            try
+            {
+                var data = PlanningService.GetPlannedItemDetails(year, year);
+
+                return Json(new ApiResponse<List<PlanningItemDetails>>
+                {
+                    Success = true,
+                    Message = null,
+                    Data = data ?? new List<PlanningItemDetails>()
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception)
+            {
+                Response.StatusCode = 500;
+                return Json(new ApiResponse<List<PlanningItemDetails>>
+                {
+                    Success = false,
+                    Message = "مشكلة في السيرفر",
+                    Data = new List<PlanningItemDetails>()
+                }, JsonRequestBehavior.AllowGet);
+            }
         }
+
     }
 }

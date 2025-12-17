@@ -15,14 +15,40 @@ namespace PublicSafety.APIs.Controllers
         [HttpPost]
         public JsonResult AddDisposal(DisposalDTO disposal)
         {
+            if (disposal == null)
+            {
+                Response.StatusCode = 400;
+                return Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "بيانات الإتلاف غير صالحة",
+                    Data = null
+                });
+            }
 
-            
-            DisposalService.AddNewDisposal(disposal);
+            try
+            {
+                DisposalService.AddNewDisposal(disposal);
 
-            return Json("Added Successfully!");
-
-
+                return Json(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "تمت الإضافة بنجاح",
+                    Data = null
+                });
+            }
+            catch (Exception)
+            {
+                Response.StatusCode = 500;
+                return Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "مشكلة في السيرفر",
+                    Data = null
+                });
+            }
         }
+
 
     }
 }
