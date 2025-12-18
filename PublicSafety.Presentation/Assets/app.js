@@ -1079,6 +1079,146 @@ app.controller('employeeCtrl', function ($scope, $timeout,NgTableParams, employe
 
         })
     }
+
+    $scope.Categories = [];
+  
+
+    $scope.loadCategories = function () {
+        $http.get('/Category/GetAllCategories').then((res) => {
+            $scope.Categories = res.data;
+            if ($scope.Categories && $scope.Categories.length > 0) {
+                $scope.selectedCategory = $scope.Categories[0]; // ✅ آمن
+            }
+            console.log(res.data)
+            
+        }).catch((err) => {
+            if (err.data && err.data.Message)
+                $rootScope.toastify(err.data.Message, 0);
+            else {
+                $rootScope.toastify('خطأ غير متوقع', 0);
+            }
+        })
+    }
+
+
+
+    $scope.issueCategory = function () {
+        Swal.fire({
+            title: '؟'+ $scope.selectedCategory.Name + ' هل انت متأكد من صرف المواد الى جميع الموظفين من فئة',
+            text: "",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'نعم',
+            cancelButtonText: 'لا'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $http.post('/Issuance/IssueMatrixForCategory', {
+                    categoryId: $scope.selectedCategory.CategoryId,
+                    year: $scope.selectedYear,
+                    UserId: $rootScope.LogedInUser.userId,
+                    SignedReceiptPath: $scope.signedReceipt.receiptPath
+                }).then((res) => {
+                    $rootScope.toastify('تم صرف المواد بنجاح',1)
+                }).catch((res) => {
+                    if (res.data && res.data.Message)
+                        $rootScope.toastify(res.data.Message, 0);
+                    else {
+                        $rootScope.toastify('مشكلة غير متوقعة', 0);
+                    }
+                })
+            };
+        });
+
+       
+    }
+
+    //upload signed receipt for all issunaces in a specific year
+
+    $scope.selectedYear = null;
+
+    $scope.signedReceipt = {
+        receiptPath: ''
+    };
+
+    $scope.isUploading = false;
+
+    $scope.openEntitleMatrixModal = function () {
+        $scope.selectedYear = 2025;
+        $scope.loadCategories();
+
+        $scope.signedReceipt.receiptPath = '';
+        $scope.entitleForm.$submitted = false;
+
+        $('#entitleMatrixModal').modal('show');
+
+        // init Dropzone after modal opens
+        setTimeout(function () {
+
+            if ($scope.signedReceiptDropzone) {
+                $scope.signedReceiptDropzone.destroy();
+            }
+
+            $scope.signedReceiptDropzone = $rootScope.initFileDropzone(
+                "#signedReceiptDropzone",
+                $scope.signedReceipt,
+                "receiptPath"
+            );
+
+        }, 300);
+    };
+
+    //submit
+
+    $scope.uploadSignedReceipt = function () {
+
+        $scope.entitleForm.$submitted = true;
+
+        if (!$scope.selectedReceiptYear || !$scope.signedReceipt.receiptPath)
+            return;
+
+        $scope.isUploading = true;
+
+        $http.post('/Issuance/UploadSignedReceipt', {
+            employeeId: $routeParams.employeeId,
+            entitlementYear: $scope.selectedReceiptYear,
+            receiptPath: $scope.signedReceipt.receiptPath
+        })
+            .then(function (res) {
+
+                if (res.data && res.data.Success) {
+                    $rootScope.toastify('تم رفع إيصال الاستلام بنجاح', 1);
+                    $('#signedReceiptModalForm').modal('hide');
+                    $scope.loadIssuances(); // refresh table
+                } else {
+                    $rootScope.toastify(res.data.Message || 'خطأ غير متوقع', 0);
+                }
+
+            })
+            .catch(function () {
+                $rootScope.toastify('مشكلة في السيرفر', 0);
+            })
+            .finally(function () {
+                $scope.isUploading = false;
+            });
+    };
+
+
+    $scope.years = [];
+
+    $scope.initReceiptYears = function () {
+        var startYear = 2020;
+        var currentYear = new Date().getFullYear();
+
+        for (var y = startYear; y <= currentYear; y++) {
+            $scope.years.push(y);
+        }
+    };
+
+    // استدعاء مرة واحدة
+    $scope.initReceiptYears();
+
    
 })
 app.directive('arabicOnly', function () {
@@ -1726,9 +1866,9 @@ app.controller('issuanceCtrl', function ($scope, employeeService, itemService, $
 
         filtered = filtered.filter(x => {
 
-            if (!x.IssuanceDate) return false;
+            if (!x.CreatedDate) return false;
 
-            var d = new Date(x.IssuanceDate);
+            var d = new Date(x.CreatedDate);
 
             if (from && d < from) return false;
             if (to && d > to) return false;
@@ -1757,6 +1897,8 @@ app.controller('issuanceCtrl', function ($scope, employeeService, itemService, $
                 if (res.data && res.data.Success) {
 
                     $scope.allIssuances = res.data.Data || [];
+
+                  
 
                     $scope.allIssuances.forEach(function (x) {
                         if (x.CreatedDate) {
@@ -1801,7 +1943,10 @@ app.controller('issuanceCtrl', function ($scope, employeeService, itemService, $
 
     $scope.loadEmployee = function () {
         employeeService.getEmployeeById($routeParams.employeeId).then((res) => {
-            $scope.employee = res.data;
+            $scope.employee = res.data.Data;
+        }).catch((res) => {
+            if (res.data && res.data.Message)
+                $rootScope.toastify(res.data.Message, 0);
         })
     }
     $scope.loadEmployee();
@@ -1815,6 +1960,102 @@ app.controller('issuanceCtrl', function ($scope, employeeService, itemService, $
         }
     );
     $scope.issuancesTableParams.settings().counts = [];
+
+
+
+
+    //upload signed receipt for all issunaces in a specific year
+
+    $scope.selectedReceiptYear = null;
+
+    $scope.signedReceipt = {
+        receiptPath: ''
+    };
+
+    $scope.isUploading = false;
+
+    $scope.openUploadReceiptModal = function () {
+        console.log('hi')
+        $scope.selectedReceiptYear = null;
+        $scope.signedReceipt.receiptPath = '';
+        $scope.signedReceiptForm.$submitted = false;
+
+        $('#signedReceiptModalForm').modal('show');
+
+        // init Dropzone after modal opens
+        setTimeout(function () {
+
+            if ($scope.signedReceiptDropzone) {
+                $scope.signedReceiptDropzone.destroy();
+            }
+
+            $scope.signedReceiptDropzone = $rootScope.initFileDropzone(
+                "#signedReceiptDropzone",
+                $scope.signedReceipt,
+                "receiptPath"
+            );
+
+        }, 300);
+    };
+
+    //submit
+
+    $scope.uploadSignedReceipt = function () {
+
+        $scope.signedReceiptForm.$submitted = true;
+
+        if (!$scope.selectedReceiptYear || !$scope.signedReceipt.receiptPath)
+            return;
+
+        $scope.isUploading = true;
+
+        $http.post('/Issuance/UploadSignedReceipt', {
+            employeeId: $routeParams.employeeId,
+            entitlementYear: $scope.selectedReceiptYear,
+            receiptPath: $scope.signedReceipt.receiptPath
+        })
+            .then(function (res) {
+
+                if (res.data && res.data.Success) {
+                    $rootScope.toastify('تم رفع إيصال الاستلام بنجاح', 1);
+                    $('#signedReceiptModalForm').modal('hide');
+                    $scope.loadIssuances(); // refresh table
+                } else {
+                    $rootScope.toastify(res.data.Message || 'خطأ غير متوقع', 0);
+                }
+
+            })
+            .catch(function () {
+                $rootScope.toastify('مشكلة في السيرفر', 0);
+            })
+            .finally(function () {
+                $scope.isUploading = false;
+            });
+    };
+    $scope.receiptYears = [];
+
+    $scope.initReceiptYears = function () {
+        var startYear = 2020;
+        var currentYear = new Date().getFullYear();
+
+        for (var y = startYear; y <= currentYear; y++) {
+            $scope.receiptYears.push(y);
+        }
+    };
+
+    // استدعاء مرة واحدة
+    $scope.initReceiptYears();
+
+
+    $scope.downloadFile = function (fileName) {
+
+        if (!fileName) return;
+
+        // open file in new tab (download or view)
+        var url = '/Upload/Download?fileName=' + encodeURIComponent(fileName);
+        window.location.href = url;
+    };
+
 });
 
 app.controller('entitlementCtrl',
@@ -1844,7 +2085,7 @@ app.controller('entitlementCtrl',
                 $scope.employee = res.data.Data;
             }).catch((res) => {
                 if (res.data && res.data.Message)
-                    $scope.toastify(res.data.Message, 0);
+                    $rootScope.toastify(res.data.Message, 0);
             });
         };
 
@@ -2015,6 +2256,9 @@ app.controller('entitlementCtrl',
                 event.preventDefault();
             }
         };
+
+
+       
 
     });
 

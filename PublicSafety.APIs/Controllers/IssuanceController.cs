@@ -176,5 +176,68 @@ namespace PublicSafety.APIs.Controllers
             }
         }
 
+
+        [HttpPost]
+        public ActionResult IssueMatrixForCategory(Guid categoryId, int year,Guid UserId,string SignedReceiptPath)
+        {
+            try
+            {
+                IssuanceService.IssueMatrixForCategory(categoryId, year,UserId, SignedReceiptPath);
+                Response.StatusCode = 200;
+                return Json(new ApiResponse<object>
+                {
+
+                    Success = true,
+                    Message = "تم الإصدار بنجاح",
+                    Data = null
+                });
+
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 500;
+                return Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+           
+        }
+
+        [HttpPost]
+        public ActionResult UploadSignedReceipt(
+    Guid employeeId,
+    int entitlementYear,
+    string receiptPath)
+        {
+            try
+            {
+                IssuanceService.AttachSignedReceipt(
+                    employeeId,
+                    entitlementYear,
+                    receiptPath
+                );
+
+                return Json(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "تم تحديث إيصال الاستلام بنجاح",
+                    Data = null
+                });
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 500;
+                return Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    Data = null
+                });
+            }
+        }
+
     }
 }

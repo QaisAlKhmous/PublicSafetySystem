@@ -16,6 +16,7 @@ namespace PublicSafety.Services.DTOs
         public string ExceptionFormPath { get; set; }
         public string SignedReceiptPath { get; set; }
         public string IssuanceDate { get; set; }
+        public string CreatedDate { get; set; }
         public string CreatedBy { get; set; }
     }
 }

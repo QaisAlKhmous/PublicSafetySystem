@@ -22,7 +22,7 @@
 
         </div>
         <div class="card-body">
-            <div class="row">
+            <div class="row align-items-center">
                 <div class="col-md-2 mb-2">
                     <label>اسم المادة</label>
                     <select class="form-control"
@@ -45,7 +45,7 @@
                     </select>
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-3 mb-2">
                     <label>من تاريخ</label>
                     <input type="date"
                            class="form-control"
@@ -53,15 +53,22 @@
                            ng-change="applyFilters()" />
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-3 mb-2">
                     <label>إلى تاريخ</label>
                     <input type="date"
                            class="form-control"
                            ng-model="filters.ToDate"
                            ng-change="applyFilters()" />
                 </div>
+
+                <div class="col-md-2 h-auto">
+                    <button class="btn btn-success"
+                            ng-click="openUploadReceiptModal()">
+                        رفع نموذج الاستلام
+                    </button>
+                </div>
             </div>
-            
+
             <table class="table table-hover table-product" style="width:100%;text-align:center;" ng-table="issuancesTableParams">
 
 
@@ -74,9 +81,31 @@
                         <span ng-show="issuance.Type == 'Damaged'">بدل تلف</span>
                         <span ng-show="issuance.Type == 'Entitled'">مستحق</span>
                     </td>
-                    <td data-title="'تاريخ الصرف'">{{issuance.IssuanceDate}}</td>
+                    <td data-title="'سنة الاستحقاق'"><span ng-show="issuance.Type == 'Entitled'">{{issuance.IssuanceDate | date:'yyyy'}}</span>
+                                                     <span ng-show="issuance.Type != 'Entitled'">-</span></td>
+                    <td data-title="'تاريخ الصرف'">{{issuance.CreatedDate | date:'yyyy-MM-dd'}}</td>
                     <td data-title="'صرف بواسطة'">{{issuance.CreatedBy}}</td>
+                    <td data-title="'الملفات'">
 
+                        <a class="btn btn-sm btn-outline-success"
+                           ng-show="issuance.Type === 'Entitled' && issuance.SignedReceiptPath"
+                           ng-click="downloadFile(issuance.SignedReceiptPath)"
+                           download>
+                            نموذج الاستلام
+                        </a>
+
+                        <a class="btn btn-sm btn-outline-warning"
+                           ng-show="issuance.Type === 'Exception' && issuance.ExceptionFormPath"
+                           ng-click="downloadFile(issuance.ExceptionFormPath)"
+                           download>
+                            نموذج الاستثناء
+                        </a>
+
+                        <span ng-show="!issuance.SignedReceiptPath && !(issuance.Type === 'Exception' && issuance.ExceptionFormPath)"
+                              class="text-muted">
+                            —
+                        </span>
+                    </td>
 
                 </tr>
 
@@ -85,6 +114,68 @@
 
 
 
+
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="signedReceiptModalForm" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">رفع إيصال الاستلام</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <form name="signedReceiptForm" novalidate>
+
+                    <label>سنة الاستحقاق</label>
+                    <select class="form-control"
+                            ng-model="selectedReceiptYear"
+                            ng-options="y as y for y in receiptYears">
+                        <option value="">اختر السنة</option>
+                    </select>
+
+
+                    <!-- Dropzone -->
+                    <div class="form-group mt-3">
+                        <label>إيصال الاستلام الموقّع</label>
+
+                        <div id="signedReceiptDropzone"
+                             class="dropzone"
+                             ng-class="{'border-danger': signedReceiptForm.$submitted && !signedReceipt.receiptPath}">
+                        </div>
+
+                        <!-- Hidden required input -->
+                        <input type="hidden"
+                               name="SignedReceiptFile"
+                               ng-model="signedReceipt.receiptPath"
+                               required>
+
+                        <div class="invalid-feedback d-block"
+                             ng-show="signedReceiptForm.$submitted && !signedReceipt.receiptPath">
+                            يرجى رفع إيصال الاستلام
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-primary accept"
+                        type="button"
+                        ng-disabled="isUploading"
+                        ng-click="uploadSignedReceipt()">
+                    حفظ
+                </button>
+                <button class="btn btn-danger closeBtn"
+                        data-bs-dismiss="modal">
+                    إغلاق
+                </button>
+            </div>
 
         </div>
     </div>

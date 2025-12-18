@@ -12,19 +12,17 @@
     <!-- Employees Inventory -->
     <div class="card card-default" dir="rtl">
 
-        <!-- بطاقة رأسية -->
         <div class="card-header">
 
-            <!-- العنوان -->
             <div class="row mb-3">
                 <h2 class="mb-0">قائمة الموظفين</h2>
             </div>
 
-            <!-- الفلاتر وأزرار الإضافة -->
+    
 
         </div>
 
-        <!-- جسم البطاقة -->
+        
         <div class="card-body p-2">
             <div class="d-flex justify-content-between">
                 <div class="btn-group w-100 ">
@@ -62,8 +60,8 @@
                     </select>
                 </div>
 
-  
-                <div class="d-flex justify-content-between col-md-5 mb-2 align-items-center">
+
+                <div class="d-flex justify-content-between col-md-4 mb-2 align-items-center">
                     <div class="btn-group">
                         <button type="button" class="search btn btn-secondary dropdown-toggle w-100 ml-2" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             ابحث بواسطة
@@ -77,7 +75,7 @@
                     </div>
 
 
-           
+
 
                     <input type="text" ng-show="searchBy === 0" ng-model="employeesTableParams.filter().FullName" placeholder="الاسم" class="form-control" />
                     <input type="text" ng-show="searchBy === 1" ng-model="employeesTableParams.filter().Section" placeholder="الدائرة" class="form-control" />
@@ -87,8 +85,10 @@
                 </div>
 
 
+                <div class="col-md-2 mb-2 text-start">
+                    <button type="button" class="btn btn-info" style="width:200px" ng-click="openEntitleMatrixModal()">صرف لفئة</button>
+                </div>
 
-              
                 <div class="col-md-3 mb-2 text-start">
                     <button type="button" class="btn btn-info add" style="width:200px" ng-click="GoToAddPage()">إضافة موظف</button>
                 </div>
@@ -132,12 +132,12 @@
                                 <button type="button" class="btn btn-success dropdown-toggle actions" data-bs-toggle="dropdown"></button>
                                 <ul class="dropdown-menu">
                                     <li><a class="dropdown-item" href="#!/editEmployee/{{employee.EmployeeId}}">تعديل</a></li>
-                                    <li><hr class="dropdown-divider" ng-show="employee.Active"></li>
+                                    <li><hr class="dropdown-divider" ></li>
                                     <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#exceptionModalForm" ng-click="loadException(employee.EmployeeId)" ng-show="employee.Active">بدل استثناء</a></li>
                                     <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#damageModalForm" ng-click="loadDamaged(employee.EmployeeId)" ng-show="employee.Active">استلام تلف مادة</a></li>
                                     <li><hr class="dropdown-divider" ng-show="employee.Active"></li>
-                                    <li><a class="dropdown-item" href="#!/issuances/{{employee.EmployeeId}}" ng-show="employee.Active">سجل الصرف</a></li>
-                                    <li><a class="dropdown-item" href="#!/entitlements/{{employee.EmployeeId}}" ng-show="employee.Active">سجل المستحقات</a></li>
+                                    <li><a class="dropdown-item" href="#!/issuances/{{employee.EmployeeId}}">سجل الصرف</a></li>
+                                    <li><a class="dropdown-item" href="#!/entitlements/{{employee.EmployeeId}}">سجل المستحقات</a></li>
                                     <li><hr class="dropdown-divider" ng-show="employee.Active"></li>
                                     <li><a class="dropdown-item text-danger" href="" ng-click="confirmDelete(employee.EmployeeId)" ng-show="employee.Active">استقال الموظف</a></li>
                                 </ul>
@@ -344,3 +344,69 @@
     </div>
 </div>
 
+<div class="modal fade" id="entitleMatrixModal" tabindex="-1" aria-labelledby="entitleMatrixModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <form name="entitleForm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalFormTitle">صرف لفئة كاملة</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+
+                <div class="modal-body">
+
+                    <div class="form-group">
+                        <label>الفئة</label>
+                        <select class="form-control rounded-0 bg-light"
+                                ng-model="selectedCategory"
+                                ng-options="c as c.Name for c in Categories track by c.CategoryId">
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>سنة الاستحقاق</label>
+                        <select class="form-control"
+                                ng-model="selectedYear"
+                                ng-options="y as y for y in years">
+                            <option value="">اختر السنة</option>
+                        </select>
+                    </div>
+
+
+                    <div class="form-group mt-3">
+                        <label>إيصال الاستلام الموقّع</label>
+
+                        <div id="signedReceiptDropzone"
+                             class="dropzone"
+                             ng-class="{'border-danger': signedReceiptForm.$submitted && !signedReceipt.receiptPath}">
+                        </div>
+
+                        <!-- Hidden required input -->
+                        <input type="hidden"
+                               name="SignedReceiptFile"
+                               ng-model="signedReceipt.receiptPath"
+                               required>
+
+                        <div class="invalid-feedback d-block"
+                             ng-show="signedReceiptForm.$submitted && !signedReceipt.receiptPath">
+                            يرجى رفع إيصال الاستلام
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary accept" type="button" ng-disabled="isLoading"
+                            ng-click="issueCategory()">
+                        صرف
+                    </button>
+                    <button class="btn btn-danger closeBtn"
+                            data-bs-dismiss="modal">
+                        إغلاق
+                    </button>
+                </div>
+            </div>
+        </form>
+       
+    </div>
+</div>

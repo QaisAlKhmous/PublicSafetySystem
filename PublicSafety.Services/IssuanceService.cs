@@ -212,8 +212,167 @@ namespace PublicSafety.Services
                 ExceptionFormPath = i.ExceptionFormPath,
                 IssuanceDate = i.IssuanceDate.ToString("yyyy-MM-dd"),
                 SignedReceiptPath = i.SignedReceiptPath,
-                Type = i.Type.ToString()
+                Type = i.Type.ToString(),
+                CreatedDate = i.CreatedDate.ToString("yyyy-MM-dd")
             });
         }
+
+
+        public static void IssueMatrixForCategory(Guid categoryId, int year,Guid UserId,string SignedReceiptPath)
+        {
+            using (var context = new AppDbContext())
+            using (var tx = context.Database.BeginTransaction())
+            {
+                try
+                {
+                    // 1️⃣ Active Matrix
+                    var matrix = context.Matrices
+                        .SingleOrDefault(m => m.CategoryId == categoryId && m.IsActive);
+
+                    if (matrix == null)
+                        throw new Exception("لا توجد مصفوفة فعالة لهذه الفئة");
+
+                    var matrixItems = context.MatrixItems
+                        .Where(mi => mi.MatrixId == matrix.MatrixId)
+                        .ToList();
+
+                    if (!matrixItems.Any())
+                        throw new Exception("المصفوفة لا تحتوي على أصناف");
+
+                    // 2️⃣ JobTitle Histories
+                    var periods =
+                        (from h in context.EmployeeJobTitleHistories
+                         join jtc in context.JobTitleCategories
+                             on h.JobTitleId equals jtc.JobTitleId
+                         where jtc.CategoryId == categoryId
+                         select new
+                         {
+                             h.EmployeeId,
+                             StartYear = h.StartDate.Year,
+                             EndYear = (h.EndDate ?? DateTime.Now).Year
+                         }).ToList();
+
+                    // 3️⃣ حساب الطلب الإجمالي لكل صنف
+                    var requiredPerItem = new Dictionary<Guid, int>();
+
+                    foreach (var p in periods)
+                    {
+                        if (year < p.StartYear || year > p.EndYear)
+                            continue;
+
+                        foreach (var item in matrixItems)
+                        {
+                            if ((year - p.StartYear) % item.Frequency != 0)
+                                continue;
+
+                            bool alreadyIssued = context.Issuances.Any(i =>
+                                i.EmployeeId == p.EmployeeId &&
+                                i.MatrixItemId == item.MatrixItemId &&
+                                i.IssuanceDate.Year == year &&
+                                i.Type == enIssuanceType.Entitled);
+
+                            if (alreadyIssued)
+                                continue;
+
+                            if (!requiredPerItem.ContainsKey(item.ItemId))
+                                requiredPerItem[item.ItemId] = 0;
+
+                            requiredPerItem[item.ItemId] += item.Quantity;
+                        }
+                    }
+
+                    // 4️⃣ التحقق من المخزون (مرة واحدة فقط)
+                    foreach (var kv in requiredPerItem)
+                    {
+                        var item = context.Items.Find(kv.Key);
+
+                        if (item == null)
+                            throw new Exception("صنف غير موجود");
+
+                        if (item.Quantity < kv.Value)
+                            throw new Exception($"المخزون غير كافٍ للصنف {item.Name}");
+                    }
+
+                    // 5️⃣ تنفيذ الصرف فعليًا
+                    DateTime issuanceDate = new DateTime(year, 1, 1);
+
+                    foreach (var p in periods)
+                    {
+                        if (year < p.StartYear || year > p.EndYear)
+                            continue;
+
+                        foreach (var item in matrixItems)
+                        {
+                            if ((year - p.StartYear) % item.Frequency != 0)
+                                continue;
+
+                            bool alreadyIssued = context.Issuances.Any(i =>
+                                i.EmployeeId == p.EmployeeId &&
+                                i.MatrixItemId == item.MatrixItemId &&
+                                i.IssuanceDate.Year == year &&
+                                i.Type == enIssuanceType.Entitled);
+
+                            if (alreadyIssued)
+                                continue;
+
+                            context.Issuances.Add(new Issuance
+                            {
+                                IssuanceId = Guid.NewGuid(),
+                                EmployeeId = p.EmployeeId,
+                                ItemId = item.ItemId,
+                                MatrixItemId = item.MatrixItemId,
+                                Quantity = item.Quantity,
+                                IssuanceDate = issuanceDate,
+                                Type = enIssuanceType.Entitled,
+                                CreatedDate = DateTime.Now,
+                                CreatedById = UserId,
+                                SignedReceiptPath = SignedReceiptPath
+                            });
+
+                            // خصم من المخزون
+                            var stockItem = context.Items.Find(item.ItemId);
+                            stockItem.Quantity -= item.Quantity;
+                        }
+                    }
+
+                    context.SaveChanges();
+                    tx.Commit();
+                }
+                catch
+                {
+                    tx.Rollback();
+                    throw;
+                }
+            }
+        }
+
+        public static void AttachSignedReceipt(
+    Guid employeeId,
+    int entitlementYear,
+    string receiptPath)
+        {
+            using (var context = new AppDbContext())
+            {
+                var issuances = context.Issuances
+                    .Where(i =>
+                        i.EmployeeId == employeeId &&
+                        i.Type == enIssuanceType.Entitled &&
+                        i.SignedReceiptPath == null &&
+                        i.IssuanceDate.Year == entitlementYear
+                    )
+                    .ToList();
+
+                if (!issuances.Any())
+                    throw new Exception("لا توجد عمليات صرف بحاجة إلى إيصال لهذه السنة");
+
+                foreach (var issuance in issuances)
+                {
+                    issuance.SignedReceiptPath = receiptPath;
+                }
+
+                context.SaveChanges();
+            }
+        }
+
     }
 }
