@@ -290,5 +290,77 @@ namespace PublicSafety.APIs.Controllers
                 Data = ebc
             }, JsonRequestBehavior.AllowGet);
         }
+
+        [HttpPost]
+        public ActionResult ActivateEmployee(ActivateEmployeeDTO model)
+        {
+            try
+            {
+              
+                if (model == null)
+                    return Json(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = "البيانات غير صحيحة"
+                    });
+
+                if (model.EmployeeId == Guid.Empty)
+                    return Json(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = "الموظف غير محدد"
+                    });
+
+                if (model.JobTitleId == Guid.Empty)
+                    return Json(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = "المسمى الوظيفي مطلوب"
+                    });
+
+                if (model.DepartmentId == Guid.Empty)
+                    return Json(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = "القسم مطلوب"
+                    });
+
+                if (model.SectionId == Guid.Empty)
+                    return Json(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = "الشعبة مطلوبة"
+                    });
+
+                if (DateTime.Parse(model.ActivationDate) == DateTime.MinValue)
+                    return Json(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = "تاريخ إعادة التفعيل غير صحيح"
+                    });
+
+              
+                EmployeeService.ActivateEmployee(model);
+
+                return Json(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "تمت إعادة تفعيل الموظف بنجاح",
+                    Data = null
+                });
+            }
+            catch (Exception ex)
+            {
+               
+
+                Response.StatusCode = 500;
+                return Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+        }
+
     }
 }

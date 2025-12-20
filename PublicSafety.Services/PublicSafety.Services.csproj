@@ -128,6 +128,7 @@
     <Compile Include="ChangeRequestService.cs" />
     <Compile Include="DepartmentService.cs" />
     <Compile Include="DisposalService.cs" />
+    <Compile Include="DTOs\ActivateEmployeeDTO.cs" />
     <Compile Include="DTOs\AddEmployeeDTO.cs" />
     <Compile Include="DTOs\AddIssuanceDTO.cs" />
     <Compile Include="DTOs\CategoryDTO.cs" />
@@ -137,6 +138,7 @@
     <Compile Include="DTOs\EmployeeDTO.cs" />
     <Compile Include="DTOs\EmployeeJobTitleHistoryDTO.cs" />
     <Compile Include="DTOs\IssuanceDTO.cs" />
+    <Compile Include="DTOs\IssueEmployeeYearDTO.cs" />
     <Compile Include="DTOs\ItemLogDTO.cs" />
     <Compile Include="DTOs\itemRequestDTO.cs" />
     <Compile Include="DTOs\ItemsDTO.cs" />

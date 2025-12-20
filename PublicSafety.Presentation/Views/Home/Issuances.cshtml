@@ -81,21 +81,28 @@
                         <span ng-show="issuance.Type == 'Damaged'">بدل تلف</span>
                         <span ng-show="issuance.Type == 'Entitled'">مستحق</span>
                     </td>
-                    <td data-title="'سنة الاستحقاق'"><span ng-show="issuance.Type == 'Entitled'">{{issuance.IssuanceDate | date:'yyyy'}}</span>
-                                                     <span ng-show="issuance.Type != 'Entitled'">-</span></td>
+                    <td data-title="'سبب الاستثناء'">
+                        <span ng-show="issuance.Type == 'Exception'">{{issuance.ExceptionReason}}</span>
+                        <span ng-show="issuance.Type == 'Exception' && issuance.ExceptionReason == ''">لا سبب</span>
+                        <span ng-show="issuance.Type != 'Exception'">-</span>
+                    </td>
+                    <td data-title="'سنة الاستحقاق'">
+                        <span ng-show="issuance.Type == 'Entitled'">{{issuance.IssuanceDate | date:'yyyy'}}</span>
+                        <span ng-show="issuance.Type != 'Entitled'">-</span>
+                    </td>
                     <td data-title="'تاريخ الصرف'">{{issuance.CreatedDate | date:'yyyy-MM-dd'}}</td>
                     <td data-title="'صرف بواسطة'">{{issuance.CreatedBy}}</td>
                     <td data-title="'الملفات'">
 
                         <a class="btn btn-sm btn-outline-success"
-                           ng-show="issuance.Type === 'Entitled' && issuance.SignedReceiptPath"
+                           ng-show="issuance.Type === 'Entitled' || issuance.Type === 'Damaged' && issuance.SignedReceiptPath"
                            ng-click="downloadFile(issuance.SignedReceiptPath)"
                            download>
                             نموذج الاستلام
                         </a>
 
                         <a class="btn btn-sm btn-outline-warning"
-                           ng-show="issuance.Type === 'Exception' && issuance.ExceptionFormPath"
+                           ng-show="issuance.Type === 'Exception'  && issuance.ExceptionFormPath"
                            ng-click="downloadFile(issuance.ExceptionFormPath)"
                            download>
                             نموذج الاستثناء
@@ -103,7 +110,7 @@
 
                         <span ng-show="!issuance.SignedReceiptPath && !(issuance.Type === 'Exception' && issuance.ExceptionFormPath)"
                               class="text-muted">
-                            —
+                            -
                         </span>
                     </td>
 

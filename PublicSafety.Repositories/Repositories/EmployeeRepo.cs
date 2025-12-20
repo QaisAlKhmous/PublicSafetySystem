@@ -109,6 +109,38 @@ namespace PublicSafety.Repositories.Repositories
                 context.SaveChanges();
             }
         }
+        public static void ActivateEmployee(
+    Employee employee,
+    EmployeeJobTitleHistory newJobTitleHistory)
+        {
+            using (var context = new AppDbContext())
+            using (var transaction = context.Database.BeginTransaction())
+            {
+                try
+                {
+                    // تنظيف Navigation Properties
+                    employee.JobTitle = null;
+                    employee.Department = null;
+                    employee.Section = null;
+
+                    // تحديث الموظف
+                    context.Employees.Attach(employee);
+                    context.Entry(employee).State = EntityState.Modified;
+
+                    // إضافة JobTitleHistory
+                    context.EmployeeJobTitleHistories.Add(newJobTitleHistory);
+
+                    context.SaveChanges();
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+        }
+
 
 
         public static Employee GetEmployeeById(Guid? Id)
@@ -124,41 +156,35 @@ namespace PublicSafety.Repositories.Repositories
             }
         }
         public static bool UpdateEmployee(
-            Employee employee,
-            EmployeeJobTitleHistory oldJobTitleHistory,
-            EmployeeJobTitleHistory newJobTitleHistory)
+      Employee employee,
+      EmployeeJobTitleHistory oldJobTitleHistory,
+      EmployeeJobTitleHistory newJobTitleHistory)
         {
             using (var context = new AppDbContext())
             using (var transaction = context.Database.BeginTransaction())
             {
                 try
                 {
-                    // 🔴 CRITICAL FIX: clear navigation properties
+                    // مهم جدًا
                     employee.JobTitle = null;
                     employee.Department = null;
                     employee.Section = null;
 
-                    // 1️⃣ Attach and update employee
                     context.Employees.Attach(employee);
                     context.Entry(employee).State = EntityState.Modified;
 
-                    // 2️⃣ Close old job title history if exists
                     if (oldJobTitleHistory != null)
                     {
                         context.EmployeeJobTitleHistories.Attach(oldJobTitleHistory);
                         context.Entry(oldJobTitleHistory).State = EntityState.Modified;
                     }
 
-                    // 3️⃣ Insert new job title history if exists
                     if (newJobTitleHistory != null)
                     {
                         context.EmployeeJobTitleHistories.Add(newJobTitleHistory);
                     }
 
-                    // 4️⃣ Save all changes
                     context.SaveChanges();
-
-                    // 5️⃣ Commit transaction
                     transaction.Commit();
                     return true;
                 }

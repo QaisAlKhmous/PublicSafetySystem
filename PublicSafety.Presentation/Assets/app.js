@@ -799,7 +799,7 @@ app.directive('fileModel', ['$parse', function ($parse) {
     };
 }]);
 
-app.controller('employeeCtrl', function ($scope, $timeout,NgTableParams, employeeService, $location, itemService, $http, $rootScope) {
+app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employeeService, $location, itemService, $http, $rootScope) {
 
     $scope.employees = [];
 
@@ -858,7 +858,7 @@ app.controller('employeeCtrl', function ($scope, $timeout,NgTableParams, employe
 
     // Handle Issue Exception
 
-    $scope.issuance = { EmployeeId: null, IssuanceId: null, ItemId: null, Quantity: 1, Type: '', ExceptionReason: '', ExceptionFormPath: '', SignedReceiptPath:'' ,CreatedBy: $rootScope.LogedInUser.username,IssuanceDate : '' };
+    $scope.issuance = { EmployeeId: null, IssuanceId: null, ItemId: null, Quantity: 1, Type: '', ExceptionReason: '', ExceptionFormPath: '', SignedReceiptPath: '', CreatedBy: $rootScope.LogedInUser.username, IssuanceDate: '' };
 
     $scope.loadException = function (EmployeeId) {
         $scope.loadItems();
@@ -874,6 +874,166 @@ app.controller('employeeCtrl', function ($scope, $timeout,NgTableParams, employe
         $scope.issuance.EmployeeId = EmployeeId;
     }
 
+
+    $scope.activation = { EmployeeId: null, JobTitleId: null, DepartmentId: null, SectionId: null, ActivationDate: '' }
+    $(document).ready(function () {
+        // Initialize disposal object if not already
+        var scope = angular.element($('input[name="activationDate"]')).scope();
+        scope.$apply(function () {
+            scope.activation = scope.activation || {};
+            scope.activation.ActivationDate = moment().format('YYYY-MM-DD'); // set default
+        });
+
+        $('input[name="activationDate"]').daterangepicker({
+            singleDatePicker: true,
+            showDropdowns: true,
+            autoUpdateInput: true, // input shows default
+            startDate: moment(),   // today
+            locale: { format: 'YYYY-MM-DD' }
+        });
+
+        $('input[name="activationDate"]').on('apply.daterangepicker', function (ev, picker) {
+            $(this).val(picker.startDate.format('YYYY-MM-DD'));
+
+            var scope = angular.element(this).scope();
+            scope.$apply(function () {
+                scope.activation.ActivationDate = picker.startDate.format('YYYY-MM-DD');
+            });
+        });
+
+        $('input[name="activationDate"]').on('cancel.daterangepicker', function (ev, picker) {
+            $(this).val('');
+            var scope = angular.element(this).scope();
+            scope.$apply(function () {
+                scope.activation.ActivationDate = '';
+            });
+        });
+    });
+    $scope.loadActivation = function (employee) {
+        $scope.loadJobTitles();
+        $scope.loadDepartments();
+        $scope.loadSections();
+
+        employeeService.getEmployeeById(employee.EmployeeId).then((res) => {
+            var today = new Date();
+            $scope.activation = { EmployeeId: res.data.Data.EmployeeId, JobTitleId: res.data.Data.JobTitleId, DepartmentId: res.data.Data.DepartmentId, SectionId: res.data.Data.SectionId, ActivationDate: today.toISOString().split('T')[0] }
+            $scope.loadCategory(res.data.Data.JobTitleId);
+        })
+
+
+
+
+    }
+
+    $scope.isLoading = false;
+    $scope.activateEmployee = function () {
+        $scope.isLoading = true;
+        Swal.fire({
+            title: 'هل أنت متأكد من إعادة تفعيل الموظف؟',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'نعم',
+            cancelButtonText: 'لا'
+        }).then(function (result) {
+
+            if (!result.isConfirmed)
+                return;
+
+            $http.post('/Employee/ActivateEmployee', $scope.activation)
+                .then(function (res) {
+
+                    if (res.data && res.data.Success) {
+                        $rootScope.toastify(res.data.Message, 1);
+                        $scope.getAllEmployees();
+                       
+                    } else {
+                        $rootScope.toastify(res.data.Message || 'خطأ غير متوقع', 0);
+                    }
+
+                })
+                .catch(function (err) {
+
+                    if (err.data && err.data.Message)
+                        $rootScope.toastify(err.data.Message, 0);
+                    else
+                        $rootScope.toastify('مشكلة غير متوقعة', 0);
+                }).finally(function () {
+                    $scope.isLoading = false;
+                });
+        });
+    };
+
+
+
+    $scope.loadJobTitles = function () {
+        $http.get('/JobTitle/GetAllJobTitles')
+            .then(function (res) {
+
+                if (res.data && res.data.Success) {
+                    $scope.jobTitles = res.data.Data || [];
+                } else {
+                    $scope.jobTitles = [];
+                }
+
+            })
+            .catch(function (err) {
+
+                if (err.data && err.data.Message) {
+                    console.error(err.data.Message);
+                } else {
+                    console.error("مشكلة في السيرفر");
+                }
+
+                $scope.jobTitles = [];
+            });
+
+    }
+    $scope.loadDepartments = function () {
+        $http.get('/Department/GetAllDepartments')
+            .then(function (res) {
+
+                if (res.data && res.data.Success) {
+                    $scope.departments = res.data.Data;
+                } else {
+                    $scope.departments = [];
+                }
+
+            })
+            .catch(function (err) {
+
+                if (err.data && err.data.Message) {
+                    console.error(err.data.Message);
+                } else {
+                    console.error("مشكلة في السيرفر");
+                }
+
+                $scope.departments = [];
+            });
+    };
+    $scope.loadSections = function () {
+        $http.get('/Section/GetAllSections')
+            .then(function (res) {
+
+                if (res.data && res.data.Success) {
+                    $scope.sections = res.data.Data || [];
+                } else {
+                    $scope.sections = [];
+                }
+
+            })
+            .catch(function (err) {
+                console.error(err);
+                $scope.sections = [];
+            });
+
+    }
+    $scope.loadCategory = function (JobTitleId) {
+        $http.get('/Category/GetCategoryByJobTitleId?JobTitleId=' + JobTitleId).then((res) => {
+            $scope.jobTitleCategory = res.data;
+        })
+    }
 
     $scope.loadItems = function () {
         itemService.getItems()
@@ -1349,7 +1509,7 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
             });
         });
     });
-
+add
 
    
 
@@ -1457,7 +1617,7 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
                         EntityType: 'Employee', EntityId: $scope.updateEmployeeId, OldValue: JSON.stringify($scope.employee),
                         NewValue: '', ChangedBy: $rootScope.LogedInUser.username
                     }
-
+                    $scope.loadCategory($scope.employee.JobTitleId);
                     // Init dropzone AFTER employee is loaded
                     initHealthInsuranceDropzone();
                 }).catch((err) => {
@@ -2258,7 +2418,108 @@ app.controller('entitlementCtrl',
         };
 
 
-       
+        $scope.receiptYears = [];
+
+        $scope.initReceiptYears = function () {
+            var startYear = 2020;
+            var currentYear = new Date().getFullYear();
+
+            for (var y = startYear; y <= currentYear; y++) {
+                $scope.receiptYears.push(y);
+            }
+        };
+
+        $scope.initReceiptYears();
+
+        $scope.issueYearDropzone = null;
+
+        $scope.openIssueYearModal = function () {
+
+            $scope.issueYear = {
+                Year: null,
+                SignedReceiptPath: ''
+            };
+
+            $scope.isIssuing = false;
+
+          
+
+            $('#issueYearModal').modal('show');
+        };
+
+        $('#issueYearModal').on('shown.bs.modal', function () {
+            if (!$scope.issueYearDropzone) {
+                $scope.issueYearDropzone =
+                    $rootScope.initFileDropzone(
+                        "#issueYearDropzone",
+                        $scope.issueYear,
+                        "SignedReceiptPath"
+                    );
+            }
+        });
+
+        $('#issueYearModal').on('hidden.bs.modal', function () {
+            $scope.$apply(function () {
+
+                if ($scope.issueYearDropzone) {
+                    $scope.issueYearDropzone.removeAllFiles(true);
+                }
+
+                $scope.issueYear = {
+                    Year: null,
+                    SignedReceiptPath: ''
+                };
+
+                if ($scope.issueYearForm) {
+                    $scope.issueYearForm.$setPristine();
+                    $scope.issueYearForm.$setUntouched();
+                }
+            });
+        });
+
+        $scope.confirmIssueYear = function (form) {
+
+            form.$setSubmitted();
+
+            if (form.$invalid)
+                return;
+
+            Swal.fire({
+                title: 'صرف استحقاقات سنة ' + $scope.issueYear.Year,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'نعم',
+                cancelButtonText: 'إلغاء'
+            }).then(function (result) {
+
+                if (!result.isConfirmed)
+                    return;
+
+                $scope.isIssuing = true;
+
+                $http.post('/Issuance/IssueEmployeeEntitlementsForYear', {
+                    EmployeeId: $scope.employee.EmployeeId,
+                    Year: $scope.issueYear.Year,
+                    SignedReceiptPath: $scope.issueYear.SignedReceiptPath,
+                    CreatedById: $rootScope.LogedInUser.userId
+                }).then(function (res) {
+
+                    if (res.data && res.data.Success) {
+                        $('#issueYearModal').modal('hide');
+                        $scope.loadEntitlements();
+                        $rootScope.toastify(res.data.Message, 1);
+                    }
+
+                }).catch(function () {
+                    // server error فقط
+                    $rootScope.toastify('مشكلة في السيرفر', 0);
+                }).finally(function () {
+                    $scope.isIssuing = false;
+                });
+            });
+        };
+
+
 
     });
 

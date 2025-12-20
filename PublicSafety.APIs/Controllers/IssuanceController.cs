@@ -205,6 +205,53 @@ namespace PublicSafety.APIs.Controllers
             }
            
         }
+        [HttpPost]
+        public ActionResult IssueEmployeeEntitlementsForYear(IssueEmployeeYearDTO model)
+        {
+            try
+            {
+             
+                if (model == null)
+                    return new HttpStatusCodeResult(400, "البيانات غير صحيحة");
+
+                if (model.EmployeeId == Guid.Empty)
+                    return new HttpStatusCodeResult(400, "الموظف غير محدد");
+
+                if (model.Year <= 0)
+                    return new HttpStatusCodeResult(400, "سنة الاستحقاق غير صحيحة");
+
+                if (string.IsNullOrWhiteSpace(model.SignedReceiptPath))
+                    return new HttpStatusCodeResult(400, "يرجى رفع نموذج التوقيع");
+
+              
+                IssuanceService.IssueEmployeeEntitlementsForYear(
+                    model.EmployeeId,
+                    model.Year,
+                    model.SignedReceiptPath,
+                    model.CreatedById
+                );
+
+                return Json(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = "تم صرف استحقاقات سنة " + model.Year + " بنجاح",
+                    Data = null
+                });
+            }
+            catch (Exception ex)
+            {
+              
+                Response.StatusCode = 500;
+
+                return Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+        }
+
+
 
         [HttpPost]
         public ActionResult UploadSignedReceipt(

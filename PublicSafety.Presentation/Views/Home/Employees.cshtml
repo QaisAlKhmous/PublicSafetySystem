@@ -131,8 +131,8 @@
                             <div class="btn-group">
                                 <button type="button" class="btn btn-success dropdown-toggle actions" data-bs-toggle="dropdown"></button>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#!/editEmployee/{{employee.EmployeeId}}">تعديل</a></li>
-                                    <li><hr class="dropdown-divider" ></li>
+                                    <li><a class="dropdown-item" href="#!/editEmployee/{{employee.EmployeeId}}" ng-show="employee.Active">تعديل</a></li>
+                                    <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#exceptionModalForm" ng-click="loadException(employee.EmployeeId)" ng-show="employee.Active">بدل استثناء</a></li>
                                     <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#damageModalForm" ng-click="loadDamaged(employee.EmployeeId)" ng-show="employee.Active">استلام تلف مادة</a></li>
                                     <li><hr class="dropdown-divider" ng-show="employee.Active"></li>
@@ -140,6 +140,7 @@
                                     <li><a class="dropdown-item" href="#!/entitlements/{{employee.EmployeeId}}">سجل المستحقات</a></li>
                                     <li><hr class="dropdown-divider" ng-show="employee.Active"></li>
                                     <li><a class="dropdown-item text-danger" href="" ng-click="confirmDelete(employee.EmployeeId)" ng-show="employee.Active">استقال الموظف</a></li>
+                                    <li><a class="dropdown-item text-danger" href="" data-bs-toggle="modal" data-bs-target="#activationModalForm" ng-click="loadActivation(employee)" ng-show="!employee.Active">اعادة تفعيل الموظف</a></li>
                                 </ul>
                             </div>
                         </td>
@@ -408,5 +409,74 @@
             </div>
         </form>
        
+    </div>
+</div>
+
+<div class="modal fade" id="activationModalForm" tabindex="-1" aria-labelledby="activationModalForm" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalFormTitle">اعادة تفعيل الموظف</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form name="activationForm">
+                    <label for="exampleFormControlInput5">تاريخ التوظيف</label>
+                    <input ng-model="activation.ActivationDate" type="text" name="activationDate" class="form-control rounded-0 bg-light" placeholder="Select date" required />
+
+
+                    <label for="exampleFormControlSelect12">الوحدة التنظيمية</label>
+                    <select class="form-control rounded-0 bg-light" required
+                            ng-model="activation.DepartmentId" name="Department"
+                            ng-options="d.DepartmentId as d.Name for d in departments">
+                        <option value="" disabled selected>اختر الوحدة التنظيمية</option>
+                    </select>
+                    <div class="invalid-feedback d-block" ng-show="activationForm.$submitted && !employee.DepartmentId">
+                        <i class="bx bx-radio-circle"></i>
+                        يرجى اختيار الوحدة التنظيمية
+                    </div>
+
+
+                    <label for="exampleFormControlSelect12">الدائرة</label>
+                    <select class="form-control rounded-0 bg-light"
+                            ng-model="activation.SectionId" name="Section" required
+                            ng-options="s.SectionId as s.Name for s in sections">
+                        <option value="" disabled selected>اختر الدائرة</option>
+                    </select>
+                    <div class="invalid-feedback d-block" ng-show="activationForm.$submitted && !employee.SectionId">
+                        <i class="bx bx-radio-circle"></i>
+                        يرجى اختيار الدائرة
+                    </div>
+
+
+                    <label for="exampleFormControlSelect12">المسمى الوظيفي</label>
+                    <select class="form-control rounded-0 bg-light" name="JobTitle" required
+                            ng-model="activation.JobTitleId"
+                            ng-options="j.JobTitleId as j.Name for j in jobTitles"
+                            ng-change="loadCategory(activation.JobTitleId)">
+                        <option value="" disabled selected>اختر المسمى الوظيفي</option>
+                    </select>
+                    <div class="invalid-feedback d-block" ng-show="activationForm.$submitted && !employee.JobTitleId">
+                        <i class="bx bx-radio-circle"></i>
+                        يرجى اختيار المسمى الوظيفي
+                    </div>
+                    <label for="exampleFormControlSelect12">الفئة</label>
+                    <input disabled arabic-only ng-model="jobTitleCategory.Category" type="text" name="Catgory" class="form-control rounded-0 bg-light" id="exampleFormControlInput5" placeholder="الفئة">
+                </form>
+              
+
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary accept" type="button" ng-disabled="isLoading"
+                        ng-click="activateEmployee()">
+                    تفعيل الموظف
+                </button>
+                <button class="btn btn-danger closeBtn"
+                        data-bs-dismiss="modal">
+                    إغلاق
+                </button>
+
+            </div>
+        </div>
     </div>
 </div>

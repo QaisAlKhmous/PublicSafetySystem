@@ -19,6 +19,15 @@ namespace PublicSafety.Repositories.Repositories
             }
         }
 
+        public static void AddIssuances(IEnumerable<Issuance> issuances)
+        {
+            using (var context = new AppDbContext())
+            {
+                context.Issuances.AddRange(issuances);
+                context.SaveChanges();
+            }
+        }
+
         public static IEnumerable<Issuance> GetIssuancesByEmployeeId(Guid EmployeeId)
         {
             using(var context = new AppDbContext())

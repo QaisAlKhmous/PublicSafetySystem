@@ -213,7 +213,8 @@ namespace PublicSafety.Services
                 IssuanceDate = i.IssuanceDate.ToString("yyyy-MM-dd"),
                 SignedReceiptPath = i.SignedReceiptPath,
                 Type = i.Type.ToString(),
-                CreatedDate = i.CreatedDate.ToString("yyyy-MM-dd")
+                CreatedDate = i.CreatedDate.ToString("yyyy-MM-dd"),
+               
             });
         }
 
@@ -373,6 +374,70 @@ namespace PublicSafety.Services
                 context.SaveChanges();
             }
         }
+
+
+        public static void IssueEmployeeEntitlementsForYear(
+     Guid employeeId,
+     int year,
+     string signedReceiptPath,
+     Guid UserId)
+        {
+            var entitlements = EntitlementRepo
+                .GetEmployeeEntitlemenets(employeeId)
+                .Where(e =>
+                    e.EntitlementYear == year &&
+                    e.RemainingQty > 0)
+                .ToList();
+
+            if (!entitlements.Any())
+                throw new Exception("لا يوجد استحقاقات قابلة للصرف لهذه السنة");
+
+            using (var context = new AppDbContext())
+            using (var transaction = context.Database.BeginTransaction())
+            {
+                try
+                {
+                    var issuances = new List<Issuance>();
+
+                    foreach (var e in entitlements)
+                    {
+                        
+                        var item = context.Items.FirstOrDefault(i => i.ItemId == e.ItemId);
+                        if (item == null)
+                            throw new Exception("الصنف غير موجود");
+
+                        if (item.Quantity < e.RemainingQty)
+                            throw new Exception($"الكمية غير كافية للصنف {e.ItemName}");
+
+                        
+                        item.Quantity -= e.RemainingQty;
+
+                        issuances.Add(new Issuance
+                        {
+                            IssuanceId = Guid.NewGuid(),
+                            EmployeeId = employeeId,
+                            ItemId = e.ItemId,
+                            Quantity = e.RemainingQty,
+                            IssuanceDate = new DateTime(year, 1, 1),
+                            CreatedDate = DateTime.Now,
+                            Type = enIssuanceType.Entitled,
+                            SignedReceiptPath = signedReceiptPath,
+                            CreatedById = UserId
+                        });
+                    }
+
+                    context.Issuances.AddRange(issuances);
+                    context.SaveChanges();
+                    transaction.Commit();
+                }
+                catch
+                {
+                    transaction.Rollback();
+                    throw;
+                }
+            }
+        }
+
 
     }
 }
