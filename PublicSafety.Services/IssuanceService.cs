@@ -1,4 +1,5 @@
-﻿using PublicSafety.Domain.Entities;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using PublicSafety.Domain.Entities;
 using PublicSafety.Repositories;
 using PublicSafety.Repositories.Repositories;
 using PublicSafety.Services.DTOs;
@@ -226,7 +227,6 @@ namespace PublicSafety.Services
             {
                 try
                 {
-                    // 1️⃣ Active Matrix
                     var matrix = context.Matrices
                         .SingleOrDefault(m => m.CategoryId == categoryId && m.IsActive);
 
@@ -240,7 +240,6 @@ namespace PublicSafety.Services
                     if (!matrixItems.Any())
                         throw new Exception("المصفوفة لا تحتوي على أصناف");
 
-                    // 2️⃣ JobTitle Histories
                     var periods =
                         (from h in context.EmployeeJobTitleHistories
                          join jtc in context.JobTitleCategories
@@ -253,7 +252,6 @@ namespace PublicSafety.Services
                              EndYear = (h.EndDate ?? DateTime.Now).Year
                          }).ToList();
 
-                    // 3️⃣ حساب الطلب الإجمالي لكل صنف
                     var requiredPerItem = new Dictionary<Guid, int>();
 
                     foreach (var p in periods)
@@ -261,78 +259,90 @@ namespace PublicSafety.Services
                         if (year < p.StartYear || year > p.EndYear)
                             continue;
 
-                        foreach (var item in matrixItems)
+                        foreach (var mi in matrixItems)
                         {
-                            if ((year - p.StartYear) % item.Frequency != 0)
+                            
+                            if ((year - p.StartYear) % mi.Frequency != 0)
                                 continue;
 
-                            bool alreadyIssued = context.Issuances.Any(i =>
-                                i.EmployeeId == p.EmployeeId &&
-                                i.MatrixItemId == item.MatrixItemId &&
-                                i.IssuanceDate.Year == year &&
-                                i.Type == enIssuanceType.Entitled);
+                          
+                            int issuedQty = context.Issuances
+                                .Where(i =>
+                                    i.EmployeeId == p.EmployeeId &&
+                                    i.MatrixItemId == mi.MatrixItemId &&
+                                    i.IssuanceDate.Year == year &&
+                                    i.Type == enIssuanceType.Entitled)
+                                .Sum(i => (int?)i.Quantity) ?? 0;
 
-                            if (alreadyIssued)
+                            int remainingQty = mi.Quantity - issuedQty;
+
+                            if (remainingQty <= 0)
                                 continue;
 
-                            if (!requiredPerItem.ContainsKey(item.ItemId))
-                                requiredPerItem[item.ItemId] = 0;
+                            if (!requiredPerItem.ContainsKey(mi.ItemId))
+                                requiredPerItem[mi.ItemId] = 0;
 
-                            requiredPerItem[item.ItemId] += item.Quantity;
+                            requiredPerItem[mi.ItemId] += remainingQty;
                         }
                     }
 
-                    // 4️⃣ التحقق من المخزون (مرة واحدة فقط)
+                   
                     foreach (var kv in requiredPerItem)
                     {
-                        var item = context.Items.Find(kv.Key);
+                        var stockItem = context.Items.Find(kv.Key);
 
-                        if (item == null)
+                        if (stockItem == null)
                             throw new Exception("صنف غير موجود");
 
-                        if (item.Quantity < kv.Value)
-                            throw new Exception($"المخزون غير كافٍ للصنف {item.Name}");
+                        if (stockItem.Quantity < kv.Value)
+                            throw new Exception($"المخزون غير كافٍ للصنف {stockItem.Name}");
                     }
 
-                    // 5️⃣ تنفيذ الصرف فعليًا
+                   
                     DateTime issuanceDate = new DateTime(year, 1, 1);
 
+              
                     foreach (var p in periods)
                     {
                         if (year < p.StartYear || year > p.EndYear)
                             continue;
 
-                        foreach (var item in matrixItems)
+                        foreach (var mi in matrixItems)
                         {
-                            if ((year - p.StartYear) % item.Frequency != 0)
+                            if ((year - p.StartYear) % mi.Frequency != 0)
                                 continue;
 
-                            bool alreadyIssued = context.Issuances.Any(i =>
-                                i.EmployeeId == p.EmployeeId &&
-                                i.MatrixItemId == item.MatrixItemId &&
-                                i.IssuanceDate.Year == year &&
-                                i.Type == enIssuanceType.Entitled);
+                            int issuedQty = context.Issuances
+                                .Where(i =>
+                                    i.EmployeeId == p.EmployeeId &&
+                                    i.MatrixItemId == mi.MatrixItemId &&
+                                    i.IssuanceDate.Year == year &&
+                                    i.Type == enIssuanceType.Entitled)
+                                .Sum(i => (int?)i.Quantity) ?? 0;
 
-                            if (alreadyIssued)
+                            int remainingQty = mi.Quantity - issuedQty;
+
+                            if (remainingQty <= 0)
                                 continue;
 
+                           
                             context.Issuances.Add(new Issuance
                             {
                                 IssuanceId = Guid.NewGuid(),
                                 EmployeeId = p.EmployeeId,
-                                ItemId = item.ItemId,
-                                MatrixItemId = item.MatrixItemId,
-                                Quantity = item.Quantity,
-                                IssuanceDate = issuanceDate,
+                                ItemId = mi.ItemId,
+                                MatrixItemId = mi.MatrixItemId,
+                                Quantity = remainingQty,
+                                IssuanceDate = issuanceDate,  
+                                CreatedDate = DateTime.Now,    
                                 Type = enIssuanceType.Entitled,
-                                CreatedDate = DateTime.Now,
                                 CreatedById = UserId,
                                 SignedReceiptPath = SignedReceiptPath
                             });
 
-                            // خصم من المخزون
-                            var stockItem = context.Items.Find(item.ItemId);
-                            stockItem.Quantity -= item.Quantity;
+                           
+                            var stockItem = context.Items.Find(mi.ItemId);
+                            stockItem.Quantity -= remainingQty;
                         }
                     }
 
@@ -377,15 +387,12 @@ namespace PublicSafety.Services
 
 
         public static void IssueEmployeeEntitlementsForYear(
-     Guid employeeId,
-     int year,
-     string signedReceiptPath,
-     Guid UserId)
+    IssueEmployeeYearDTO yearIssuance)
         {
             var entitlements = EntitlementRepo
-                .GetEmployeeEntitlemenets(employeeId)
+                .GetEmployeeEntitlemenets(yearIssuance.EmployeeId)
                 .Where(e =>
-                    e.EntitlementYear == year &&
+                    e.EntitlementYear == yearIssuance.Year &&
                     e.RemainingQty > 0)
                 .ToList();
 
@@ -415,14 +422,14 @@ namespace PublicSafety.Services
                         issuances.Add(new Issuance
                         {
                             IssuanceId = Guid.NewGuid(),
-                            EmployeeId = employeeId,
+                            EmployeeId = yearIssuance.EmployeeId,
                             ItemId = e.ItemId,
                             Quantity = e.RemainingQty,
-                            IssuanceDate = new DateTime(year, 1, 1),
+                            IssuanceDate = new DateTime(yearIssuance.Year, 1, 1),
                             CreatedDate = DateTime.Now,
                             Type = enIssuanceType.Entitled,
-                            SignedReceiptPath = signedReceiptPath,
-                            CreatedById = UserId
+                            SignedReceiptPath = yearIssuance.SignedReceiptPath,
+                            CreatedById = yearIssuance.CreatedById
                         });
                     }
 

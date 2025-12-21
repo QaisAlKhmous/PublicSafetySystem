@@ -95,7 +95,7 @@
                     <td data-title="'الملفات'">
 
                         <a class="btn btn-sm btn-outline-success"
-                           ng-show="issuance.Type === 'Entitled' || issuance.Type === 'Damaged' && issuance.SignedReceiptPath"
+                           ng-show="(issuance.Type === 'Entitled' || issuance.Type === 'Damaged') && issuance.SignedReceiptPath"
                            ng-click="downloadFile(issuance.SignedReceiptPath)"
                            download>
                             نموذج الاستلام

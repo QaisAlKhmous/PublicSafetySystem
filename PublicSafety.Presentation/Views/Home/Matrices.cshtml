@@ -12,22 +12,22 @@
             ng-options="c as c.Name for c in Categories track by c.CategoryId">
         <option value="" disabled selected>اختر الفئة</option>
     </select>
+    <div class="card">
 
+        <div class="card-header">
+            <div class="d-flex justify-content-end">
+                @*<div ng-show="selectedCategory">
+                    <div ng-show="matrixExists">
+                        <button class="btn btn-primary blue"
+                                ng-click="confirmCreateMatrix()">
+                            تغيير المصفوفة
+                        </button>
+                    </div>
+                </div>*@
 
-    <div class="card-header">
-        <div class="d-flex justify-content-end">
-            @*<div ng-show="selectedCategory">
-                <div ng-show="matrixExists">
-                    <button class="btn btn-primary blue"
-                            ng-click="confirmCreateMatrix()">
-                        تغيير المصفوفة
-                    </button>
-                </div>
-            </div>*@
-
-        </div>
+            </div>
             <div ng-show="selectedCategory">
-                <div ng-show="!matrixExists" >
+                <div ng-show="!matrixExists">
                     <div class="d-flex justify-content-center">
                         <h3>لا يوجد مصفوفات لهذه الفئة</h3>
                     </div>
@@ -37,7 +37,7 @@
                             إنشاء مصفوفة
                         </button>*@
                     </div>
-                   
+
 
                 </div>
             </div>
@@ -54,34 +54,37 @@
 
 
 
+              
+                   
+                    <table class="table table-hover"
+                           style="width:100%;text-align:center;">
+
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>اسم العنصر</th>
+                                <th>كمية الاستحقاق</th>
+                                <th>التكرار</th>
+                                @*<th>الاجراءات</th>*@
+                            </tr>
+                        </thead>
+
+                        <tbody ng-show="matrixItems.length > 0">
+                            <tr ng-repeat="matrixItem in matrixItems">
+                                <td>{{$index + 1}}</td>
+                                <td>{{matrixItem.ItemName}}</td>
+                                <td>{{matrixItem.Quantity}}</td>
+                                <td>{{frequencyMap(matrixItem.Frequency)}}</td>
+                                @*<td>
+                                    <button ng-click="confirmDelete(matrixItem.MatrixItemId)" class="btn btn-outline-danger">حذف</button>
+                                    <button ng-click="loadUpdateMatrixItem(matrixItem)" data-bs-toggle="modal" data-bs-target="#editItemModalForm" class="btn btn-outline-info">تعديل</button>
+                                </td>*@
+                            </tr>
+                        </tbody>
+                    </table>
+               
 
 
-                <table class="table table-hover"
-                       style="width:100%;text-align:center;">
-
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>اسم العنصر</th>
-                            <th>كمية الاستحقاق</th>
-                            <th>التكرار</th>
-                            @*<th>الاجراءات</th>*@
-                        </tr>
-                    </thead>
-
-                    <tbody ng-show="matrixItems.length > 0">
-                        <tr ng-repeat="matrixItem in matrixItems">
-                            <td>{{$index + 1}}</td>
-                            <td>{{matrixItem.ItemName}}</td>
-                            <td>{{matrixItem.Quantity}}</td>
-                            <td>{{frequencyMap(matrixItem.Frequency)}}</td>
-                            @*<td>
-                                <button ng-click="confirmDelete(matrixItem.MatrixItemId)" class="btn btn-outline-danger">حذف</button>
-                                <button ng-click="loadUpdateMatrixItem(matrixItem)" data-bs-toggle="modal" data-bs-target="#editItemModalForm" class="btn btn-outline-info">تعديل</button>
-                            </td>*@
-                        </tr>
-                    </tbody>
-                </table>
 
                 <div ng-show="matrixItems.length === 0" class="d-flex justify-content-center p-2">
                     <h4>لا يوجد عناصر في المصفوفة النشطة</h4>
@@ -97,6 +100,8 @@
             </div>
 
         </div>
+    </div>
+
 
     </div>
 

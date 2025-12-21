@@ -11,7 +11,9 @@ namespace PublicSafety.Domain.Entities
         Employee = 0,
         Item = 1,
         Matrix = 2,
-        Issuance = 3
+        Issuance = 3,
+        CategoryIssuance = 4,
+        YearIssuance = 5
     }
     public enum enRequestStatus
     {

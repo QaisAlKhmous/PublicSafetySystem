@@ -132,15 +132,15 @@
                                 <button type="button" class="btn btn-success dropdown-toggle actions" data-bs-toggle="dropdown"></button>
                                 <ul class="dropdown-menu">
                                     <li><a class="dropdown-item" href="#!/editEmployee/{{employee.EmployeeId}}" ng-show="employee.Active">تعديل</a></li>
-                                    <li><hr class="dropdown-divider"></li>
+                                    <li><hr class="dropdown-divider" ng-show="employee.Active"></li>
                                     <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#exceptionModalForm" ng-click="loadException(employee.EmployeeId)" ng-show="employee.Active">بدل استثناء</a></li>
                                     <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#damageModalForm" ng-click="loadDamaged(employee.EmployeeId)" ng-show="employee.Active">استلام تلف مادة</a></li>
                                     <li><hr class="dropdown-divider" ng-show="employee.Active"></li>
                                     <li><a class="dropdown-item" href="#!/issuances/{{employee.EmployeeId}}">سجل الصرف</a></li>
                                     <li><a class="dropdown-item" href="#!/entitlements/{{employee.EmployeeId}}">سجل المستحقات</a></li>
-                                    <li><hr class="dropdown-divider" ng-show="employee.Active"></li>
+                                    <li><hr class="dropdown-divider" ></li>
                                     <li><a class="dropdown-item text-danger" href="" ng-click="confirmDelete(employee.EmployeeId)" ng-show="employee.Active">استقال الموظف</a></li>
-                                    <li><a class="dropdown-item text-danger" href="" data-bs-toggle="modal" data-bs-target="#activationModalForm" ng-click="loadActivation(employee)" ng-show="!employee.Active">اعادة تفعيل الموظف</a></li>
+                                    <li><a class="dropdown-item text-success" href="" data-bs-toggle="modal" data-bs-target="#activationModalForm" ng-click="loadActivation(employee)" ng-show="!employee.Active">اعادة تفعيل الموظف</a></li>
                                 </ul>
                             </div>
                         </td>
@@ -398,7 +398,7 @@
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-primary accept" type="button" ng-disabled="isLoading"
-                            ng-click="issueCategory()">
+                            ng-click="confirmIssueCategory()">
                         صرف
                     </button>
                     <button class="btn btn-danger closeBtn"

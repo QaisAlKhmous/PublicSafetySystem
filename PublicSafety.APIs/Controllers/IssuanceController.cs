@@ -225,10 +225,7 @@ namespace PublicSafety.APIs.Controllers
 
               
                 IssuanceService.IssueEmployeeEntitlementsForYear(
-                    model.EmployeeId,
-                    model.Year,
-                    model.SignedReceiptPath,
-                    model.CreatedById
+                    model
                 );
 
                 return Json(new ApiResponse<object>

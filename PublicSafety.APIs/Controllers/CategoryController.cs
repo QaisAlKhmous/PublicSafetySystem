@@ -26,5 +26,13 @@ namespace PublicSafety.APIs.Controllers
             return Json(CategoryService.GetCategoryByJobTitleId(JobTitleId), JsonRequestBehavior.AllowGet);
 
         }
+
+        [HttpGet]
+        public JsonResult GetCategoryByCategoryId(Guid CategoryId)
+        {
+
+            return Json(CategoryService.GetCategoryBCategpryId(CategoryId), JsonRequestBehavior.AllowGet);
+
+        }
     }
 }

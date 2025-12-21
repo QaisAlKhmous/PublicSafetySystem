@@ -33,5 +33,17 @@ namespace PublicSafety.Services
                 Category = JobTitleCategory.Category.Name
             };
         }
+
+        public static CategoryDTO GetCategoryBCategpryId(Guid CategoryId)
+        {
+            var Category = CategoryRepo.GetCategoryById(CategoryId);
+
+            return new CategoryDTO()
+            {
+                Name = Category.Name,
+                CategoryId = Category.CategoryId
+                
+            };
+        }
     }
 }

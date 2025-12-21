@@ -114,7 +114,7 @@ app.run(function ($rootScope, $location, $cookies,$timeout) {
             dictDefaultMessage: "ارفع نموذج الاستلام",
 
             init: function () {
-                var dropzone = this; // ✅ CORRECT INSTANCE
+                var dropzone = this;
 
                 dropzone.on("success", function (file, response) {
                     $rootScope.$applyAsync(function () {
@@ -143,7 +143,7 @@ app.run(function ($rootScope, $location, $cookies,$timeout) {
 })
 
 app.factory('itemService', function ($http) {
-    var baseUrl = '/Item'; // MVC controller base URL
+    var baseUrl = '/Item'; 
 
     return {
         getItems: function () {
@@ -174,7 +174,7 @@ app.factory('itemService', function ($http) {
 
 
 app.factory('matrixService', function ($http) {
-    var baseUrl = '/Matrix'; // MVC controller base URL
+    var baseUrl = '/Matrix'; 
 
     return {
         getAllMatrices: function () {
@@ -197,7 +197,7 @@ app.factory('matrixService', function ($http) {
 });
 
 app.factory('disposalService', function ($http) {
-    var baseUrl = '/Disposal'; // MVC controller base URL
+    var baseUrl = '/Disposal';
 
     return {
         addDisposal: function (disposal) {
@@ -207,7 +207,7 @@ app.factory('disposalService', function ($http) {
 });
 
 app.factory('employeeService', function ($http) {
-    var baseUrl = '/Employee'; // MVC controller base URL
+    var baseUrl = '/Employee';
 
     return {
         getEmployeeById: function (id) {
@@ -240,6 +240,8 @@ app.factory('employeeService', function ($http) {
 
 app.controller('sidebarCtrl', function ($scope, $rootScope, $location) {
     $scope.IsAdmin = $rootScope.LogedInUser.userType == 0;
+    $scope.IsManager = $rootScope.LogedInUser.userType == 1;
+    
     $scope.activeItem = 0;
 
     $rootScope.setActive = function (item) {
@@ -292,8 +294,9 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
     $scope.loadItems = function () {
         $http.get('/Item/GetItems')
             .then(res => {
-                $scope.itemsTableParams.settings({ dataset: $scope.items });
                 $scope.items = res.data.Data || []
+                $scope.itemsTableParams.settings({ dataset: $scope.items });
+
             }).catch(() => {
                 console.log("eror");
                 $scope.items = []
@@ -306,10 +309,10 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
 
     $scope.itemsTableParams = new NgTableParams(
         {
-            page: 1,            // start on first page
-            count: 10,          // items per page
+            page: 1,          
+            count: 10,      
             filter: {},
-            sorting: { Name: "asc" }// initial filter
+            sorting: { Name: "asc" }
         }
     );
     $scope.itemsTableParams.settings().counts = [];
@@ -349,7 +352,7 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
                 .catch(function (error) {
 
                     if (error.status === 409) {
-                        // item already exists
+               
                         $rootScope.toastify(error.data.Message, 0);
                     }
                     else if (error.status === 400) {
@@ -424,16 +427,18 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
         } else {
             itemService.increaseQuantity($scope.selectedItem.ItemId, $scope.addedQuantity, $rootScope.LogedInUser.username).then(function (response) {
 
-                // Show backend message (admin OR request case)
+              
                 $rootScope.toastify(response.data.Message, 1);
 
-                // Reload only if quantity actually changed
+             
                 $scope.loadItems();
+                console.log($scope.items);
 
             })
                 .catch(function (error) {
 
                     if (error.data && error.data.Message) {
+                        console.log("j")
                         $rootScope.toastify(error.data.Message, 0);
                     } else {
                         $rootScope.toastify("مشكلة في السيرفر", 0);
@@ -449,7 +454,7 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
     }
 
     $(document).ready(function () {
-        // Initialize disposal object if not already
+
         var scope = angular.element($('input[name="date"]')).scope();
         scope.$apply(function () {
             scope.disposal = scope.disposal || {};
@@ -459,8 +464,8 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
         $('input[name="date"]').daterangepicker({
             singleDatePicker: true,
             showDropdowns: true,
-            autoUpdateInput: true, // input shows default
-            startDate: moment(),   // today
+            autoUpdateInput: true, 
+            startDate: moment(),   
             locale: { format: 'YYYY-MM-DD' }
         });
 
@@ -484,18 +489,13 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
 
     var disposeDropzone = null;
 
-    // =====================
-    // Init Dropzone on modal open
-    // =====================
     $('#disposeItemModalForm').on('shown.bs.modal', function () {
         if (!disposeDropzone) {
             initDisposeDropzone();
         }
     });
 
-    // =====================
-    // Clear Dropzone on modal close
-    // =====================
+
     $('#disposeItemModalForm').on('hidden.bs.modal', function () {
         $timeout(function () {
 
@@ -514,9 +514,7 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
         });
     });
 
-    // =====================
-    // Dropzone init
-    // =====================
+  
     function initDisposeDropzone() {
 
         Dropzone.autoDiscover = false;
@@ -559,7 +557,8 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
 
         $scope.disposal.ItemId = $scope.selectedItem.ItemId;
         if ($scope.selectedItem.Quantity < $scope.disposal.Quantity) {
-            $rootScope.toastify("الكمية المراد اتلافها غير متوفرة", 0)
+            $rootScope.toastify("الكمية المراد اتلافها غير متوفرة", 0);
+            $scope.isLoading = false;
         } else {
             if ($rootScope.LogedInUser.userType != 0) {
                 $scope.changeRequest.EntityId = $scope.selectedItem.ItemId;
@@ -578,10 +577,11 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
                     .then(function (response) {
 
                         if (response.data && response.data.Success) {
-                            $scope.loadItems();
+                            
                             $rootScope.toastify("تم إتلاف المادة بنجاح", 1);
+                            $scope.loadItems();
 
-                            // Close modal (BEST UX)
+
                             $('#disposeItemModalForm').modal('hide');
                         }
 
@@ -844,10 +844,10 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
 
     $scope.employeesTableParams = new NgTableParams(
         {
-            page: 1,            // start on first page
-            count: 10,          // items per page
+            page: 1,           
+            count: 10,      
             filter: {},
-            sorting: { Name: "asc" }// initial filter
+            sorting: { Name: "asc" }
         }
     );
     $scope.employeesTableParams.settings().counts = [];
@@ -856,7 +856,6 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
         $location.path('/addEmployee');
     }
 
-    // Handle Issue Exception
 
     $scope.issuance = { EmployeeId: null, IssuanceId: null, ItemId: null, Quantity: 1, Type: '', ExceptionReason: '', ExceptionFormPath: '', SignedReceiptPath: '', CreatedBy: $rootScope.LogedInUser.username, IssuanceDate: '' };
 
@@ -877,18 +876,18 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
 
     $scope.activation = { EmployeeId: null, JobTitleId: null, DepartmentId: null, SectionId: null, ActivationDate: '' }
     $(document).ready(function () {
-        // Initialize disposal object if not already
+     
         var scope = angular.element($('input[name="activationDate"]')).scope();
         scope.$apply(function () {
             scope.activation = scope.activation || {};
-            scope.activation.ActivationDate = moment().format('YYYY-MM-DD'); // set default
+            scope.activation.ActivationDate = moment().format('YYYY-MM-DD');
         });
 
         $('input[name="activationDate"]').daterangepicker({
             singleDatePicker: true,
             showDropdowns: true,
-            autoUpdateInput: true, // input shows default
-            startDate: moment(),   // today
+            autoUpdateInput: true, 
+            startDate: moment(),   
             locale: { format: 'YYYY-MM-DD' }
         });
 
@@ -1060,7 +1059,7 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
         $scope.issuance.IssuanceDate = new Date().toISOString().split("T")[0];
         const { IssuanceId, ...issuanceRequest } = $scope.issuance;
         $scope.issuanceRequest = issuanceRequest;
-
+        $scope.changeRequest.EntityType = 'Issuance';
         $scope.changeRequest.NewValue = JSON.stringify($scope.issuanceRequest);
         $http.post('/ChangeRequest/AddNewChangeRequest', { ChangeRequest: $scope.changeRequest }).then((res) => {
             $rootScope.toastify('تم حفظ طلب التعديل بنجاح, وسيتم مراجعته من الادارة', 1);
@@ -1125,9 +1124,7 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
     $scope.exceptionDropzone = null;
     $scope.damageDropzone = null;
 
-    // =====================
-    // Exception Modal
-    // =====================
+
     $('#exceptionModalForm').on('shown.bs.modal', function () {
         if (!$scope.exceptionDropzone) {
             $scope.exceptionDropzone =
@@ -1155,9 +1152,7 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
         });
     });
 
-    // =====================
-    // Damage Modal
-    // =====================
+
     $('#damageModalForm').on('shown.bs.modal', function () {
         if (!$scope.damageDropzone) {
             $scope.damageDropzone =
@@ -1185,9 +1180,7 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
         });
     });
 
-    // =====================
-    // Submit Exception
-    // =====================
+  
     $scope.issueException = function () {
         $scope.exceptionForm.$setSubmitted();
 
@@ -1198,9 +1191,7 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
         $scope.issue();
     };
 
-    // =====================
-    // Submit Damage
-    // =====================
+
     $scope.issueDamage = function () {
         $scope.damageForm.$setSubmitted();
 
@@ -1247,7 +1238,7 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
         $http.get('/Category/GetAllCategories').then((res) => {
             $scope.Categories = res.data;
             if ($scope.Categories && $scope.Categories.length > 0) {
-                $scope.selectedCategory = $scope.Categories[0]; // ✅ آمن
+                $scope.selectedCategory = $scope.Categories[0];
             }
             console.log(res.data)
             
@@ -1260,9 +1251,45 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
         })
     }
 
+    $scope.issueCategoryChangeRequest = {
+        EntityType: 'CategoryIssuance', EntityId: '', OldValue: null,
+        NewValue: '', ChangedBy: $rootScope.LogedInUser.username
+    }
 
+    $scope.addIssueCategoryChangeRequest = function () {
+      
+       
+        $scope.issueCategoryChangeRequest.NewValue = JSON.stringify({
+            CategoryId: $scope.selectedCategory.CategoryId,
+            Year: $scope.selectedYear,
+            UserId: $rootScope.LogedInUser.userId,
+            SignedReceiptPath: $scope.signedReceipt.receiptPath
+        });
+        $http.post('/ChangeRequest/AddNewChangeRequest', { ChangeRequest: $scope.issueCategoryChangeRequest }).then((res) => {
+            $rootScope.toastify('تم حفظ طلب التعديل بنجاح, وسيتم مراجعته من الادارة', 1);
+
+        })
+
+    }
 
     $scope.issueCategory = function () {
+        $http.post('/Issuance/IssueMatrixForCategory', {
+            categoryId: $scope.selectedCategory.CategoryId,
+            year: $scope.selectedYear,
+            UserId: $rootScope.LogedInUser.userId,
+            SignedReceiptPath: $scope.signedReceipt.receiptPath
+        }).then((res) => {
+            $rootScope.toastify('تم صرف المواد بنجاح', 1)
+        }).catch((res) => {
+            if (res.data && res.data.Message)
+                $rootScope.toastify(res.data.Message, 0);
+            else {
+                $rootScope.toastify('مشكلة غير متوقعة', 0);
+            }
+        })
+    }
+
+    $scope.confirmIssueCategory = function () {
         Swal.fire({
             title: '؟'+ $scope.selectedCategory.Name + ' هل انت متأكد من صرف المواد الى جميع الموظفين من فئة',
             text: "",
@@ -1274,27 +1301,23 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
             cancelButtonText: 'لا'
         }).then((result) => {
             if (result.isConfirmed) {
-                $http.post('/Issuance/IssueMatrixForCategory', {
-                    categoryId: $scope.selectedCategory.CategoryId,
-                    year: $scope.selectedYear,
-                    UserId: $rootScope.LogedInUser.userId,
-                    SignedReceiptPath: $scope.signedReceipt.receiptPath
-                }).then((res) => {
-                    $rootScope.toastify('تم صرف المواد بنجاح',1)
-                }).catch((res) => {
-                    if (res.data && res.data.Message)
-                        $rootScope.toastify(res.data.Message, 0);
-                    else {
-                        $rootScope.toastify('مشكلة غير متوقعة', 0);
-                    }
-                })
+                if ($rootScope.LogedInUser.userType != 0) {
+
+
+
+                    $scope.addIssueCategoryChangeRequest();
+
+                } else {
+                    $scope.issueCategory();
+                }
+
+               
             };
         });
 
        
     }
 
-    //upload signed receipt for all issunaces in a specific year
 
     $scope.selectedYear = null;
 
@@ -1313,7 +1336,6 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
 
         $('#entitleMatrixModal').modal('show');
 
-        // init Dropzone after modal opens
         setTimeout(function () {
 
             if ($scope.signedReceiptDropzone) {
@@ -1329,7 +1351,7 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
         }, 300);
     };
 
-    //submit
+
 
     $scope.uploadSignedReceipt = function () {
 
@@ -1350,7 +1372,7 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
                 if (res.data && res.data.Success) {
                     $rootScope.toastify('تم رفع إيصال الاستلام بنجاح', 1);
                     $('#signedReceiptModalForm').modal('hide');
-                    $scope.loadIssuances(); // refresh table
+                    $scope.loadIssuances(); 
                 } else {
                     $rootScope.toastify(res.data.Message || 'خطأ غير متوقع', 0);
                 }
@@ -1376,7 +1398,7 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
         }
     };
 
-    // استدعاء مرة واحدة
+
     $scope.initReceiptYears();
 
    
@@ -1389,7 +1411,6 @@ app.directive('arabicOnly', function () {
             ngModel.$parsers.push(function (value) {
                 if (!value) return value;
 
-                // يسمح فقط بالحروف العربية والمسافات
                 var clean = value.replace(/[^\u0600-\u06FF\s]/g, '');
 
                 if (clean !== value) {
@@ -1411,7 +1432,7 @@ app.directive('englishOnly', function () {
             ngModel.$parsers.push(function (value) {
                 if (!value) return value;
 
-                // يسمح فقط بالأحرف الإنجليزية (A-Z, a-z) والمسافات
+                
                 var clean = value.replace(/[^a-zA-Z\s]/g, '');
 
                 if (clean !== value) {
@@ -1433,7 +1454,7 @@ app.directive('numbersOnly', function () {
             ngModel.$parsers.push(function (value) {
                 if (!value) return value;
 
-                // يسمح فقط بالأرقام 0-9
+              
                 var clean = value.replace(/[^0-9]/g, '');
 
                 if (clean !== value) {
@@ -1455,7 +1476,7 @@ app.directive('validEmail', function () {
             ngModel.$parsers.push(function (value) {
                 if (!value) return value;
 
-                // يتحقق من صحة الإيميل
+                
                 if (EMAIL_REGEXP.test(value)) {
                     ngModel.$setValidity('email', true);
                 } else {
@@ -1477,18 +1498,18 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
     }
 
     $(document).ready(function () {
-        // Initialize disposal object if not already
+       
         var scope = angular.element($('input[name="date"]')).scope();
         scope.$apply(function () {
             scope.employee.EmploymentDate = scope.employee.EmploymentDate || {};
-            scope.employee.EmploymentDate = moment().format('YYYY-MM-DD'); // set default
+            scope.employee.EmploymentDate = moment().format('YYYY-MM-DD'); 
         });
 
         $('input[name="date"]').daterangepicker({
             singleDatePicker: true,
             showDropdowns: true,
-            autoUpdateInput: true, // input shows default
-            startDate: moment(),   // today
+            autoUpdateInput: true, 
+            startDate: moment(),   
             locale: { format: 'YYYY-MM-DD' }
         });
 
@@ -1509,7 +1530,6 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
             });
         });
     });
-add
 
    
 
@@ -1618,7 +1638,6 @@ add
                         NewValue: '', ChangedBy: $rootScope.LogedInUser.username
                     }
                     $scope.loadCategory($scope.employee.JobTitleId);
-                    // Init dropzone AFTER employee is loaded
                     initHealthInsuranceDropzone();
                 }).catch((err) => {
 
@@ -1694,16 +1713,14 @@ add
 
     var healthDz = null;
 
-    // =====================
-    // ADD MODE
-    // =====================
+
     if (!$routeParams.employeeId) {
         initHealthInsuranceDropzone();
     }
 
 
     function initHealthInsuranceDropzone() {
-        if (healthDz) return; // prevent double init
+        if (healthDz) return;
 
         Dropzone.autoDiscover = false;
 
@@ -1718,9 +1735,7 @@ add
             init: function () {
                 var dropzone = this;
 
-                // =====================
-                // Upload success
-                // =====================
+        
                 dropzone.on("success", function (file, response) {
                     file.serverFileName = response.fileName;
                     $scope.$apply(function () {
@@ -1728,18 +1743,14 @@ add
                     });
                 });
 
-                // =====================
-                // Remove file
-                // =====================
+         
                 dropzone.on("removedfile", function () {
                     $scope.$apply(function () {
                         $scope.employee.HealthInsuranceFile = "";
                     });
                 });
 
-                // =====================
-                // Click → download
-                // =====================
+           
                 dropzone.on("addedfile", function (file) {
                     file.previewElement.addEventListener("click", function (e) {
                         e.preventDefault();
@@ -1756,9 +1767,7 @@ add
                     });
                 });
 
-                // =====================
-                // EDIT MODE (show existing file)
-                // =====================
+          
                 if ($scope.employee.HealthInsuranceFile) {
                     loadExistingFile(dropzone, $scope.employee.HealthInsuranceFile);
                 }
@@ -1776,7 +1785,7 @@ add
             dropzone.emit("addedfile", mockFile);
             dropzone.emit("complete", mockFile);
 
-            // Show thumbnail for images
+
             if (/\.(jpg|jpeg|png|gif)$/i.test(serverFileName)) {
                 dropzone.emit(
                     "thumbnail",
@@ -1807,9 +1816,6 @@ app.controller('dashboardCtrl', function (
     NgTableParams
 ) {
 
-    /* =====================
-       PLANNING OVERVIEW
-    ===================== */
 
     $scope.planningData = [];
 
@@ -1912,9 +1918,7 @@ app.controller('dashboardCtrl', function (
         });
     }
 
-    /* =====================
-       YEAR DETAILS
-    ===================== */
+  
 
     $scope.selectedYear = null;
 
@@ -1952,9 +1956,7 @@ app.controller('dashboardCtrl', function (
             });
     };
 
-    /* =====================
-       COUNTERS
-    ===================== */
+
 
     $scope.IsAdmin = $rootScope.LogedInUser.userType == 0;
 
@@ -1986,9 +1988,7 @@ app.controller('dashboardCtrl', function (
             .catch(() => $scope.employeesByCategory = []);
     };
 
-    /* =====================
-       INIT
-    ===================== */
+   
 
     $scope.loadOverview();
     $scope.loadNumbers();
@@ -2018,10 +2018,10 @@ app.controller('issuanceCtrl', function ($scope, employeeService, itemService, $
             ? new Date($scope.filters.ToDate)
             : null;
 
-        // بداية اليوم
+   
         if (from) from.setHours(0, 0, 0, 0);
 
-        // نهاية اليوم
+     
         if (to) to.setHours(23, 59, 59, 999);
 
         filtered = filtered.filter(x => {
@@ -2113,10 +2113,10 @@ app.controller('issuanceCtrl', function ($scope, employeeService, itemService, $
     
     $scope.issuancesTableParams = new NgTableParams(
         {
-            page: 1,            // start on first page
-            count: 10,          // items per page
+            page: 1,         
+            count: 10,         
             filter: {},
-            sorting: { Name: "asc" }// initial filter
+            sorting: { Name: "asc" }
         }
     );
     $scope.issuancesTableParams.settings().counts = [];
@@ -2124,7 +2124,7 @@ app.controller('issuanceCtrl', function ($scope, employeeService, itemService, $
 
 
 
-    //upload signed receipt for all issunaces in a specific year
+   
 
     $scope.selectedReceiptYear = null;
 
@@ -2142,7 +2142,7 @@ app.controller('issuanceCtrl', function ($scope, employeeService, itemService, $
 
         $('#signedReceiptModalForm').modal('show');
 
-        // init Dropzone after modal opens
+        
         setTimeout(function () {
 
             if ($scope.signedReceiptDropzone) {
@@ -2158,7 +2158,7 @@ app.controller('issuanceCtrl', function ($scope, employeeService, itemService, $
         }, 300);
     };
 
-    //submit
+   
 
     $scope.uploadSignedReceipt = function () {
 
@@ -2179,7 +2179,7 @@ app.controller('issuanceCtrl', function ($scope, employeeService, itemService, $
                 if (res.data && res.data.Success) {
                     $rootScope.toastify('تم رفع إيصال الاستلام بنجاح', 1);
                     $('#signedReceiptModalForm').modal('hide');
-                    $scope.loadIssuances(); // refresh table
+                    $scope.loadIssuances(); 
                 } else {
                     $rootScope.toastify(res.data.Message || 'خطأ غير متوقع', 0);
                 }
@@ -2203,7 +2203,7 @@ app.controller('issuanceCtrl', function ($scope, employeeService, itemService, $
         }
     };
 
-    // استدعاء مرة واحدة
+   
     $scope.initReceiptYears();
 
 
@@ -2211,7 +2211,7 @@ app.controller('issuanceCtrl', function ($scope, employeeService, itemService, $
 
         if (!fileName) return;
 
-        // open file in new tab (download or view)
+        
         var url = '/Upload/Download?fileName=' + encodeURIComponent(fileName);
         window.location.href = url;
     };
@@ -2222,9 +2222,7 @@ app.controller('entitlementCtrl',
     function ($scope, employeeService, itemService, $location, $http,
         $timeout, $rootScope, NgTableParams, $routeParams) {
 
-        // =====================
-        // Load data
-        // =====================
+     
 
         $scope.loadItems = function () {
             $http.get('/Item/GetItems')
@@ -2260,9 +2258,7 @@ app.controller('entitlementCtrl',
         $scope.loadEmployee();
         $scope.loadEntitlements();
 
-        // =====================
-        // Issuance model
-        // =====================
+     
         $scope.issuance = {
             EmployeeId: null,
             ItemId: null,
@@ -2274,9 +2270,7 @@ app.controller('entitlementCtrl',
             IssuanceDate: ''
         };
 
-        // =====================
-        // Select entitlement
-        // =====================
+     
         $scope.selectEntitlment = function (entitlement) {
 
             $scope.issuance = {
@@ -2292,13 +2286,11 @@ app.controller('entitlementCtrl',
 
             $scope.selectedEntitlement = entitlement;
 
-            // Open modal
+        
             $('#issueModalForm').modal('show');
         };
 
-        // =====================
-        // Dropzone init / reset
-        // =====================
+  
         $scope.entitlementDropzone = null;
 
         $('#issueModalForm').on('shown.bs.modal', function () {
@@ -2315,15 +2307,15 @@ app.controller('entitlementCtrl',
         $('#issueModalForm').on('hidden.bs.modal', function () {
             $scope.$apply(function () {
 
-                // Clear Dropzone
+              
                 if ($scope.entitlementDropzone) {
                     $scope.entitlementDropzone.removeAllFiles(true);
                 }
 
-                // Clear model
+            
                 $scope.issuance.SignedReceiptPath = '';
 
-                // Reset form
+           
                 if ($scope.entitlementForm) {
                     $scope.entitlementForm.$setPristine();
                     $scope.entitlementForm.$setUntouched();
@@ -2350,9 +2342,7 @@ app.controller('entitlementCtrl',
 
         }
 
-        // =====================
-        // Submit issuance
-        // =====================
+    
         $scope.issueEntitlemet = function () {
 
            
@@ -2400,9 +2390,7 @@ app.controller('entitlementCtrl',
             });
         };
 
-        // =====================
-        // Quantity helpers
-        // =====================
+
         $scope.validateQuantity = function () {
             var max = $scope.selectedEntitlement.RemainingQty;
             if ($scope.issuance.Quantity < 1)
@@ -2477,6 +2465,27 @@ app.controller('entitlementCtrl',
             });
         });
 
+        $scope.yearIssuanceChangeRequest = {
+            EntityType: 'YearIssuance', EntityId: '', OldValue: null,
+            NewValue: '', ChangedBy: $rootScope.LogedInUser.username
+        }
+
+        $scope.addYearIssuanceChangeRequest = function () {
+           
+
+            $scope.yearIssuanceChangeRequest.NewValue = JSON.stringify({
+                EmployeeId: $scope.employee.EmployeeId,
+                Year: $scope.issueYear.Year,
+                SignedReceiptPath: $scope.issueYear.SignedReceiptPath,
+                CreatedById: $rootScope.LogedInUser.userId
+            });
+            $http.post('/ChangeRequest/AddNewChangeRequest', { ChangeRequest: $scope.yearIssuanceChangeRequest }).then((res) => {
+                $rootScope.toastify('تم حفظ طلب التعديل بنجاح, وسيتم مراجعته من الادارة', 1);
+
+            })
+
+        }
+
         $scope.confirmIssueYear = function (form) {
 
             form.$setSubmitted();
@@ -2497,25 +2506,31 @@ app.controller('entitlementCtrl',
 
                 $scope.isIssuing = true;
 
-                $http.post('/Issuance/IssueEmployeeEntitlementsForYear', {
-                    EmployeeId: $scope.employee.EmployeeId,
-                    Year: $scope.issueYear.Year,
-                    SignedReceiptPath: $scope.issueYear.SignedReceiptPath,
-                    CreatedById: $rootScope.LogedInUser.userId
-                }).then(function (res) {
+                if ($rootScope.LogedInUser.Type !== 0)
+                    $scope.addYearIssuanceChangeRequest();
+                else {
+                    $http.post('/Issuance/IssueEmployeeEntitlementsForYear', {
+                        EmployeeId: $scope.employee.EmployeeId,
+                        Year: $scope.issueYear.Year,
+                        SignedReceiptPath: $scope.issueYear.SignedReceiptPath,
+                        CreatedById: $rootScope.LogedInUser.userId
+                    }).then(function (res) {
 
-                    if (res.data && res.data.Success) {
-                        $('#issueYearModal').modal('hide');
-                        $scope.loadEntitlements();
-                        $rootScope.toastify(res.data.Message, 1);
-                    }
+                        if (res.data && res.data.Success) {
+                            $('#issueYearModal').modal('hide');
+                            $scope.loadEntitlements();
+                            $rootScope.toastify(res.data.Message, 1);
+                        }
 
-                }).catch(function () {
-                    // server error فقط
-                    $rootScope.toastify('مشكلة في السيرفر', 0);
-                }).finally(function () {
-                    $scope.isIssuing = false;
-                });
+                    }).catch(function () {
+
+                        $rootScope.toastify('مشكلة في السيرفر', 0);
+                    }).finally(function () {
+                        $scope.isIssuing = false;
+                    });
+                }
+
+               
             });
         };
 
@@ -2547,10 +2562,10 @@ app.controller("itemLogCtrl", function ($scope, $http, NgTableParams, $routePara
             ? new Date($scope.filters.ToDate)
             : null;
 
-        // بداية اليوم
+
         if (from) from.setHours(0, 0, 0, 0);
 
-        // نهاية اليوم
+
         if (to) to.setHours(23, 59, 59, 999);
 
         filtered = filtered.filter(x => {
@@ -2606,7 +2621,7 @@ app.controller("itemLogCtrl", function ($scope, $http, NgTableParams, $routePara
             page: 1,
             count: 10,
             sorting: {
-                CreatedDate: "desc" // فرز افتراضي
+                CreatedDate: "desc" 
             }
         },
         {
@@ -2664,7 +2679,7 @@ app.controller("itemLogCtrl", function ($scope, $http, NgTableParams, $routePara
 app.controller("requestsCtrl", function ($scope, employeeService, itemService, $location, $http, $timeout, $rootScope, NgTableParams) {
 
     $scope.IsAdmin = $rootScope.LogedInUser.userType == 0;
-
+    $scope.IsManager = $rootScope.LogedInUser.userType == 1;
 
     $scope.changeRequests = []
 
@@ -2678,10 +2693,10 @@ app.controller("requestsCtrl", function ($scope, employeeService, itemService, $
 
     $scope.requestsTableParams = new NgTableParams(
         {
-            page: 1,            // start on first page
-            count: 10,          // items per page
+            page: 1,            
+            count: 10,         
             filter: {},
-            sorting: {}// initial filter
+            sorting: {}
         }
     );
     $scope.requestsTableParams.settings().counts = [];
@@ -2767,11 +2782,32 @@ app.controller("requestsCtrl", function ($scope, employeeService, itemService, $
                 $scope.data = res.data.entity;
                 $scope.issuanceEmployee = res.data.employee;
                 $scope.itemIssued = res.data.item;
-                console.log($scope.data)
+            }
+            if (res.data.IsAdd && res.data.type == 'categoryIssuance') {
+                $scope.data = res.data.entity;
+                $http.get('/Category/GetCategoryByCategoryId', {
+                    params: { CategoryId: $scope.data.CategoryId }
+                })
+                    .then(function (res) {
+                        $scope.category = res.data;
+                    })
+                    .catch(function (err) {
+                        console.error(err);
+                    });
             }
 
-
-
+            if (res.data.IsAdd && res.data.type == 'yearIssuance') {
+                $scope.data = res.data.entity;
+                $http.get('/Employee/GetEmployee', {
+                    params: { Id: $scope.data.EmployeeId }
+                })
+                    .then(function (res) {
+                        $scope.employee = res.data.Data;
+                    })
+                    .catch(function (err) {
+                        console.error(err);
+                    });
+            }
         })
     }
 

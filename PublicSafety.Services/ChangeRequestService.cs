@@ -74,6 +74,16 @@ namespace PublicSafety.Services
             };
         }
 
+        private static void _AcceptAddIssuance(string value)
+        {
+            
+            var issuance = JsonSerializer.Deserialize<AddIssuanceDTO>(value);
+            if ((enIssuanceType)Enum.Parse(typeof(enIssuanceType), issuance.Type) == enIssuanceType.Entitled)
+                IssuanceService.AddNewEntitledIssuance(issuance);
+            else
+                IssuanceService.AddNewIssuance(issuance);
+        }
+
         private static void _AcceptAddEntity( ChangeRequestDTO changeRequest)
         {
             switch((enEntityType)Enum.Parse(typeof(enEntityType), changeRequest.EntityType))
@@ -87,15 +97,15 @@ namespace PublicSafety.Services
                     break;
                 case enEntityType.Matrix:
                     MatrixService.CreateNewMatrixVersion
-(JsonSerializer.Deserialize<MatrixDTO>(changeRequest.NewValue).CategoryId);
+                    (JsonSerializer.Deserialize<MatrixDTO>(changeRequest.NewValue).CategoryId);
                     break;
                 case enEntityType.Issuance:
-                    var issuance = JsonSerializer.Deserialize<AddIssuanceDTO>(changeRequest.NewValue);
-                    if ((enIssuanceType)Enum.Parse(typeof(enIssuanceType), issuance.Type) == enIssuanceType.Entitled)
-                        IssuanceService.AddNewEntitledIssuance(issuance);
-                    else
-                        IssuanceService.AddNewIssuance(issuance);
+                    _AcceptAddIssuance(changeRequest.NewValue);
                     break;
+                case enEntityType.CategoryIssuance: var issuance = JsonSerializer.Deserialize<IssueCategoryDTO>(changeRequest.NewValue);
+                    IssuanceService.IssueMatrixForCategory(issuance.CategoryId, issuance.Year, issuance.UserId, issuance.SignedReceiptPath); break;
+                case enEntityType.YearIssuance: var employeeIssuance = JsonSerializer.Deserialize<IssueEmployeeYearDTO>(changeRequest.NewValue);
+                    IssuanceService.IssueEmployeeEntitlementsForYear(employeeIssuance); break;
             }
         }
 
