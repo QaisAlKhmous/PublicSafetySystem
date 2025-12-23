@@ -276,3 +276,6 @@ button.search {
 .t-hover:hover{
     color:black !important;
 }
+.dropdown-menu{
+    min-width: 13rem;
+}

@@ -1,0 +1,97 @@
+﻿
+@{
+    ViewBag.Title = "YearDetails";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="content">
+    <div class="card card-default">
+        @*<div class="card-header">
+            <h5 class="modal-title">
+                تفاصيل التخطيط لسنة {{selectedYear}}
+            </h5>
+
+        </div>*@
+        <div class="card-header">
+            <h3> تفاصيل التخطيط لسنة {{selectedYear}}</h3>
+        </div>
+
+        <div class="card-body">
+            <table ng-table="itemDetailsTableParams"
+                   class="table table-striped table-bordered text-center">
+
+                <tr ng-repeat="item in $data">
+                    <td data-title="'المادة'">{{item.ItemName}}</td>
+                    <td data-title="'الكمية المخططة'">{{item.PlannedQty}}</td>
+                </tr>
+            </table>
+        </div>
+
+
+
+
+    </div>
+    
+        <div class="card card-default h-100">
+            
+
+            <div class="card-body">
+
+                <table ng-table="detailsTableParams"
+                       class="table table-bordered table-striped text-center"
+                       style="cursor:pointer;">
+
+
+                    <thead>
+                        <tr>
+                            <th>اسم الموظف</th>
+                            <th>الفئة</th>
+                            <th>المخطط</th>
+                            <th>المصروف</th>
+                        </tr>
+                    </thead>
+
+
+                    <tbody>
+                        <tr class="t-hover" ng-repeat="row in $data"
+                            ng-click="openYearDetails(row.Year)">
+
+                            <td>{{row.Year}}</td>
+
+                            <td>{{row.EmployeesCount}}</td>
+
+                            <td>{{row.Planned}}</td>
+
+                            <!-- Issued Summary -->
+                            <td class="font-weight-bold text-black t-hover">
+                                {{row.Issued.Total}}
+                            </td>
+
+                            <td>{{row.Issued.Entitled}}</td>
+
+                            <td>{{row.Issued.Exception}}</td>
+
+                            <td>{{row.Issued.Damaged}}</td>
+
+                            <td>{{row.Issued.Disposed}}</td>
+                        </tr>
+                    </tbody>
+
+                </table>
+
+                <div ng-show="planningData.length === 0"
+                     class="text-danger text-center mt-2">
+                    لا توجد بيانات
+                </div>
+
+            </div>
+        </div>
+    
+</div>
+
+   
+
+
+
+
+

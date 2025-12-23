@@ -43,7 +43,10 @@ namespace PublicSafety.Presentation.Controllers
             return View();
         }
 
-
+        public ActionResult YearDetails()
+        {
+            return View();
+        }
 
         public ActionResult Items()
         {

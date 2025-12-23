@@ -200,6 +200,9 @@ namespace PublicSafety.Repositories.Repositories
             return result;
         }
 
+    
+
+
         public static List<PlanningItemDetails> GetPlannedItemsByYear(int fromYear, int toYear)
         {
             using (var context = new AppDbContext())
@@ -237,7 +240,6 @@ namespace PublicSafety.Repositories.Repositories
                     from e in context.Employees
                     join jtc in context.JobTitleCategories
                         on e.JobTitleId equals jtc.JobTitleId
-                    where e.Active
                     select new
                     {
                         e.EmployeeId,

@@ -1,5 +1,6 @@
 ﻿using PublicSafety.Domain.Entities;
 using PublicSafety.Services;
+using PublicSafety.Services.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -84,6 +85,46 @@ namespace PublicSafety.APIs.Controllers
                     Data = new List<PlanningItemDetails>()
                 }, JsonRequestBehavior.AllowGet);
             }
+        }
+
+        [HttpGet]
+        public JsonResult GetYearEmployees(int year)
+        {
+            try
+            {
+                var yearEmployees = PlanningService.GetYearEmployees(year);
+
+                if (yearEmployees == null)
+                {
+                    return Json(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Data = null,
+                        Message = "لا يوجد موظفين هذه السنة"
+                    });
+
+                }
+
+                return Json(new ApiResponse<List<YearEmployeeSummaryDTO>>
+                {
+                    Success = true,
+                    Data = yearEmployees,
+                    Message = ""
+                });
+
+            }catch(Exception ex)
+            {
+                return Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Data = null,
+                    Message = ex.Message
+                });
+            }
+          
+
+
+
         }
 
     }

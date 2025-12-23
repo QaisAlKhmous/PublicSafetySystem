@@ -23,5 +23,19 @@ namespace PublicSafety.Repositories.Repositories
             }
           
         }
+
+
+        public static IEnumerable<Entitlement> GetEmployeeEntitlemenetsInYear(Guid EmployeeId,int year)
+        {
+            using (var context = new AppDbContext())
+            {
+                var employeeIdParam = new SqlParameter("@EmployeeId", EmployeeId);
+                return context.Database
+                .SqlQuery<Entitlement>("EXEC dbo.GetEmployeeEntitlements @EmployeeId", employeeIdParam)
+                .Where(e => e.EntitlementYear == year)
+                .ToList();
+            }
+
+        }
     }
 }

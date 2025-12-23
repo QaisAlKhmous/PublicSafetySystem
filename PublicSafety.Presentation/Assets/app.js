@@ -52,6 +52,10 @@ app.config(function ($routeProvider) {
             templateUrl: '/Home/Requests',
             controller: 'requestsCtrl'
         })
+        .when("/yearDetails/:year", {
+            templateUrl: '/Home/YearDetails',
+            controller: 'yearDetailsCtrl'
+        })
        
 
 
@@ -1928,32 +1932,34 @@ app.controller('dashboardCtrl', function (
     $scope.detailsTableParams.settings().counts = [];
 
     $scope.openYearDetails = function (year) {
-
+      
         $scope.selectedYear = year;
 
-        $http.get('/Planning/PlannedItemsByYear', {
-            params: { year: year }
-        })
-            .then(function (res) {
+        $location.path('/yearDetails/' + year);
 
-                $scope.detailsTableParams.settings({
-                    dataset: res.data?.Data || []
-                });
+        //$http.get('/Planning/PlannedItemsByYear', {
+        //    params: { year: year }
+        //})
+        //    .then(function (res) {
 
-                new bootstrap.Modal(
-                    document.getElementById('planningDetailsModal')
-                ).show();
+        //        $scope.detailsTableParams.settings({
+        //            dataset: res.data?.Data || []
+        //        });
 
-            })
-            .catch(function (err) {
+        //        new bootstrap.Modal(
+        //            document.getElementById('planningDetailsModal')
+        //        ).show();
 
-                $rootScope.toastify(
-                    err.data?.Message || "مشكلة في السيرفر",
-                    0
-                );
+        //    })
+        //    .catch(function (err) {
 
-                $scope.detailsTableParams.settings({ dataset: [] });
-            });
+        //        $rootScope.toastify(
+        //            err.data?.Message || "مشكلة في السيرفر",
+        //            0
+        //        );
+
+        //        $scope.detailsTableParams.settings({ dataset: [] });
+        //    });
     };
 
 
@@ -1996,7 +2002,42 @@ app.controller('dashboardCtrl', function (
     $scope.data = {};
 
 });
+app.controller('yearDetailsCtrl', function ($scope, employeeService, itemService, $location, $http, $timeout, $rootScope, NgTableParams, $routeParams) {
 
+
+    $scope.itemDetailsTableParams = new NgTableParams({}, {
+        dataset: []
+    });
+    $scope.itemDetailsTableParams.settings().counts = [];
+
+
+    $scope.loadyearItemDatails = function () {
+        $http.get('/Planning/PlannedItemsByYear', {
+            params: { year: $routeParams.year }
+        })
+            .then(function (res) {
+
+                $scope.itemDetailsTableParams.settings({
+                    dataset: res.data?.Data || []
+                });
+
+              
+            })
+            .catch(function (err) {
+
+                $rootScope.toastify(
+                    err.data?.Message || "مشكلة في السيرفر",
+                    0
+                );
+
+                $scope.itemDetailsTableParams.settings({ dataset: [] });
+            });
+    }
+
+
+    $scope.loadyearItemDatails();
+    $scope.selectedYear = $routeParams.year;
+});
 
 app.controller('issuanceCtrl', function ($scope, employeeService, itemService, $location, $http, $timeout, $rootScope, NgTableParams, $routeParams) {
 
