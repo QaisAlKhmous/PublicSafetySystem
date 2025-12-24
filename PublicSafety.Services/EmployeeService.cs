@@ -36,7 +36,10 @@ namespace PublicSafety.Services
                 RetirementDate = e.RetirementDate?.ToString("yyyy-MM-dd"),
                 Category = e.JobTitle.jobTitleCategories
                         .Select(jc => jc.Category.Name)
-                        .FirstOrDefault()
+                        .FirstOrDefault(),
+                CategoryId = e.JobTitle.jobTitleCategories
+                        .Select(jc => jc.Category.CategoryId)
+                        .FirstOrDefault(),
             });
         }
 

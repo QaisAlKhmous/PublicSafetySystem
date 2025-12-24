@@ -64,7 +64,7 @@ namespace PublicSafety.Services
             foreach (var employee in employees)
             {
 
-                var entitlements = EntitlementRepo.GetEmployeeEntitlemenetsInYear(employee.EmployeeId,year);
+                var entitlements = EntitlementService.GetEmployeeEntitlemenetsInYear(employee.EmployeeId,year,DateTime.Now.Year);
 
                 if (!entitlements.Any())
                     continue;
@@ -74,6 +74,7 @@ namespace PublicSafety.Services
                 int TotalIssued = entitlements.Sum(e => e.IssuedQty);
                 int TotalRemaining = entitlements.Sum(e => e.RemainingQty);
 
+                var JobTitleCategory = CategoryService.GetCategoryByJobTitleId(employee.JobTitleId);
 
                 result.Add(new YearEmployeeSummaryDTO
                 {
@@ -81,7 +82,9 @@ namespace PublicSafety.Services
                     EmployeeName = employee.FullName,
                     TotalEntitled = TotalEntitled,
                     TotalIssued = TotalIssued,
-                    TotalRemaining = TotalRemaining
+                    TotalRemaining = TotalRemaining,
+                    Category = JobTitleCategory.Category,
+                    CategoryId = JobTitleCategory.CategoryId
 
                 });
             }

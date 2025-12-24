@@ -24,6 +24,7 @@ namespace PublicSafety.Services.DTOs
         public string Section { get; set; }
         public string JobTitle { get; set; }
         public string Category { get; set; }
+        public Guid CategoryId { get; set; }
         public string CreationDate { get; set; }
         public string EmploymentDate { get; set; }
         public string RetirementDate { get; set; }

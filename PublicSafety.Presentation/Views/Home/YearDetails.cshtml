@@ -13,18 +13,23 @@
 
         </div>*@
         <div class="card-header">
-            <h3> تفاصيل التخطيط لسنة {{selectedYear}}</h3>
+            <h3> تفاصيل تخطيط المواد لسنة {{selectedYear}}</h3>
         </div>
 
         <div class="card-body">
-            <table ng-table="itemDetailsTableParams"
-                   class="table table-striped table-bordered text-center">
-
-                <tr ng-repeat="item in $data">
-                    <td data-title="'المادة'">{{item.ItemName}}</td>
-                    <td data-title="'الكمية المخططة'">{{item.PlannedQty}}</td>
-                </tr>
-            </table>
+            <div class="row">
+                <div class="col-md-3 mb-3" ng-repeat="item in items">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">{{ item.ItemName }}</h5>
+                            <p class="card-text">
+                                الكمية المخططة:
+                                <strong>{{ item.PlannedQty }}</strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
 
@@ -32,60 +37,73 @@
 
     </div>
     
-        <div class="card card-default h-100">
-            
+    <div class="card card-default h-100">
 
-            <div class="card-body">
+        <div class="card-header">
+            <h3>الموظفين المستحقين لسنة {{selectedYear}}</h3>
 
-                <table ng-table="detailsTableParams"
-                       class="table table-bordered table-striped text-center"
-                       style="cursor:pointer;">
+          
+        </div>
 
-
-                    <thead>
-                        <tr>
-                            <th>اسم الموظف</th>
-                            <th>الفئة</th>
-                            <th>المخطط</th>
-                            <th>المصروف</th>
-                        </tr>
-                    </thead>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-5">
+                    <input type="text" ng-model="employeeYearTableParams.filter().EmployeeName" placeholder="الاسم" class="form-control" />
+                </div>
 
 
-                    <tbody>
-                        <tr class="t-hover" ng-repeat="row in $data"
-                            ng-click="openYearDetails(row.Year)">
-
-                            <td>{{row.Year}}</td>
-
-                            <td>{{row.EmployeesCount}}</td>
-
-                            <td>{{row.Planned}}</td>
-
-                            <!-- Issued Summary -->
-                            <td class="font-weight-bold text-black t-hover">
-                                {{row.Issued.Total}}
-                            </td>
-
-                            <td>{{row.Issued.Entitled}}</td>
-
-                            <td>{{row.Issued.Exception}}</td>
-
-                            <td>{{row.Issued.Damaged}}</td>
-
-                            <td>{{row.Issued.Disposed}}</td>
-                        </tr>
-                    </tbody>
-
-                </table>
-
-                <div ng-show="planningData.length === 0"
-                     class="text-danger text-center mt-2">
-                    لا توجد بيانات
+                <div class="col-3">
+                    <select class="form-control" name="JobTitle"
+                            ng-model="employeeYearTableParams.filter().CategoryId"
+                            ng-options="c.CategoryId as c.Name for c in Categories">
+                        <option value="">الكل</option>
+                    </select>
                 </div>
 
             </div>
+
+
+            <table ng-table="employeeYearTableParams"
+                   class="table table-bordered table-striped text-center"
+                   style="cursor:pointer;">
+
+
+                <thead>
+                    <tr>
+                        <th>اسم الموظف</th>
+                        <th>الفئة</th>
+                        <th>الكمية المخططة</th>
+                        <th>الكمية المصروفة</th>
+                        <th>الكمية المتبقية</th>
+                    </tr>
+                </thead>
+
+
+                <tbody>
+                    <tr class="t-hover" ng-repeat="row in $data">
+
+                        <td>{{row.EmployeeName}}</td>
+                        <td>{{row.Category}}</td>
+
+                        <td>{{row.TotalEntitled}}</td>
+
+                        <td>{{row.TotalIssued}}</td>
+
+                        <td>
+                            {{row.TotalRemaining}}
+                        </td>
+                    </tr>
+                </tbody>
+
+            </table>
+
+            <div ng-show="planningData.length === 0"
+                 class="text-danger text-center mt-2">
+                لا توجد بيانات
+            </div>
+
         </div>
+    </div>
     
 </div>
 

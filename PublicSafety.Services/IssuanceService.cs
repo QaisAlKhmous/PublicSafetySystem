@@ -390,7 +390,7 @@ namespace PublicSafety.Services
     IssueEmployeeYearDTO yearIssuance)
         {
             var entitlements = EntitlementRepo
-                .GetEmployeeEntitlemenets(yearIssuance.EmployeeId)
+                .GetEmployeeEntitlemenets(yearIssuance.EmployeeId,DateTime.Now.Year)
                 .Where(e =>
                     e.EntitlementYear == yearIssuance.Year &&
                     e.RemainingQty > 0)

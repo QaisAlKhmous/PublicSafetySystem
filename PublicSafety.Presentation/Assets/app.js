@@ -302,7 +302,6 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
                 $scope.itemsTableParams.settings({ dataset: $scope.items });
 
             }).catch(() => {
-                console.log("eror");
                 $scope.items = []
             } );
     }
@@ -436,13 +435,11 @@ app.controller('itemsCtrl', function ($scope, NgTableParams, itemService, dispos
 
              
                 $scope.loadItems();
-                console.log($scope.items);
 
             })
                 .catch(function (error) {
 
                     if (error.data && error.data.Message) {
-                        console.log("j")
                         $rootScope.toastify(error.data.Message, 0);
                     } else {
                         $rootScope.toastify("مشكلة في السيرفر", 0);
@@ -619,7 +616,6 @@ app.controller('matrixCtrl', function ($scope, NgTableParams, matrixService, $ht
             $scope.Categories = res.data;
             $scope.selectedCategory = $scope.Categories[0];
             $scope.selectedCategoryChanged();
-            console.log(res.data)
         })
 
     }
@@ -665,7 +661,6 @@ app.controller('matrixCtrl', function ($scope, NgTableParams, matrixService, $ht
         $http.get('/Matrix/IsMatrixExistsByCategoryId?CategoryId=' + CategoryId).then((res) => {
 
             $scope.matrixExists = res.data;
-            console.log($scope.matrixExists)
             if ($scope.matrixExists) {
                 $scope.loadItemsByCategory($scope.selectedCategory.CategoryId)
             }
@@ -1244,7 +1239,6 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
             if ($scope.Categories && $scope.Categories.length > 0) {
                 $scope.selectedCategory = $scope.Categories[0];
             }
-            console.log(res.data)
             
         }).catch((err) => {
             if (err.data && err.data.Message)
@@ -1255,6 +1249,9 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
         })
     }
 
+    $scope.loadCategories();
+
+   
     $scope.issueCategoryChangeRequest = {
         EntityType: 'CategoryIssuance', EntityId: '', OldValue: null,
         NewValue: '', ChangedBy: $rootScope.LogedInUser.username
@@ -1333,7 +1330,6 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
 
     $scope.openEntitleMatrixModal = function () {
         $scope.selectedYear = 2025;
-        $scope.loadCategories();
 
         $scope.signedReceipt.receiptPath = '';
         $scope.entitleForm.$submitted = false;
@@ -1632,7 +1628,6 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
    
     $scope.checkIfUpdate = function () {
         if ($scope.updateEmployeeId) {
-            console.log("hi");
             employeeService.getEmployeeById($scope.updateEmployeeId)
                 .then((res) => {
                   
@@ -1985,7 +1980,6 @@ app.controller('dashboardCtrl', function (
                 }
             })
             .catch(err => {
-                console.error(err);
                 $scope.itemsCount = 0;
             });
 
@@ -2004,6 +1998,8 @@ app.controller('dashboardCtrl', function (
 });
 app.controller('yearDetailsCtrl', function ($scope, employeeService, itemService, $location, $http, $timeout, $rootScope, NgTableParams, $routeParams) {
 
+    $scope.selectedYear = $routeParams.year;
+
 
     $scope.itemDetailsTableParams = new NgTableParams({}, {
         dataset: []
@@ -2017,6 +2013,7 @@ app.controller('yearDetailsCtrl', function ($scope, employeeService, itemService
         })
             .then(function (res) {
 
+                $scope.items = res.data?.Data;
                 $scope.itemDetailsTableParams.settings({
                     dataset: res.data?.Data || []
                 });
@@ -2036,7 +2033,52 @@ app.controller('yearDetailsCtrl', function ($scope, employeeService, itemService
 
 
     $scope.loadyearItemDatails();
-    $scope.selectedYear = $routeParams.year;
+
+
+
+    $scope.employeeYearTableParams = new NgTableParams({}, {
+        dataset: []
+    });
+    $scope.employeeYearTableParams.settings().counts = [];
+    
+    $scope.loadyearEmployees = function () {
+        $http.get('/Planning/GetYearEmployees', {
+            params: { year: $routeParams.year }
+        })
+            .then(function (res) {
+
+               
+
+                $scope.employeeYearTableParams.settings({
+                    dataset: res.data?.Data || []
+                });
+
+
+            })
+            .catch(function (err) {
+
+                $rootScope.toastify(
+                    err.data?.Message,
+                    0
+                );
+
+                $scope.employeeYearTableParams.settings({ dataset: [] });
+            });
+    }
+
+    $scope.loadyearEmployees();
+
+
+    $scope.loadCategories = function () {
+        $http.get('/Category/GetAllCategories').then((res) => {
+            $scope.Categories = res.data;
+            $scope.selectedCategory = $scope.Categories[0];
+        })
+
+    }
+    $scope.loadCategories();
+
+   
 });
 
 app.controller('issuanceCtrl', function ($scope, employeeService, itemService, $location, $http, $timeout, $rootScope, NgTableParams, $routeParams) {
@@ -2176,7 +2218,6 @@ app.controller('issuanceCtrl', function ($scope, employeeService, itemService, $
     $scope.isUploading = false;
 
     $scope.openUploadReceiptModal = function () {
-        console.log('hi')
         $scope.selectedReceiptYear = null;
         $scope.signedReceipt.receiptPath = '';
         $scope.signedReceiptForm.$submitted = false;
@@ -2798,7 +2839,6 @@ app.controller("requestsCtrl", function ($scope, employeeService, itemService, $
         $http.post('/ChangeRequest/GetDifferences', { ChangeRequestId: request.RequestId, EntityId: request.EntityId }).then((res) => {
             $scope.entityType = res.data.type;
             $scope.isAdd = res.data.IsAdd;
-            console.log(res.data);
             if (res.data.IsAdd) {
 
                 $scope.data = res.data.entity;

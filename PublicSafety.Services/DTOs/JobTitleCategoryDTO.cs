@@ -11,6 +11,7 @@ namespace PublicSafety.Services.DTOs
     {
         public Guid JobTitleCategoryId { get; set; }
         public string Category { get; set; }
+        public Guid CategoryId { get; set; }
         public string JobTitle { get; set; }
     }
 }

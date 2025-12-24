@@ -30,7 +30,8 @@ namespace PublicSafety.Services
             {
                 JobTitleCategoryId = JobTitleCategory.JobTitleCategoryId,
                 JobTitle = JobTitleCategory.JobTitle.Name,
-                Category = JobTitleCategory.Category.Name
+                Category = JobTitleCategory.Category.Name,
+                CategoryId = JobTitleCategory.CategoryId
             };
         }
 

@@ -10,7 +10,8 @@ namespace PublicSafety.Services.DTOs
     {
         public Guid EmployeeId { get; set; }
         public string EmployeeName { get; set; }
-
+        public string Category { get; set; }
+        public Guid CategoryId { get; set; }
         public int TotalEntitled { get; set; }
         public int TotalIssued { get; set; }
         public int TotalRemaining { get; set; }

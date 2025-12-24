@@ -101,7 +101,7 @@ namespace PublicSafety.APIs.Controllers
                         Success = false,
                         Data = null,
                         Message = "لا يوجد موظفين هذه السنة"
-                    });
+                    },JsonRequestBehavior.AllowGet);
 
                 }
 
@@ -110,7 +110,7 @@ namespace PublicSafety.APIs.Controllers
                     Success = true,
                     Data = yearEmployees,
                     Message = ""
-                });
+                }, JsonRequestBehavior.AllowGet);
 
             }catch(Exception ex)
             {
@@ -119,7 +119,7 @@ namespace PublicSafety.APIs.Controllers
                     Success = false,
                     Data = null,
                     Message = ex.Message
-                });
+                }, JsonRequestBehavior.AllowGet);
             }
           
 
