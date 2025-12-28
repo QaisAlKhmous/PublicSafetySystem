@@ -1,10 +1,11 @@
 ﻿using PublicSafety.Domain.Entities;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Data.Entity;
 
 
 namespace PublicSafety.Repositories.Repositories
@@ -95,69 +96,30 @@ namespace PublicSafety.Repositories.Repositories
         {
             using (var context = new AppDbContext())
             {
-                
-                var activeMatrixByCategory = context.Matrices
-                    .Where(m => m.IsActive)
-                    .ToDictionary(m => m.CategoryId, m => m.MatrixId);
-
-               
-                var matrixItemsByMatrix = context.MatrixItems
-                    .Where(mi => activeMatrixByCategory.Values.Contains(mi.MatrixId))
-                    .GroupBy(mi => mi.MatrixId)
-                    .ToDictionary(
-                        g => g.Key,
-                        g => g.Select(x => new
-                        {
-                            x.Quantity,
-                            x.Frequency
-                        }).ToList()
-                    );
-
-               
-                var employees = (
-                    from e in context.Employees
-                    join jtc in context.JobTitleCategories
-                        on e.JobTitleId equals jtc.JobTitleId
-                    select new
-                    {
-                        e.EmployeeId,
-                        jtc.CategoryId,
-                        EmploymentYear = e.EmploymentDate.Year,
-                        RetirementYear = e.RetirementDate.HasValue
-                            ? e.RetirementDate.Value.Year
-                            : (int?)null
-                    }
-                ).ToList();
+                var employees = context.Employees
+                    .Select(e => e.EmployeeId)
+                    .ToList();
 
                 var result = new Dictionary<int, int>();
 
-                
                 for (int year = fromYear; year <= toYear; year++)
                 {
                     int totalForYear = 0;
 
-                    foreach (var emp in employees)
+                    foreach (var empId in employees)
                     {
-                      
-                        if (emp.EmploymentYear > year)
-                            continue;
+                        var employeeIdParam = new SqlParameter("@EmployeeId", empId);
+                        var maxYearParam = new SqlParameter("@MaxYear", year);
 
-                        if (emp.RetirementYear.HasValue && emp.RetirementYear.Value < year)
-                            continue;
+                        var entitlements = context.Database.SqlQuery<Entitlement>(
+                            "EXEC dbo.GetEmployeeEntitlements @EmployeeId, @MaxYear",
+                            employeeIdParam,
+                            maxYearParam
+                        )
+                        .Where(e => e.EntitlementYear == year)
+                        .ToList();
 
-                        if (!activeMatrixByCategory.TryGetValue(emp.CategoryId, out Guid matrixId))
-                            continue;
-
-                        var items = matrixItemsByMatrix[matrixId]; 
-
-                        foreach (var item in items)
-                        {
-                          
-                            if ((year - emp.EmploymentYear) % item.Frequency == 0)
-                            {
-                                totalForYear += item.Quantity;
-                            }
-                        }
+                        totalForYear += entitlements.Sum(e => e.EntitledQty);
                     }
 
                     result[year] = totalForYear;
@@ -166,6 +128,7 @@ namespace PublicSafety.Repositories.Repositories
                 return result;
             }
         }
+
 
 
 
@@ -200,104 +163,53 @@ namespace PublicSafety.Repositories.Repositories
             return result;
         }
 
-    
+
 
 
         public static List<PlanningItemDetails> GetPlannedItemsByYear(int fromYear, int toYear)
         {
             using (var context = new AppDbContext())
             {
-              
-                var activeMatrixByCategory = context.Matrices
-                    .Where(m => m.IsActive)
-                    .ToDictionary(m => m.CategoryId, m => m.MatrixId);
-
-              
-                var matrixItemsByMatrix =
-                (
-                    from mi in context.MatrixItems
-                    join i in context.Items on mi.ItemId equals i.ItemId
-                    where activeMatrixByCategory.Values.Contains(mi.MatrixId)
-                    select new
-                    {
-                        mi.MatrixId,
-                        mi.ItemId,
-                        ItemName = i.Name,
-                        mi.Quantity,
-                        mi.Frequency
-                    }
-                )
-                .ToList()  
-                .GroupBy(x => x.MatrixId)
-                .ToDictionary(
-                    g => g.Key,
-                    g => g.ToList()
-                );
-
-               
-                var employees =
-                (
-                    from e in context.Employees
-                    join jtc in context.JobTitleCategories
-                        on e.JobTitleId equals jtc.JobTitleId
-                    select new
-                    {
-                        e.EmployeeId,
-                        jtc.CategoryId,
-                        EmploymentYear = e.EmploymentDate.Year,
-                        RetirementYear = e.RetirementDate.HasValue
-                            ? e.RetirementDate.Value.Year
-                            : (int?)null
-                    }
-                ).ToList();
+                var employees = context.Employees
+                    .Select(e => e.EmployeeId)
+                    .ToList();
 
                 var result = new List<PlanningItemDetails>();
 
-              
-                for (int year = fromYear; year <= toYear; year++)
+                foreach (var empId in employees)
                 {
-                    foreach (var emp in employees)
+                    var employeeParam = new SqlParameter("@EmployeeId", empId);
+                    var maxYearParam = new SqlParameter("@MaxYear", toYear);
+
+                    var entitlements = context.Database.SqlQuery<Entitlement>(
+                        "EXEC dbo.GetEmployeeEntitlements @EmployeeId, @MaxYear",
+                        employeeParam,
+                        maxYearParam
+                    )
+                    .Where(e => e.EntitlementYear >= fromYear &&
+                                e.EntitlementYear <= toYear)
+                    .ToList();
+
+                    foreach (var e in entitlements)
                     {
-                      
-                        if (emp.EmploymentYear > year)
-                            continue;
+                        var existing = result.FirstOrDefault(x =>
+                            x.Year == e.EntitlementYear &&
+                            x.ItemId == e.ItemId
+                        );
 
-                      
-                        if (emp.RetirementYear.HasValue && emp.RetirementYear.Value < year)
-                            continue;
-
-                      
-                        if (!activeMatrixByCategory.TryGetValue(emp.CategoryId, out Guid matrixId))
-                            continue;
-
-                        if (!matrixItemsByMatrix.TryGetValue(matrixId, out var items))
-                            continue;
-
-                        foreach (var item in items)
+                        if (existing == null)
                         {
-                            
-                            if ((year - emp.EmploymentYear) % item.Frequency != 0)
-                                continue;
-
-                            var existing = result.FirstOrDefault(x =>
-                                x.Year == year &&
-                                x.ItemId == item.ItemId
-                            );
-
-                            if (existing == null)
+                            result.Add(new PlanningItemDetails
                             {
-                                result.Add(new PlanningItemDetails
-                                {
-                                    Year = year,
-                                    ItemId = item.ItemId,
-                                    ItemName = item.ItemName,
-                                    PlannedQty = item.Quantity
-                                });
-                            }
-                            else
-                            {
-                                existing.PlannedQty += item.Quantity;
-                            }
+                                Year = e.EntitlementYear,
+                                ItemId = e.ItemId,
+                                ItemName = e.ItemName,
+                                PlannedQty = e.EntitledQty
+                            });
+                        }
+                        else
+                        {
+                            existing.PlannedQty += e.EntitledQty;
                         }
                     }
                 }
@@ -305,6 +217,7 @@ namespace PublicSafety.Repositories.Repositories
                 return result;
             }
         }
+
 
 
 

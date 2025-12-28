@@ -11,7 +11,7 @@
             <h2 ng-show="updateEmployeeId">تعديل بيانات الموظف ({{employee.FullName}})</h2>
             <button class="btn search"
                     type="button"
-                    ng-click="goBackToEmployees()">
+                    ng-click="goBackTo('\employees')">
                 ⬅ الرجوع إلى الموظفين
             </button>
         </div>
@@ -23,7 +23,7 @@
                 <div class="row">
 
                     <div class="form-group col-4">
-                        <label for="exampleFormControlInput5" style="direction: rtl; text-align: right; display: block;">الاسم الأول</label>
+                        <label for="exampleFormControlInput5" style="direction: rtl; text-align: right; display: block;">الاسم الاول*</label>
                         <input arabic-only ng-model="employee.FirstName" type="text" name="FirstName" class="form-control rounded-0 bg-light" id="FirstName" placeholder="الاسم الأول" required>
                         <div class="invalid-feedback d-block" ng-show="employeeForm.$submitted && employeeForm.FirstName.$error.required">
                             <i class="bx bx-radio-circle"></i>
@@ -36,7 +36,7 @@
                        
                     </div>
                     <div class="form-group col-4">
-                        <label for="exampleFormControlInput5" style="direction: rtl; text-align: right; display: block;">اسم العائلة</label>
+                        <label for="exampleFormControlInput5" style="direction: rtl; text-align: right; display: block;">اسم العائلة*</label>
                         <input arabic-only ng-model="employee.LastName" type="text" name="LastName" class="form-control rounded-0 bg-light" id="LastName" placeholder="اسم العائلة" required>
                         <div class="invalid-feedback d-block" ng-show="employeeForm.$submitted && employeeForm.LastName.$error.required">
                             <i class="bx bx-radio-circle"></i>
@@ -61,11 +61,11 @@
 
                 <div class="row">
                     <div class="form-group col-4">
-                        <label for="exampleFormControlInput5">تاريخ التوظيف</label>
+                        <label for="exampleFormControlInput5">تاريخ التوظيف*</label>
                         <input ng-model="employee.EmploymentDate" type="text" name="date" class="form-control rounded-0 bg-light" placeholder="Select date" required />
                     </div>
                     <div class="form-group col-4">
-                        <label for="exampleFormControlSelect12">المسمى الوظيفي</label>
+                        <label for="exampleFormControlSelect12">المسمى الوظيفي*</label>
                         <select class="form-control rounded-0 bg-light" name="JobTitle" required
                                 ng-model="employee.JobTitleId"
                                 ng-options="j.JobTitleId as j.Name for j in JobTitles"
@@ -86,7 +86,7 @@
                 <div class="row">
 
                     <div class="form-group col-4">
-                        <label for="exampleFormControlSelect12">الوحدة التنظيمية</label>
+                        <label for="exampleFormControlSelect12">الوحدة التنظيمية*</label>
                         <select class="form-control rounded-0 bg-light" required
                                 ng-model="employee.DepartmentId" name="Department"
                                 ng-options="d.DepartmentId as d.Name for d in Departments">
@@ -99,7 +99,7 @@
 
                     </div>
                     <div class="form-group col-4">
-                        <label for="exampleFormControlSelect12">الدائرة</label>
+                        <label for="exampleFormControlSelect12">الدائرة*</label>
                         <select class="form-control rounded-0 bg-light"
                                 ng-model="employee.SectionId" name="Section" required
                                 ng-options="s.SectionId as s.Name for s in Sections">

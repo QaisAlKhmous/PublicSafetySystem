@@ -17,7 +17,7 @@
 
             <button class="btn search"
                     type="button"
-                    ng-click="goBackToEmployees()">
+                    ng-click="goBackTo('\employees')">
                 ⬅ الرجوع إلى الموظفين
             </button>
 
@@ -39,7 +39,6 @@
                     <select class="form-control"
                             ng-model="entitlementsTableParams.filter().EntitlementYear"
                             ng-options="y as y for y in receiptYears">
-                        >
                         <option value="">الكل</option>
                     </select>
                 </div>
@@ -68,17 +67,20 @@
                         <span ng-show="!entitlement.IsIssued" class="text-danger">غير مستلم</span>
                     </td>
                     <td data-title="'الاجراءات'">
-                        <button type="button" class="btn btn-success " data-bs-toggle="modal" data-bs-target="#issueModalForm" ng-disabled="entitlement.IsIssued" ng-click="selectEntitlment(entitlement)">تسليم</button>
+                        <button type="button" class="btn btn-success " data-bs-toggle="modal" data-bs-target="#issueModalForm" ng-show="!entitlement.IsIssued" ng-click="selectEntitlment(entitlement)">تسليم</button>
                     </td>
 
 
                 </tr>
 
+
             </table>
-            <h4 ng-show="entitlements.length == 0" class="d-flex justify-content-center mt-2 text-danger">لا يوجد مستحقات لهذا الموظف</h4>
 
 
-
+            <div ng-if="entitlementsTableParams.total() === 0"
+                 class="d-flex justify-content-center mt-2 text-danger">
+                لا يوجد مستحقات
+            </div>
 
         </div>
     </div>

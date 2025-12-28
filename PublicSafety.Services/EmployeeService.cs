@@ -1,5 +1,6 @@
 ﻿using AdminDashboard.Services;
 using PublicSafety.Domain.Entities;
+using PublicSafety.Repositories;
 using PublicSafety.Repositories.Repositories;
 using PublicSafety.Services.DTOs;
 using System;
@@ -279,7 +280,22 @@ namespace PublicSafety.Services
             EmployeeRepo.ActivateEmployee(employee, newHistory);
         }
 
-       
 
+        public static IEnumerable<EmployeeDTO> GetEmployeesByYear(int Year)
+        {
+            var employees = EmployeeRepo.GetEmployeesByYear(Year);
+            return employees.Select(e => new EmployeeDTO
+            {
+                FullName = e.FullName,
+                EmployeeId = e.EmployeeId,
+                CategoryId = e.JobTitle.jobTitleCategories
+                        .Select(jc => jc.Category.CategoryId)
+                        .FirstOrDefault(),
+                Category = e.JobTitle.jobTitleCategories
+                        .Select(jc => jc.Category.Name)
+                        .FirstOrDefault()
+            });
+
+        }
     }
 }

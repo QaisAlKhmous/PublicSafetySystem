@@ -57,7 +57,7 @@ namespace PublicSafety.Services
 
         public static List<YearEmployeeSummaryDTO> GetYearEmployees(int year)
         {
-            var employees = EmployeeRepo.GetAllEmployees();
+            var employees = EmployeeService.GetEmployeesByYear(year);
 
             var result = new List<YearEmployeeSummaryDTO>();
 
@@ -65,16 +65,35 @@ namespace PublicSafety.Services
             {
 
                 var entitlements = EntitlementService.GetEmployeeEntitlemenetsInYear(employee.EmployeeId,year,DateTime.Now.Year);
-
-                if (!entitlements.Any())
-                    continue;
+                var issuances = IssuanceService.GetIssuancesByEmployeeId(employee.EmployeeId);
 
 
-                int TotalEntitled = entitlements.Sum(e => e.EntitledQty);
-                int TotalIssued = entitlements.Sum(e => e.IssuedQty);
-                int TotalRemaining = entitlements.Sum(e => e.RemainingQty);
+                
 
-                var JobTitleCategory = CategoryService.GetCategoryByJobTitleId(employee.JobTitleId);
+                int TotalIssued = 0;
+                int TotalEntitled = 0;
+                int TotalRemaining = 0;
+                bool IsIssued = true;
+
+             
+                if (issuances.Any())
+                {
+                   TotalIssued = issuances.Count();
+                }
+
+                if (entitlements.Any())
+                {
+                    TotalEntitled = entitlements.Sum(e => e.EntitledQty);
+                    TotalRemaining = entitlements.Sum(e => e.RemainingQty);
+                }
+
+               
+
+                if (TotalRemaining > 0)
+                    IsIssued = false;
+
+
+                
 
                 result.Add(new YearEmployeeSummaryDTO
                 {
@@ -83,8 +102,10 @@ namespace PublicSafety.Services
                     TotalEntitled = TotalEntitled,
                     TotalIssued = TotalIssued,
                     TotalRemaining = TotalRemaining,
-                    Category = JobTitleCategory.Category,
-                    CategoryId = JobTitleCategory.CategoryId
+                    Category = employee.Category,
+                    CategoryId = employee.CategoryId,
+                    IsIssued = IsIssued
+                    
 
                 });
             }

@@ -31,12 +31,12 @@
 
                     <button class="btn btn-danger txt-small"
                             ng-class="{'disabled': request.Status != 0}"
-                            ng-disabled="request.Status != 0"
+                            ng-show="request.Status == 0"
                             ng-click="confirmRejectRequest(request.RequestId); $event.stopPropagation();">
                         رفض
                     </button>
                     <button ng-class="{'disabled': request.Status != 0}"
-                            ng-disabled="request.Status != 0" ng-click="confirmAcceptRequest(request.RequestId); $event.stopPropagation();" class="btn btn-info txt-small">
+                            ng-show="request.Status == 0" ng-click="confirmAcceptRequest(request.RequestId); $event.stopPropagation();" class="btn btn-info txt-small">
                         موافقة
                     </button>
                 </td>

@@ -271,6 +271,27 @@ namespace PublicSafety.APIs.Controllers
         }
 
         [HttpGet]
+        public JsonResult GetEmployeeEntitlementsByYear(Guid EmployeeId,int Year)
+        {
+            var entitlements = EntitlementService.GetEmployeeEntitlemenetsInYear(EmployeeId,Year,DateTime.Now.Year);
+
+            if (entitlements == null)
+                return Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = "مشكلة في السيرفر",
+                    Data = null
+                }, JsonRequestBehavior.AllowGet);
+
+            return Json(new ApiResponse<IEnumerable<Entitlement>>
+            {
+                Success = true,
+                Message = "",
+                Data = entitlements
+            }, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
         public JsonResult GetEmployeesByCategory()
         {
             var ebc = EmployeeService.GetEmployeesByCategoriesCount();

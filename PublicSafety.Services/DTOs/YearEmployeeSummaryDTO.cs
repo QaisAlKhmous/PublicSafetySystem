@@ -15,5 +15,6 @@ namespace PublicSafety.Services.DTOs
         public int TotalEntitled { get; set; }
         public int TotalIssued { get; set; }
         public int TotalRemaining { get; set; }
+        public bool IsIssued { get; set; }
     }
 }

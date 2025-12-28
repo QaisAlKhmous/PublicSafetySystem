@@ -13,7 +13,14 @@
 
         </div>*@
         <div class="card-header">
-            <h3> تفاصيل تخطيط المواد لسنة {{selectedYear}}</h3>
+            <h3> تفاصيل تخطيط المواد لسنة {{ selectedYear }}</h3>
+
+
+            <button class="btn search"
+                    type="button"
+                    ng-click="goBackTo('/')">
+                ⬅ الرجوع إلى الصفحة الرئيسية
+            </button>
         </div>
 
         <div class="card-body">
@@ -40,7 +47,7 @@
     <div class="card card-default h-100">
 
         <div class="card-header">
-            <h3>الموظفين المستحقين لسنة {{selectedYear}}</h3>
+            <h3>الموظفين لسنة {{ selectedYear }}</h3>
 
           
         </div>
@@ -48,11 +55,13 @@
         <div class="card-body">
             <div class="row mb-3">
                 <div class="col-5">
+                    <label>الاسم</label>
                     <input type="text" ng-model="employeeYearTableParams.filter().EmployeeName" placeholder="الاسم" class="form-control" />
                 </div>
 
 
                 <div class="col-3">
+                    <label>الفئة</label>
                     <select class="form-control" name="JobTitle"
                             ng-model="employeeYearTableParams.filter().CategoryId"
                             ng-options="c.CategoryId as c.Name for c in Categories">
@@ -60,12 +69,21 @@
                     </select>
                 </div>
 
+                <div class="col-3">
+                    <label>الحالة</label>
+                    <select class="form-control" name="JobTitle"
+                            ng-model="employeeYearTableParams.filter().IsIssued">
+                        <option value="">الكل</option>
+                        <option value="true">مستلم</option>
+                        <option value="false">غير مستلم</option>
+                    </select>
+                </div>
+
             </div>
 
 
             <table ng-table="employeeYearTableParams"
-                   class="table table-bordered table-striped text-center"
-                   style="cursor:pointer;">
+                   class="table table-bordered table-striped text-center">
 
 
                 <thead>
@@ -75,12 +93,14 @@
                         <th>الكمية المخططة</th>
                         <th>الكمية المصروفة</th>
                         <th>الكمية المتبقية</th>
+                        <th>الحالة</th>
+                        <th>الاجرائات</th>
                     </tr>
                 </thead>
 
 
                 <tbody>
-                    <tr class="t-hover" ng-repeat="row in $data">
+                    <tr class="t-hover" ng-repeat="row in $data" >
 
                         <td>{{row.EmployeeName}}</td>
                         <td>{{row.Category}}</td>
@@ -89,8 +109,17 @@
 
                         <td>{{row.TotalIssued}}</td>
 
+                        <td>{{row.TotalRemaining}}</td>
                         <td>
-                            {{row.TotalRemaining}}
+                            <span class="text-success" ng-show="row.IsIssued">مستلم</span>
+                            <span class="text-danger" ng-show="!row.IsIssued">غير مستلم</span>
+                        </td>
+
+                        <td>
+                            <div class="btn-group" role="group" aria-label="Basic example" dir="ltr">
+                                <button type="button" class="btn btn-outline-dark btn-pill" ng-click="goToEntitlements(row.EmployeeId,selectedYear)">سجل المستحقات</button>
+                                <button type="button" class="btn btn-outline-dark btn-pill" ng-click="goToIssuances(row.EmployeeId,selectedYear)">سجل الصرف</button>
+                            </div>
                         </td>
                     </tr>
                 </tbody>
