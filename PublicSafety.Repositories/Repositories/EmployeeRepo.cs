@@ -239,6 +239,34 @@ namespace PublicSafety.Repositories.Repositories
             }
         }
 
-       
+
+
+        public static IEnumerable<Employee> GetEmployeesByYear(int Year)
+        {
+            using(var context = new AppDbContext())
+            {
+                var AllEmployees = context.Employees
+                    .Include(e => e.JobTitle)
+                    .Include(e => e.JobTitle.jobTitleCategories.Select(jc => jc.Category))
+                    .ToList();
+
+                var employees = new List<Employee>();
+
+               foreach(var employee in AllEmployees)
+                {
+                    if(employee.EmploymentDate.Year <= Year &&
+                        (employee.RetirementDate == null || employee.RetirementDate.Value.Year >= Year))
+                    {
+                        employees.Add(employee);
+                    }
+                }
+
+              
+
+                return employees;
+            }
+          
+        }
+
     }
 }

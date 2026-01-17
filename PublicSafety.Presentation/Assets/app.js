@@ -36,11 +36,11 @@ app.config(function ($routeProvider) {
             controller: 'addEmployeeCtrl'
 
         })
-        .when("/issuances/:employeeId", {
+        .when("/issuances/:employeeId/:year", {
             templateUrl: '/Home/Issuances',
             controller: 'issuanceCtrl'
         })
-        .when("/entitlements/:employeeId", {
+        .when("/entitlements/:employeeId/:year", {
             templateUrl: '/Home/Entitlements',
             controller: 'entitlementCtrl'
         })
@@ -137,13 +137,12 @@ app.run(function ($rootScope, $location, $cookies,$timeout) {
         return dz;
     };
 
-    $rootScope.goBackToEmployees = function () {
-        $location.path('/employees');
+    $rootScope.goBackTo = function (path) {
+        $location.path(path);
     };
 
-    $rootScope.goBackToItems = function () {
-        $location.path('/items');
-    };
+    
+
 })
 
 app.factory('itemService', function ($http) {
@@ -1996,11 +1995,17 @@ app.controller('dashboardCtrl', function (
     $scope.data = {};
 
 });
-app.controller('yearDetailsCtrl', function ($scope, employeeService, itemService, $location, $http, $timeout, $rootScope, NgTableParams, $routeParams) {
+app.controller('yearDetailsCtrl', function ($scope, employeeService, itemService, $location, $http, $timeout, $rootScope, NgTableParams, $routeParams,$location) {
 
     $scope.selectedYear = $routeParams.year;
 
+    $scope.goToEntitlements = function (employeeId,year) {
+        $location.path('/entitlements/' + employeeId + '/' + year);
+    }
 
+    $scope.goToIssuances = function (employeeId, year) {
+        $location.path('/issuances/' + employeeId + '/' + year);
+    }
     $scope.itemDetailsTableParams = new NgTableParams({}, {
         dataset: []
     });
@@ -2078,6 +2083,10 @@ app.controller('yearDetailsCtrl', function ($scope, employeeService, itemService
     }
     $scope.loadCategories();
 
+    $scope.getEmployeeYearDetails = function () {
+        
+    }
+
    
 });
 
@@ -2154,6 +2163,14 @@ app.controller('issuanceCtrl', function ($scope, employeeService, itemService, $
                     $scope.issuancesTableParams.settings({
                         dataset: $scope.issuances
                     });
+
+                    if ($routeParams.year) {
+
+                        $scope.filters.FromDate = new Date($routeParams.year, 0, 1);   // Jan 1
+                        $scope.filters.ToDate = new Date($routeParams.year, 11, 31); // Dec 31
+
+                        $scope.applyFilters();
+                    }
 
                 } else {
                     $scope.allIssuances = [];
@@ -2318,6 +2335,8 @@ app.controller('entitlementCtrl',
                     $scope.entitlements = res.data.Data;
                     $scope.entitlementsTableParams.settings({ dataset: $scope.entitlements });
                 });
+            if ($routeParams.year != 0)
+                $scope.entitlementsTableParams.filter().EntitlementYear = parseInt($routeParams.year);
         };
 
         $scope.loadEmployee = function () {

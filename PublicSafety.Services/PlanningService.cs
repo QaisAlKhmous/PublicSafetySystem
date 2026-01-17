@@ -57,24 +57,50 @@ namespace PublicSafety.Services
 
         public static List<YearEmployeeSummaryDTO> GetYearEmployees(int year)
         {
-            var employees = EmployeeRepo.GetAllEmployees();
+            var employees = EmployeeService.GetEmployeesByYear(year);
 
             var result = new List<YearEmployeeSummaryDTO>();
 
             foreach (var employee in employees)
             {
 
+<<<<<<< HEAD
                 var entitlements = EntitlementService.GetEmployeeEntitlemenetsInYear(employee.EmployeeId,year,DateTime.Now.Year + 4);
 
                 if (!entitlements.Any())
                     continue;
+=======
+                var entitlements = EntitlementService.GetEmployeeEntitlemenetsInYear(employee.EmployeeId,year,DateTime.Now.Year);
+                var issuances = IssuanceService.GetIssuancesByEmployeeId(employee.EmployeeId);
+>>>>>>> 19c6ce64e18113853c49ea4f4b84236f98ae14ca
 
 
-                int TotalEntitled = entitlements.Sum(e => e.EntitledQty);
-                int TotalIssued = entitlements.Sum(e => e.IssuedQty);
-                int TotalRemaining = entitlements.Sum(e => e.RemainingQty);
+                
 
-                var JobTitleCategory = CategoryService.GetCategoryByJobTitleId(employee.JobTitleId);
+                int TotalIssued = 0;
+                int TotalEntitled = 0;
+                int TotalRemaining = 0;
+                bool IsIssued = true;
+
+             
+                if (issuances.Any())
+                {
+                   TotalIssued = issuances.Count();
+                }
+
+                if (entitlements.Any())
+                {
+                    TotalEntitled = entitlements.Sum(e => e.EntitledQty);
+                    TotalRemaining = entitlements.Sum(e => e.RemainingQty);
+                }
+
+               
+
+                if (TotalRemaining > 0)
+                    IsIssued = false;
+
+
+                
 
                 result.Add(new YearEmployeeSummaryDTO
                 {
@@ -83,8 +109,10 @@ namespace PublicSafety.Services
                     TotalEntitled = TotalEntitled,
                     TotalIssued = TotalIssued,
                     TotalRemaining = TotalRemaining,
-                    Category = JobTitleCategory.Category,
-                    CategoryId = JobTitleCategory.CategoryId
+                    Category = employee.Category,
+                    CategoryId = employee.CategoryId,
+                    IsIssued = IsIssued
+                    
 
                 });
             }
