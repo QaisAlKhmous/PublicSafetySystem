@@ -2046,8 +2046,8 @@ app.controller('yearDetailsCtrl', function ($scope, employeeService, itemService
             params: { year: $routeParams.year }
         })
             .then(function (res) {
-
-               
+                console.log("hi")
+                console.log(res.data)
 
                 $scope.employeeYearTableParams.settings({
                     dataset: res.data?.Data || []

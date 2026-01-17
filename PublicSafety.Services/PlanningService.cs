@@ -64,7 +64,7 @@ namespace PublicSafety.Services
             foreach (var employee in employees)
             {
 
-                var entitlements = EntitlementService.GetEmployeeEntitlemenetsInYear(employee.EmployeeId,year,DateTime.Now.Year);
+                var entitlements = EntitlementService.GetEmployeeEntitlemenetsInYear(employee.EmployeeId,year,DateTime.Now.Year + 4);
 
                 if (!entitlements.Any())
                     continue;

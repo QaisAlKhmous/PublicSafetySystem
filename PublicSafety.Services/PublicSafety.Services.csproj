@@ -138,6 +138,7 @@
     <Compile Include="DTOs\EmployeeDTO.cs" />
     <Compile Include="DTOs\EmployeeJobTitleHistoryDTO.cs" />
     <Compile Include="DTOs\IssuanceDTO.cs" />
+    <Compile Include="DTOs\IssueCategoryDTO.cs" />
     <Compile Include="DTOs\IssueEmployeeYearDTO.cs" />
     <Compile Include="DTOs\ItemLogDTO.cs" />
     <Compile Include="DTOs\itemRequestDTO.cs" />
@@ -150,6 +151,7 @@
     <Compile Include="DTOs\SectionDTO.cs" />
     <Compile Include="DTOs\UpdateMatrixItemDTO.cs" />
     <Compile Include="DTOs\UserDTO.cs" />
+    <Compile Include="DTOs\YearEmployeeSummaryDTO.cs" />
     <Compile Include="EmailService.cs" />
     <Compile Include="EmployeeJobTitleHistoryService.cs" />
     <Compile Include="EmployeeService.cs" />
