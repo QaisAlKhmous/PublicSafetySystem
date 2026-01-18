@@ -12,7 +12,7 @@ namespace PublicSafety.Repositories
     public class AppDbContext : DbContext
     {
 
-        public AppDbContext() : base("Server = .;Database = PublicSafety; Integrated Security = SSPI; TrustServerCertificate = True")
+        public AppDbContext() : base("Data Source=localhost\\SQLEXPRESS;Initial Catalog=PublicSafety;User ID=Qais;Password=Qais_2004;TrustServerCertificate=True")
         {
 
         }
@@ -32,6 +32,8 @@ namespace PublicSafety.Repositories
         public DbSet<ChangeRequest> ChangeRequests { get; set; }
         public DbSet<EmployeeJobTitleHistory> EmployeeJobTitleHistories { get; set; }
         public DbSet<ItemLog> ItemLogs { get; set; }
+
+        public DbSet<DepartmentJobTitle> DepartmentJobTitles { get; set; }
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
 
@@ -263,6 +265,21 @@ namespace PublicSafety.Repositories
               .WithMany()
               .HasForeignKey(x => x.CreatedById)
               .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<DepartmentJobTitle>()
+    .HasKey(x => new { x.DepartmentId, x.JobTitleId });
+
+            modelBuilder.Entity<DepartmentJobTitle>()
+                .HasRequired(x => x.Department)
+                .WithMany(d => d.DepartmentJobTitles)
+                .HasForeignKey(x => x.DepartmentId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<DepartmentJobTitle>()
+                .HasRequired(x => x.JobTitle)
+                .WithMany(j => j.DepartmentJobTitles)
+                .HasForeignKey(x => x.JobTitleId)
+                .WillCascadeOnDelete(false);
 
             base.OnModelCreating(modelBuilder);
         }

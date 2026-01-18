@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 
 namespace PublicSafety.Domain.Entities
 {
-    public class Department
+    public class DepartmentJobTitle
     {
         public Guid DepartmentId { get; set; }
-        public string Name { get; set; }
-        public ICollection<Employee> Employees { get; set; }
-        public ICollection<DepartmentJobTitle> DepartmentJobTitles { get; set; }
+        public Department Department { get; set; }
+
+        public Guid JobTitleId { get; set; }
+        public JobTitle JobTitle { get; set; }
     }
 }

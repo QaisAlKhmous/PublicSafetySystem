@@ -1551,6 +1551,38 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
 
     }
 
+    $scope.loadJobTitlesByDepartment = function (departmentId) {
+
+        if (!departmentId) {
+            $scope.JobTitles = [];
+            return;
+        }
+
+        $http.get('/JobTitle/GetByDepartment', {
+            params: { departmentId: departmentId }
+        })
+            .then(function (res) {
+
+                if (res.data && res.data.Success) {
+                    $scope.JobTitles = res.data.Data || [];
+                } else {
+                    $scope.JobTitles = [];
+                }
+
+            })
+            .catch(function (err) {
+
+                if (err.data && err.data.Message) {
+                    console.error(err.data.Message);
+                } else {
+                    console.error("مشكلة في السيرفر");
+                }
+
+                $scope.JobTitles = [];
+            });
+    };
+
+
 
     $scope.loadDepartments = function () {
         $http.get('/Department/GetAllDepartments')
@@ -1595,16 +1627,19 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
     }
 
     $scope.loadCategory = function (JobTitleId) {
-        $http.get('/Category/GetCategoryByJobTitleId?JobTitleId=' + JobTitleId).then((res) => {
-            $scope.jobTitleCategory = res.data;
-           
-        })
+        if (JobTitleId)
+            $http.get('/Category/GetCategoryByJobTitleId?JobTitleId=' + JobTitleId).then((res) => {
+                $scope.jobTitleCategory = res.data;
+
+            })
+
+        else $scope.jobTitleCategory = null;
     }
 
     
     $scope.loadSections();
     $scope.loadDepartments();
-    $scope.loadJobTitles();
+   
 
     $scope.employee = {
         EmployeeId : null,FullName : '',FirstName: '', SecondName: '', LastName: '', Email: '', Phone: '', IsIntern: false, Notes: '', WorkLocation: 'Amman',

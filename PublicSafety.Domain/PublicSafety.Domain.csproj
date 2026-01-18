@@ -55,6 +55,7 @@
     <Compile Include="Entities\Category.cs" />
     <Compile Include="Entities\ChangeRequest.cs" />
     <Compile Include="Entities\Department.cs" />
+    <Compile Include="Entities\DepartmentJobTitle.cs" />
     <Compile Include="Entities\Disposal.cs" />
     <Compile Include="Entities\Employee.cs" />
     <Compile Include="Entities\EmployeeJobTitleHistory.cs" />

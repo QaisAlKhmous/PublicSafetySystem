@@ -16,6 +16,7 @@ namespace PublicSafety.Domain.Entities
         public virtual ICollection<Employee> Employees { get; set; }
         public ICollection<JobTitleCategory> jobTitleCategories { get; set; }
         public ICollection<EmployeeJobTitleHistory> EmployeeJobTitleHistories { get; set; }
+        public ICollection<DepartmentJobTitle> DepartmentJobTitles { get; set; }
 
     }
 }

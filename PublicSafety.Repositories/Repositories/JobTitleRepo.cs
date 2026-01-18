@@ -32,5 +32,19 @@ namespace PublicSafety.Repositories.Repositories
                 return context.JobTitles.Find(Id);
             }
         }
+
+        public static List<JobTitle> GetJobTitlesByDepartment(Guid departmentId)
+        {
+            using (var context = new AppDbContext())
+            {
+                return context.DepartmentJobTitles
+              .Where(dj => dj.DepartmentId == departmentId)
+              .Select(dj => dj.JobTitle)
+              .OrderBy(j => j.Name)
+              .ToList();
+            }
+          
+        }
+
     }
 }
