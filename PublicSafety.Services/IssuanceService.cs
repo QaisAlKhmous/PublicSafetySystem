@@ -219,7 +219,10 @@ namespace PublicSafety.Services
             });
         }
 
-
+        public static int GetNumberOfItemsIssuedInYearByEmployeeId(Guid EmployeeId,int Year)
+        {
+            return IssuanceRepo.GetNumberOfItemsIssuedInYearByEmployeeId(EmployeeId, Year);
+        }
         public static void IssueMatrixForCategory(Guid categoryId, int year,Guid UserId,string SignedReceiptPath)
         {
             using (var context = new AppDbContext())

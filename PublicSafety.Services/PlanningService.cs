@@ -63,30 +63,24 @@ namespace PublicSafety.Services
 
             foreach (var employee in employees)
             {
-
-<<<<<<< HEAD
-                var entitlements = EntitlementService.GetEmployeeEntitlemenetsInYear(employee.EmployeeId,year,DateTime.Now.Year + 4);
+                var entitlements = EntitlementService.GetEmployeeEntitlemenetsInYear(
+                    employee.EmployeeId,
+                    year,
+                    DateTime.Now.Year + 4
+                );
 
                 if (!entitlements.Any())
                     continue;
-=======
-                var entitlements = EntitlementService.GetEmployeeEntitlemenetsInYear(employee.EmployeeId,year,DateTime.Now.Year);
-                var issuances = IssuanceService.GetIssuancesByEmployeeId(employee.EmployeeId);
->>>>>>> 19c6ce64e18113853c49ea4f4b84236f98ae14ca
 
+                var issuancesCount = IssuanceService.GetNumberOfItemsIssuedInYearByEmployeeId(employee.EmployeeId, year);
 
-                
-
-                int TotalIssued = 0;
                 int TotalEntitled = 0;
                 int TotalRemaining = 0;
                 bool IsIssued = true;
 
-             
-                if (issuances.Any())
-                {
-                   TotalIssued = issuances.Count();
-                }
+
+                int TotalIssued = issuancesCount;
+              
 
                 if (entitlements.Any())
                 {
@@ -94,13 +88,8 @@ namespace PublicSafety.Services
                     TotalRemaining = entitlements.Sum(e => e.RemainingQty);
                 }
 
-               
-
                 if (TotalRemaining > 0)
                     IsIssued = false;
-
-
-                
 
                 result.Add(new YearEmployeeSummaryDTO
                 {
@@ -112,13 +101,12 @@ namespace PublicSafety.Services
                     Category = employee.Category,
                     CategoryId = employee.CategoryId,
                     IsIssued = IsIssued
-                    
-
                 });
             }
 
             return result;
         }
+
 
     }
 }

@@ -65,7 +65,7 @@
                                 <th>اسم العنصر</th>
                                 <th>كمية الاستحقاق</th>
                                 <th>التكرار</th>
-                                @*<th>الاجراءات</th>*@
+                                <th>الاجراءات</th>
                             </tr>
                         </thead>
 
@@ -75,10 +75,10 @@
                                 <td>{{matrixItem.ItemName}}</td>
                                 <td>{{matrixItem.Quantity}}</td>
                                 <td>{{frequencyMap(matrixItem.Frequency)}}</td>
-                                @*<td>
+                                <td>
                                     <button ng-click="confirmDelete(matrixItem.MatrixItemId)" class="btn btn-outline-danger">حذف</button>
                                     <button ng-click="loadUpdateMatrixItem(matrixItem)" data-bs-toggle="modal" data-bs-target="#editItemModalForm" class="btn btn-outline-info">تعديل</button>
-                                </td>*@
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -89,10 +89,10 @@
                 <div ng-show="matrixItems.length === 0" class="d-flex justify-content-center p-2">
                     <h4>لا يوجد عناصر في المصفوفة النشطة</h4>
                 </div>
-                @*<button class="btn btn-success add"
+                <button class="btn btn-success add"
                         ng-click="loadAddItem()" data-bs-toggle="modal" data-bs-target="#addItemModalForm">
                     إضافة عنصر
-                </button>*@
+                </button>
                 <br><br>
 
 

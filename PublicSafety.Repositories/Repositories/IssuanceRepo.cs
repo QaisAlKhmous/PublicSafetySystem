@@ -35,5 +35,21 @@ namespace PublicSafety.Repositories.Repositories
                 return context.Issuances.Include(i => i.Item).Include(i => i.CreatedBy).Where(i => i.EmployeeId == EmployeeId).ToList();
             }
         }
+
+        public static int GetNumberOfItemsIssuedInYearByEmployeeId(Guid EmployeeId,int Year)
+        {
+           
+                using (var context = new AppDbContext())
+                {
+                    return context.Issuances
+                        .Where(i =>
+                            i.EmployeeId == EmployeeId &&
+                            i.CreatedDate.Year == Year
+                        )
+                        .Select(i => (int?)i.Quantity)
+                        .Sum() ?? 0;
+                }
+            
+        }
     }
 }

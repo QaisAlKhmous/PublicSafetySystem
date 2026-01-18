@@ -703,13 +703,8 @@ app.controller('matrixCtrl', function ($scope, NgTableParams, matrixService, $ht
             params: { CategoryId: $scope.selectedCategory.CategoryId }
         })
             .then(function (res) {
-
-                if (res.data && res.data.Success && res.data.Data.length > 0) {
-                   
-                    $scope.addMatrixItem.MatrixId = res.data.Data[0].MatrixId;
-                } else {
-                    $scope.addMatrixItem.MatrixId = null;
-                }
+                console.log("hi")
+                    $scope.addMatrixItem.MatrixId = res.data.Data.MatrixId;     
 
             })
             .catch(function (err) {
@@ -2164,7 +2159,7 @@ app.controller('issuanceCtrl', function ($scope, employeeService, itemService, $
                         dataset: $scope.issuances
                     });
 
-                    if ($routeParams.year) {
+                    if ($routeParams.year != 0) {
 
                         $scope.filters.FromDate = new Date($routeParams.year, 0, 1);   // Jan 1
                         $scope.filters.ToDate = new Date($routeParams.year, 11, 31); // Dec 31

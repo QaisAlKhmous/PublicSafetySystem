@@ -107,7 +107,7 @@ namespace PublicSafety.Services
             if (user == null)
                 throw new Exception("Invalid user");
 
-            return MatrixRepo.CreateNewMatrixVersionWithNewItem(
+            return MatrixRepo.AddItemToMatrixForCurrentYear(
                 dto.MatrixId,
                 dto.ItemId,
                 dto.Quantity,
@@ -122,7 +122,8 @@ namespace PublicSafety.Services
             if (matrixItem == null)
                 throw new Exception("Matrix item not found");
 
-            MatrixRepo.CreateNewMatrixVersionWithoutItem(matrixItemId);
+
+            MatrixRepo.RemoveItemFromMatrixForCurrentYear(matrixItemId);
         }
         public static MatrixItemDTO GetMatrixItemById(Guid MatrixItemId)
         {
@@ -144,7 +145,7 @@ namespace PublicSafety.Services
                 throw new Exception("Matrix item not found");
 
             
-            MatrixRepo.CreateNewMatrixVersionWithUpdatedItem(
+            MatrixRepo.UpdateMatrixItemForCurrentYear(
                 dto.MatrixItemId,
                 dto.Quantity,
                 dto.Frequency
