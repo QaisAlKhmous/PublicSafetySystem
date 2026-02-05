@@ -16,7 +16,7 @@
             <h2>قائمة المواد</h2>
 
 
-            <button type="button" class="btn btn-info add" data-bs-toggle="modal" data-bs-target="#addItemModalForm">
+            <button type="button" class="btn btn-info add" data-bs-toggle="modal" data-bs-target="#addItemModalForm" ng-if="!hasRole(2)">
                 اضافة مادة جديدة
             </button>
 
@@ -33,14 +33,14 @@
                     <td data-title="'اسم المادة'">{{item.Name}}</td>
                     <td data-title="'الرصيد الحالي'">{{item.Quantity}}</td>
                     <td data-title="'أضيف بواسطة'">{{item.AddedBy}}</td>
-                    <td data-title="'الاجراءات'">
+                    <td data-title="'الاجراءات'" >
                         <div class="btn-group">
                             <button type="button" class="btn btn-success dropdown-toggle actions" data-bs-toggle="dropdown" aria-expanded="false">
                             </button>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#increaseQuantityModalForm" ng-click="changeSelectedItem(item)">زيادة الرصيد</a></li>
-                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#disposeItemModalForm" ng-click="changeSelectedItem(item)">اتلاف كمية</a></li>
-                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#increaseQuantityModalForm" ng-click="changeSelectedItem(item)"  ng-if="!hasRole(2)">زيادة الرصيد</a></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#disposeItemModalForm" ng-click="changeSelectedItem(item)"  ng-if="!hasRole(2)">اتلاف كمية</a></li>
+                                <li><hr class="dropdown-divider" ng-if="!hasRole(2)"></li>
                                 <li><a class="dropdown-item" href="#!/itemLogs/{{item.ItemId}}">سجل المادة</a></li>
                                 @*<li><a class="dropdown-item text-danger" href="" ng-click="confirmDelete(item.ItemId)">حذف المادة</a></li>*@
                             </ul>
@@ -111,7 +111,7 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary accept" ng-click="addNewItem()" ng-disabled="isLoading" >حفظ التغييرات</button>
+                <button type="button" class="btn btn-primary accept" ng-click="addNewItem()" ng-disabled="isLoading"  data-bs-dismiss="modal">حفظ التغييرات</button>
                 <button type="button" class="btn btn-danger closeBtn" data-bs-dismiss="modal">إغلاق</button>
 
             </div>

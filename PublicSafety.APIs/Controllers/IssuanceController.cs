@@ -1,4 +1,6 @@
-﻿using PublicSafety.Services;
+﻿using AdminDashboard.Services;
+using PublicSafety.Domain.Entities;
+using PublicSafety.Services;
 using PublicSafety.Services.DTOs;
 using System;
 using System.Collections.Generic;
@@ -56,6 +58,21 @@ namespace PublicSafety.APIs.Controllers
             try
             {
                 IssuanceService.AddNewIssuance(issuance);
+
+                // ✅ Get employee + item info
+                var employee = EmployeeService.GetEmployeeById(issuance.EmployeeId);
+
+
+                // ✅ Notify manager
+                EmailService.SendExceptionNotificationToManager(
+                    userId: UserService.GetUserByUsername(issuance.CreatedBy).UserId,
+                    employeeName: employee.FullName,
+                    employeeNumber: employee.EmployeeNumber,
+                    itemName: item.Name,
+                    quantity: issuance.Quantity,
+                    reason: issuance.ExceptionReason,
+                    exceptionFormPath: issuance.ExceptionFormPath
+                );
 
                 return Json(new ApiResponse<object>
                 {

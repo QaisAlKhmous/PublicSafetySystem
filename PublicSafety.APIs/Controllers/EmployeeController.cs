@@ -26,6 +26,38 @@ namespace PublicSafety.APIs.Controllers
         }
 
         [HttpPost]
+        public JsonResult GetEmployees(PagedRequest request)
+        {
+            try
+            {
+                var result = EmployeeService.GetEmployeesPaged(
+                    request.Page,
+                    request.PageSize,
+                    request.SortField,
+                    request.SortDir,
+                    request.Filter
+                );
+
+                return Json(new ApiResponse<PagedResult<EmployeePagedDTO>>
+                {
+                    Success = true,
+                    Data = result,
+                    Message = "Applications loaded successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = 500;
+                return Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Data = null,
+                    Message = "Failed to load applications"
+                });
+            }
+        }
+
+        [HttpPost]
         public JsonResult AddNewEmployee(AddEmployeeDTO Employee)
         {
             try
@@ -35,19 +67,20 @@ namespace PublicSafety.APIs.Controllers
                 Response.StatusCode = 200;
                 return Json(new ApiResponse<Guid>
                 {
-                    Success = false,
-                    Message = "Unexpected server error",
+                    Success = true,
+                    Message = "تمت إضافة الموظف بنجاح",
                     Data = id
                 });
 
             }
             catch (Exception ex)
             {
-                Response.StatusCode = 500;
+                Response.StatusCode = 400;
                 return Json(new ApiResponse<object>
                 {
                     Success = false,
-                    Message = "Unexpected server error"
+                    Message = ex.Message,
+                    Data = null
                 });
             }
         
@@ -185,6 +218,49 @@ namespace PublicSafety.APIs.Controllers
             }
             catch(Exception ex)
             {
+                Response.StatusCode = 400;
+                return Json(new ApiResponse<object>
+                {
+                    Success = false,
+                    Message = ex.Message,
+                    Data = null
+                }, JsonRequestBehavior.AllowGet);
+            }
+           
+        }
+        [HttpPost]
+        public JsonResult UpdateEmployeeJobTitle(UpdateJobTitleDTO jobTitleDTO)
+        {
+            try
+            {
+               
+
+                if (EmployeeService.UpdateEmployeeJobTitle(jobTitleDTO.EmployeeId, jobTitleDTO.JobTitleId, jobTitleDTO.DepartmentId, jobTitleDTO.SectionId))
+                {
+                    Response.StatusCode = 200;
+                    return Json(new ApiResponse<object>
+                    {
+                        Success = true,
+                        Message = "تم تعديل الموظف بنجاح",
+                        Data = null
+                    }, JsonRequestBehavior.AllowGet);
+                }
+                else
+                {
+                    Response.StatusCode = 500;
+                    return Json(new ApiResponse<object>
+                    {
+                        Success = false,
+                        Message = "حدث خطأ",
+                        Data = null
+                    }, JsonRequestBehavior.AllowGet);
+                }
+
+
+
+            }
+            catch (Exception ex)
+            {
                 Response.StatusCode = 500;
                 return Json(new ApiResponse<object>
                 {
@@ -193,7 +269,7 @@ namespace PublicSafety.APIs.Controllers
                     Data = null
                 }, JsonRequestBehavior.AllowGet);
             }
-           
+
         }
 
         [HttpGet]
@@ -269,6 +345,38 @@ namespace PublicSafety.APIs.Controllers
                 Data = entitlements
             }, JsonRequestBehavior.AllowGet);
         }
+
+        [HttpPost]
+        public ActionResult GetEntitlementsPaged(PagedRequest req)
+        {
+
+            try
+            {
+                var result = EntitlementService.GetPagedEntitlements(
+              req.Page,
+              req.PageSize,
+              req.Filter
+          );
+
+                return Json(new ApiResponse<object>
+                {
+                    Success = true,
+                    Message = null,
+                    Data = result
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch
+            {
+                Response.StatusCode = 500;
+                return Json(new ApiResponse<int>
+                {
+                    Success = false,
+                    Message = "مشكلة في السيرفر",
+                    Data = 0
+                }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
 
         [HttpGet]
         public JsonResult GetEmployeeEntitlementsByYear(Guid EmployeeId,int Year)

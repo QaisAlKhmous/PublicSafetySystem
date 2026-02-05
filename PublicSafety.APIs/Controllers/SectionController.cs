@@ -39,6 +39,31 @@ namespace PublicSafety.APIs.Controllers
         }
 
 
+        [HttpGet]
+        public JsonResult GetSectionsByDepartmentId(Guid DepartmentId)
+        {
+            try
+            {
+                var sections = SectionService.GetSectionsByDepartmentId(DepartmentId);
+
+                return Json(new ApiResponse<IEnumerable<SectionDTO>>
+                {
+                    Success = true,
+                    Message = null,
+                    Data = sections ?? new List<SectionDTO>()
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception)
+            {
+                Response.StatusCode = 500;
+                return Json(new ApiResponse<IEnumerable<SectionDTO>>
+                {
+                    Success = false,
+                    Message = "مشكلة في السيرفر",
+                    Data = new List<SectionDTO>()
+                }, JsonRequestBehavior.AllowGet);
+            }
+        }
 
     }
 }

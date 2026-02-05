@@ -12,7 +12,7 @@ namespace PublicSafety.Repositories
     public class AppDbContext : DbContext
     {
 
-        public AppDbContext() : base("Data Source=localhost\\SQLEXPRESS;Initial Catalog=PublicSafety;User ID=Qais;Password=Qais_2004;TrustServerCertificate=True")
+        public AppDbContext() : base("Server = .;Database = PublicSafety; Integrated Security = SSPI; TrustServerCertificate = True;")
         {
 
         }
@@ -33,6 +33,7 @@ namespace PublicSafety.Repositories
         public DbSet<EmployeeJobTitleHistory> EmployeeJobTitleHistories { get; set; }
         public DbSet<ItemLog> ItemLogs { get; set; }
 
+        public DbSet<SectionJobTitle> SectionJobTitles { get; set; }
         public DbSet<DepartmentJobTitle> DepartmentJobTitles { get; set; }
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -102,7 +103,7 @@ namespace PublicSafety.Repositories
                  .WillCascadeOnDelete(false);
 
             modelBuilder.Entity<Employee>()
-                .HasRequired(e => e.Section)
+                .HasOptional(e => e.Section)
                 .WithMany(j => j.Employees)
                 .HasForeignKey(e => e.SectionId)
                 .WillCascadeOnDelete(false);
@@ -116,6 +117,10 @@ namespace PublicSafety.Repositories
             modelBuilder.Entity<Employee>()
                 .Property(e => e.RetirementDate)
                 .IsOptional();
+
+            modelBuilder.Entity<Employee>()
+               .Property(e => e.SectionId)
+               .IsOptional();
 
 
 
@@ -266,8 +271,20 @@ namespace PublicSafety.Repositories
               .HasForeignKey(x => x.CreatedById)
               .WillCascadeOnDelete(false);
 
-            modelBuilder.Entity<DepartmentJobTitle>()
-    .HasKey(x => new { x.DepartmentId, x.JobTitleId });
+
+            modelBuilder.Entity<SectionJobTitle>()
+                .HasRequired(x => x.Section)
+                .WithMany(d => d.SectionJobTitles)
+                .HasForeignKey(x => x.SectionId)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<SectionJobTitle>()
+                .HasRequired(x => x.JobTitle)
+                .WithMany(j => j.SectionJobTitles)
+                .HasForeignKey(x => x.JobTitleId)
+                .WillCascadeOnDelete(false);
+
+
 
             modelBuilder.Entity<DepartmentJobTitle>()
                 .HasRequired(x => x.Department)
@@ -280,6 +297,19 @@ namespace PublicSafety.Repositories
                 .WithMany(j => j.DepartmentJobTitles)
                 .HasForeignKey(x => x.JobTitleId)
                 .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<Section>()
+               .HasRequired(x => x.Department)
+               .WithMany(j => j.Sections)
+               .HasForeignKey(x => x.DepartmentId)
+               .WillCascadeOnDelete(false);
+
+         modelBuilder.Entity<Employee>()
+            .Property(e => e.EmployeeNumber)
+            .IsRequired()
+            .HasMaxLength(50);
+
+
 
             base.OnModelCreating(modelBuilder);
         }

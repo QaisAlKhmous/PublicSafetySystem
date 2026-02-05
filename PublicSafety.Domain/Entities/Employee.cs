@@ -12,6 +12,10 @@ namespace PublicSafety.Domain.Entities
     public class Employee
     {
         public Guid EmployeeId { get; set; }
+
+        public string EmployeeNumber { get; set; }
+
+
         public string FullName { get; set; }
         public string FirstName { get; set; }
         public string SecondName { get; set; }
@@ -25,7 +29,7 @@ namespace PublicSafety.Domain.Entities
         public enWorkLocation WorkLocation { get; set; }
         public string HealthInsuranceFile { get; set; }
         public Guid DepartmentId { get; set; }
-        public Guid SectionId { get; set; }
+        public Guid? SectionId { get; set; }
         public Department Department { get; set; }
         public Section Section { get; set; }
         public Guid JobTitleId { get; set; }

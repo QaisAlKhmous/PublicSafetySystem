@@ -61,7 +61,7 @@
                            ng-change="applyFilters()" />
                 </div>
 
-                <div class="col-md-2 h-auto">
+                <div class="col-md-2 h-auto" ng-if="!hasRole(2)">
                     <button class="btn btn-success"
                             ng-click="openUploadReceiptModal()">
                         رفع نموذج الاستلام

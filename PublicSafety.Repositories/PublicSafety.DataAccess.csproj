@@ -136,10 +136,6 @@
     <Compile Include="Migrations\202512061830244_add_JobTitleUpdateDate.Designer.cs">
       <DependentUpon>202512061830244_add_JobTitleUpdateDate.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\202512070710315_add_permissionType.cs" />
-    <Compile Include="Migrations\202512070710315_add_permissionType.Designer.cs">
-      <DependentUpon>202512070710315_add_permissionType.cs</DependentUpon>
-    </Compile>
     <Compile Include="Migrations\202512070720034_add_permissionType_toUser.cs" />
     <Compile Include="Migrations\202512070720034_add_permissionType_toUser.Designer.cs">
       <DependentUpon>202512070720034_add_permissionType_toUser.cs</DependentUpon>
@@ -187,6 +183,30 @@
     <Compile Include="Migrations\202601180912251_add_DepartmentJobTitle_Table.cs" />
     <Compile Include="Migrations\202601180912251_add_DepartmentJobTitle_Table.Designer.cs">
       <DependentUpon>202601180912251_add_DepartmentJobTitle_Table.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202601240439131_add_DepartmentSection_relationship.cs" />
+    <Compile Include="Migrations\202601240439131_add_DepartmentSection_relationship.Designer.cs">
+      <DependentUpon>202601240439131_add_DepartmentSection_relationship.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202601240532060_add_Sectionjobtitle_relationship.cs" />
+    <Compile Include="Migrations\202601240532060_add_Sectionjobtitle_relationship.Designer.cs">
+      <DependentUpon>202601240532060_add_Sectionjobtitle_relationship.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202601240607060_t.cs" />
+    <Compile Include="Migrations\202601240607060_t.Designer.cs">
+      <DependentUpon>202601240607060_t.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202601240642451_remove_dates_jobtitles.cs" />
+    <Compile Include="Migrations\202601240642451_remove_dates_jobtitles.Designer.cs">
+      <DependentUpon>202601240642451_remove_dates_jobtitles.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202601250540497_make_sectionId_inEmployees_optional.cs" />
+    <Compile Include="Migrations\202601250540497_make_sectionId_inEmployees_optional.Designer.cs">
+      <DependentUpon>202601250540497_make_sectionId_inEmployees_optional.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202601250558323_add_employeeNumber_field.cs" />
+    <Compile Include="Migrations\202601250558323_add_employeeNumber_field.Designer.cs">
+      <DependentUpon>202601250558323_add_employeeNumber_field.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -241,9 +261,6 @@
     <EmbeddedResource Include="Migrations\202512061830244_add_JobTitleUpdateDate.resx">
       <DependentUpon>202512061830244_add_JobTitleUpdateDate.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\202512070710315_add_permissionType.resx">
-      <DependentUpon>202512070710315_add_permissionType.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202512070720034_add_permissionType_toUser.resx">
       <DependentUpon>202512070720034_add_permissionType_toUser.cs</DependentUpon>
     </EmbeddedResource>
@@ -279,6 +296,24 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202601180912251_add_DepartmentJobTitle_Table.resx">
       <DependentUpon>202601180912251_add_DepartmentJobTitle_Table.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202601240439131_add_DepartmentSection_relationship.resx">
+      <DependentUpon>202601240439131_add_DepartmentSection_relationship.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202601240532060_add_Sectionjobtitle_relationship.resx">
+      <DependentUpon>202601240532060_add_Sectionjobtitle_relationship.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202601240607060_t.resx">
+      <DependentUpon>202601240607060_t.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202601240642451_remove_dates_jobtitles.resx">
+      <DependentUpon>202601240642451_remove_dates_jobtitles.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202601250540497_make_sectionId_inEmployees_optional.resx">
+      <DependentUpon>202601250540497_make_sectionId_inEmployees_optional.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202601250558323_add_employeeNumber_field.resx">
+      <DependentUpon>202601250558323_add_employeeNumber_field.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

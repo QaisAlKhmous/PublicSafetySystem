@@ -48,5 +48,18 @@ namespace PublicSafety.Repositories.Repositories
             }
 
         }
+
+        public static List<EntitlementPaged> GetAllEntitlementsAllYears(int maxYear)
+        {
+            using (var context = new AppDbContext())
+            {
+                var maxYearParam = new SqlParameter("@MaxYear", maxYear);
+
+                return context.Database.SqlQuery<EntitlementPaged>(
+                    "EXEC dbo.GetAllEntitlementsAllYears @MaxYear",
+                    maxYearParam
+                ).ToList();
+            }
+        }
     }
 }

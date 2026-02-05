@@ -170,12 +170,16 @@ namespace PublicSafety.Repositories.Repositories
         {
             using (var context = new AppDbContext())
             {
+                // ✅ 1. Get all employees
                 var employees = context.Employees
                     .Select(e => e.EmployeeId)
                     .ToList();
 
                 var result = new List<PlanningItemDetails>();
 
+                // ======================================================
+                // ✅ 2. Calculate Planned Qty (Entitlements)
+                // ======================================================
                 foreach (var empId in employees)
                 {
                     var employeeParam = new SqlParameter("@EmployeeId", empId);
@@ -204,7 +208,8 @@ namespace PublicSafety.Repositories.Repositories
                                 Year = e.EntitlementYear,
                                 ItemId = e.ItemId,
                                 ItemName = e.ItemName,
-                                PlannedQty = e.EntitledQty
+                                PlannedQty = e.EntitledQty,
+                                IssuedQty = 0
                             });
                         }
                         else
@@ -214,9 +219,69 @@ namespace PublicSafety.Repositories.Repositories
                     }
                 }
 
-                return result;
+                // ======================================================
+                // ✅ 3. Calculate Issued Qty (ALL TYPES)
+                // ======================================================
+                var issuedData = context.Issuances
+                    .Where(i =>
+                        i.IssuanceDate.Year >= fromYear &&
+                        i.IssuanceDate.Year <= toYear
+                    // ✅ no filter by type → includes all issuance types
+                    )
+                    .GroupBy(i => new
+                    {
+                        Year = i.IssuanceDate.Year,
+                        i.ItemId
+                    })
+                    .Select(g => new
+                    {
+                        g.Key.Year,
+                        g.Key.ItemId,
+                        IssuedQty = g.Sum(x => x.Quantity)
+                    })
+                    .ToList();
+
+                // ======================================================
+                // ✅ 4. Merge issued into result
+                // ======================================================
+                foreach (var row in issuedData)
+                {
+                    var existing = result.FirstOrDefault(x =>
+                        x.Year == row.Year &&
+                        x.ItemId == row.ItemId
+                    );
+
+                    if (existing == null)
+                    {
+                        // Item issued but not planned
+                        var itemName = context.Items
+                            .Where(it => it.ItemId == row.ItemId)
+                            .Select(it => it.Name)
+                            .FirstOrDefault();
+
+                        result.Add(new PlanningItemDetails
+                        {
+                            Year = row.Year,
+                            ItemId = row.ItemId,
+                            ItemName = itemName,
+                            PlannedQty = 0,
+                            IssuedQty = row.IssuedQty
+                        });
+                    }
+                    else
+                    {
+                        existing.IssuedQty = row.IssuedQty;
+                    }
+                }
+
+                // ✅ Sort result
+                return result
+                    .OrderBy(x => x.Year)
+                    .ThenBy(x => x.ItemName)
+                    .ToList();
             }
         }
+
 
 
 

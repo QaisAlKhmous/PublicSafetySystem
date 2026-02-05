@@ -40,9 +40,18 @@ namespace PublicSafety.APIs.Controllers
         [HttpPost]
         public JsonResult AcceptChangeRequest(Guid ChangeRequestId,string ApprovedBy)
         {
-            ChangeRequestService.AcceptChangeRequest(ChangeRequestId, ApprovedBy);
+            try
+            {
+                ChangeRequestService.AcceptChangeRequest(ChangeRequestId, ApprovedBy);
+                return Json(new { success = true });
+            }catch(Exception ex)
+            {
+                Response.StatusCode = 400;
+                return Json(new { Message = ex.Message });
+            }
+          
             
-            return Json(new { success = true });
+            
         }
 
         [HttpPost]
@@ -74,13 +83,14 @@ namespace PublicSafety.APIs.Controllers
                                 Category = CategoryService.GetCategoryByJobTitleId(employee.JobTitleId).Category,
                                 HealthInsuranceFile = employee.HealthInsuranceFile,
                                 Department = DepartmentService.GetDepartmentById(employee.DepartmentId).Name,
-                                Section = SectionService.GetSectionById(employee.SectionId).Name,
+                                Section = SectionService.GetSectionById(employee.SectionId)?.Name,
                                 Email = employee.Email,
                                 EmploymentDate = employee.EmploymentDate,
                                 FullName = employee.FirstName + " " + employee.SecondName + " " + employee.LastName,
                                 JobTitle = CategoryService.GetCategoryByJobTitleId(employee.JobTitleId).JobTitle,
                                 Phone = employee.Phone,
-                                WorkLocation = employee.WorkLocation
+                                WorkLocation = employee.WorkLocation,
+                                EmployeeNumber = employee.EmployeeNumber
                             };
                             return Json(new { entity = emp, type = "employee", IsAdd = true }, JsonRequestBehavior.AllowGet);
 

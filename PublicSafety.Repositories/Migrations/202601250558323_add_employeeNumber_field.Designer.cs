@@ -7,13 +7,13 @@ namespace PublicSafety.Repositories.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.5.1")]
-    public sealed partial class add_permissionType : IMigrationMetadata
+    public sealed partial class add_employeeNumber_field : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(add_permissionType));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(add_employeeNumber_field));
         
         string IMigrationMetadata.Id
         {
-            get { return "202512070710315_add_permissionType"; }
+            get { return "202601250558323_add_employeeNumber_field"; }
         }
         
         string IMigrationMetadata.Source

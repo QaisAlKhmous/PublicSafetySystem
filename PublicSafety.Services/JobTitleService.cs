@@ -48,5 +48,19 @@ namespace PublicSafety.Services
                 Name = j.Name
             }).ToList();
         }
+
+        public static List<JobTitleDTO> GetJobTitlesBySection(Guid SectionId)
+        {
+            if (SectionId == Guid.Empty)
+                return new List<JobTitleDTO>();
+
+            var jobTitles = JobTitleRepo.GetJobTitlesBySection(SectionId);
+
+            return jobTitles.Select(j => new JobTitleDTO
+            {
+                JobTitleId = j.JobTitleId,
+                Name = j.Name
+            }).ToList();
+        }
     }
 }

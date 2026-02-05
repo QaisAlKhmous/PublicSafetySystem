@@ -12,5 +12,6 @@ namespace PublicSafety.Domain.Entities
         public Guid ItemId { get; set; }
         public string ItemName { get; set; }
         public int PlannedQty { get; set; }
+        public int IssuedQty { get; set; }
     }
 }

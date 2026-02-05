@@ -27,7 +27,7 @@
                     <span class="badge badge-success txt-small" ng-show="request.Status == 1">موافق عليه</span>
                     <span class="badge badge-danger txt-small" ng-show="request.Status == 2">مرفوض</span>
                 </td>
-                <td data-title="'الاجراءات'" ng-if="!IsManager">
+                <td data-title="'الاجراءات'" ng-if="!hasRole(2)">
 
                     <button class="btn btn-danger txt-small"
                             ng-class="{'disabled': request.Status != 0}"
@@ -72,15 +72,20 @@
                     </thead>
                     <tbody>
                         <tr>
+                            <td scope="row">الرقم الوظيفي</td>
+                            <td>{{data.EmployeeNumber}}</td>
+                        </tr>
+                        <tr>
                             <td scope="row">الاسم</td>
                             <td>{{data.FullName}}</td>
                         </tr>
+
                         <tr>
                             <td scope="row">المسمى الوظيفي</td>
                             <td>{{data.JobTitle}}</td>
                         </tr>
                         <tr>
-                            <td scope="row">الفئة</td>
+                            <td scope="row">التصنيف</td>
                             <td>{{data.Category}}</td>
                         </tr>
                         <tr>
@@ -132,7 +137,7 @@
 
                         </tr>
                         <tr>
-                            <td scope="row">الفئة</td>
+                            <td scope="row">التصنيف</td>
                             <td>{{oldData.Category}}</td>
                             <td>{{newData.Category}}</td>
 
@@ -283,7 +288,7 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td scope="row">الفئة</td>
+                            <td scope="row">التصنيف</td>
                             <td>{{category.Name}}</td>
 
                         </tr>

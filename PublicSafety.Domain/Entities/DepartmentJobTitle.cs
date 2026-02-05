@@ -8,6 +8,7 @@ namespace PublicSafety.Domain.Entities
 {
     public class DepartmentJobTitle
     {
+        public Guid DepartmentJobTitleId { get; set; }
         public Guid DepartmentId { get; set; }
         public Department Department { get; set; }
 

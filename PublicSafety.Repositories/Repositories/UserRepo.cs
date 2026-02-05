@@ -27,11 +27,11 @@ namespace PublicSafety.Repositories.Repositories
             }
         }
 
-        public static IEnumerable<string> GetAdminEmails()
+        public static IEnumerable<User> GetAdmins()
         {
             using (var context = new AppDbContext())
             {
-                return context.Users.Where(u => u.Type == enType.admin).Select(u => u.Email).ToList();
+                return context.Users.Where(u => u.Type == enType.Admin).ToList();
             }
         }
 

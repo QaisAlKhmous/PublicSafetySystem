@@ -18,6 +18,17 @@ namespace PublicSafety.Services
                 Name = c.Name,
             });
         }
+
+        public static IEnumerable<SectionDTO> GetSectionsByDepartmentId(Guid DepartmentId)
+        {
+            var sections = SectionRepo.GetSectionByDepartmentId(DepartmentId);
+
+            return sections.Select(c => new SectionDTO()
+            {
+                SectionId = c.SectionId,
+                Name = c.Name,
+            });
+        }
         public static SectionDTO GetSectionByName(string name)
         {
             var Section = SectionRepo.GetSectionByName(name);
@@ -25,8 +36,10 @@ namespace PublicSafety.Services
             return new SectionDTO { SectionId = Section.SectionId, Name = name };
         }
 
-        public static SectionDTO GetSectionById(Guid Id)
+        public static SectionDTO GetSectionById(Guid? Id)
         {
+            if (Id == null)
+                return null;
             var Section = SectionRepo.GetSectionById(Id);
 
             return new SectionDTO { SectionId = Section.SectionId, Name = Section.Name };

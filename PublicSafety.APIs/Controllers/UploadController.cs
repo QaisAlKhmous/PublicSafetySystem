@@ -88,5 +88,30 @@ namespace PublicSafety.APIs.Controllers
                         fileName);
         }
 
+
+        [HttpGet]
+        public ActionResult ExportEntitlementsExcel(int year)
+        {
+            try
+            {
+                // ✅ Load export data
+                var data = EntitlementService.GetAllEmployeesEntitlementsInYear(year);
+
+                // ✅ Generate excel file
+                var fileBytes = ExcelService.ExportEmployeeEntitlements(data, year);
+
+                // ✅ Return download response
+                return File(
+                    fileBytes,
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    $"EmployeeEntitlements_{year}.xlsx"
+                );
+            }
+            catch (Exception ex)
+            {
+                return new HttpStatusCodeResult(500, "Export failed: " + ex.Message);
+            }
+        }
+
     }
 }

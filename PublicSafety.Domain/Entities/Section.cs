@@ -10,6 +10,9 @@ namespace PublicSafety.Domain.Entities
     {
         public Guid SectionId { get; set; }
         public string Name { get; set; }
+        public Department Department { get; set; }
+        public Guid DepartmentId { get; set; }
         public ICollection<Employee> Employees { get; set; }
+        public ICollection<SectionJobTitle> SectionJobTitles { get; set; }
     }
 }

@@ -46,5 +46,18 @@ namespace PublicSafety.Repositories.Repositories
           
         }
 
+        public static List<JobTitle> GetJobTitlesBySection(Guid SectionId)
+        {
+            using (var context = new AppDbContext())
+            {
+                return context.SectionJobTitles
+              .Where(dj => dj.SectionId == SectionId)
+              .Select(dj => dj.JobTitle)
+              .OrderBy(j => j.Name)
+              .ToList();
+            }
+
+        }
+
     }
 }

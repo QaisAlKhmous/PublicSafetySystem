@@ -18,237 +18,260 @@
                 <h2 class="mb-0">قائمة الموظفين</h2>
             </div>
 
-    
+
 
         </div>
 
-        
         <div class="card-body p-2">
-            <div class="d-flex justify-content-between">
-            <div class="btn-group w-100 ">
-                <button type="button" class="btn dropdown-toggle w-100 text-dark" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    اكسل
-                </button>
-                <ul class="dropdown-menu w-100 small">
-                    <li>
-                        <a class="dropdown-item text-truncate" href="/Upload/DownloadEmployeeTemplate" title="تنزيل نموذج الموظفين">
-                            تنزيل نموذج الموظفين
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#uploadEmployeesModal" href="">
-                            رفع ملف الموظفين
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="/Upload/DownloadAllEmployees">
-                            تنزيل ملف الموظفين
-                        </a>
-                    </li>
-                </ul>
-            </div>
 
-
-
-
-
-            <div class="col-md-1 mb-2">
-                <select ng-model="employeesTableParams.filter().Active" class="form-control">
-                    <option value="">الكل</option>
-                    <option value="true">نشط</option>
-                    <option value="false">مستقيل</option>
-                </select>
-            </div>
-
-
-            <div class="col-md-1 mb-2">
-                <select class="form-control" name="JobTitle"
-                        ng-model="employeesTableParams.filter().CategoryId"
-                        ng-options="c.CategoryId as c.Name for c in Categories">
-                    <option value="">الكل</option>
-                </select>
-            </div>
-
-
-            <div class="d-flex justify-content-between col-md-4 mb-2 align-items-center">
-                <div class="btn-group">
-                    <button type="button" class="search btn btn-secondary dropdown-toggle w-100 ml-2" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        ابحث بواسطة
-                    </button>
-                    <div class="dropdown-menu w-100 txt-small">
-                        <span class="dropdown-item searchItem p-0" ng-click="searchBy = 0" ng-class="{'active': searchBy === 0}">الاسم</span>
-                        <span class="dropdown-item searchItem p-0" ng-click="searchBy = 1" ng-class="{'active': searchBy === 1}">الدائرة</span>
-                        <span class="dropdown-item searchItem p-0" ng-click="searchBy = 2" ng-class="{'active': searchBy === 2}">المسمى الوظيفي</span>
-                        <span class="dropdown-item searchItem p-0" ng-click="searchBy = 3" ng-class="{'active': searchBy === 3}">الوحدة التنظيمية</span>
-                    </div>
-                </div>
-
-
-
-
-                <input type="text" ng-show="searchBy === 0" ng-model="employeesTableParams.filter().FullName" placeholder="الاسم" class="form-control" />
-                <input type="text" ng-show="searchBy === 1" ng-model="employeesTableParams.filter().Section" placeholder="الدائرة" class="form-control" />
-                <input type="text" ng-show="searchBy === 2" ng-model="employeesTableParams.filter().JobTitle" placeholder="المسمى الوظيفي" class="form-control" />
-                <input type="text" ng-show="searchBy === 3" ng-model="employeesTableParams.filter().Department" placeholder="الوحدة التنظيمية" class="form-control" />
-
-            </div>
-
-
-            <div class="col-md-2 mb-2 text-start">
-                <button type="button" class="btn btn-info" style="width:200px" ng-click="openEntitleMatrixModal()">صرف لفئة</button>
-            </div>
-
-            <div class="col-md-3 mb-2 text-start">
-                <button type="button" class="btn btn-info add" style="width:200px" ng-click="GoToAddPage()">إضافة موظف</button>
-            </div>
-
-        </div>
-
-
-
-
-
-
-
-
-            @*<div class="row">
-                <div class="col-1">
-                    <div class="btn-group">
-                        <button type="button" class="btn dropdown-toggle w-100 text-dark" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <!-- ✅ Top Actions Toolbar -->
+            <div class="row align-items-center mb-3" ng-if="!hasRole(2)">
+ 
+                <!-- Excel Dropdown -->
+                <div class="col-md-3">
+                    <div class="btn-group w-100">
+                        <button type="button"
+                                class="btn btn-light border dropdown-toggle w-100"
+                                data-bs-toggle="dropdown">
+                            <i class="fa fa-file-excel"></i>
                             اكسل
                         </button>
+
                         <ul class="dropdown-menu w-100 small">
+
                             <li>
-                                <a class="dropdown-item text-truncate" href="/Upload/DownloadEmployeeTemplate" title="تنزيل نموذج الموظفين">
+                                <a class="dropdown-item text-truncate"
+                                   href="/Upload/DownloadEmployeeTemplate">
                                     تنزيل نموذج الموظفين
                                 </a>
                             </li>
+
                             <li>
-                                <a class="dropdown-item" data-bs-toggle="modal" data-bs-target="#uploadEmployeesModal" href="">
+                                <a class="dropdown-item"
+                                   data-bs-toggle="modal"
+                                   data-bs-target="#uploadEmployeesModal">
                                     رفع ملف الموظفين
                                 </a>
                             </li>
+
                             <li>
-                                <a class="dropdown-item" href="/Upload/DownloadAllEmployees">
+                                <a class="dropdown-item"
+                                   href="/Upload/DownloadAllEmployees">
                                     تنزيل ملف الموظفين
                                 </a>
                             </li>
+
+                            <li>
+                                <a class="dropdown-item text-truncate"
+                                   href="javascript:void(0)"
+                                   ng-click="openExportEntitlementsModal()">
+                                    تنزيل استحقاقات الموظفين
+                                </a>
+                            </li>
+
                         </ul>
                     </div>
                 </div>
-            
-                <div class="col-11">
-                    <button type="button" class="btn btn-info" style="width:200px" ng-click="openEntitleMatrixModal()">صرف لفئة</button>
-                    <button type="button" class="btn btn-info add" style="width:200px" ng-click="GoToAddPage()">إضافة موظف</button>
+
+                <!-- Issue Category Button -->
+                <div class="col-md-3">
+                    <button type="button"
+                            class="btn btn-info w-100"
+                            ng-click="openEntitleMatrixModal()">
+                        <i class="fa fa-box"></i>
+                        صرف لفئة
+                    </button>
                 </div>
-                
+
+                <!-- Add Employee Button -->
+                <div class="col-md-3">
+                    <button type="button"
+                            class="btn btn-success w-100"
+                            ng-click="GoToAddPage()">
+                        <i class="fa fa-user-plus"></i>
+                        إضافة موظف
+                    </button>
+                </div>
+
             </div>
-
-            <div class="row justify-content-center">
-                <div class="col-6">
-                    <div class="btn-group">
-                        <button type="button" class="search btn btn-secondary dropdown-toggle w-100 ml-2" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            ابحث بواسطة
-                        </button>
-                        <div class="dropdown-menu w-100 txt-small">
-                            <span class="dropdown-item searchItem p-0" ng-click="searchBy = 0" ng-class="{'active': searchBy === 0}">الاسم</span>
-                            <span class="dropdown-item searchItem p-0" ng-click="searchBy = 1" ng-class="{'active': searchBy === 1}">الدائرة</span>
-                            <span class="dropdown-item searchItem p-0" ng-click="searchBy = 2" ng-class="{'active': searchBy === 2}">المسمى الوظيفي</span>
-                            <span class="dropdown-item searchItem p-0" ng-click="searchBy = 3" ng-class="{'active': searchBy === 3}">الوحدة التنظيمية</span>
-                        </div>
-                        <input type="text" ng-show="searchBy === 0" ng-model="employeesTableParams.filter().FullName" placeholder="الاسم" class="form-control" />
-                        <input type="text" ng-show="searchBy === 1" ng-model="employeesTableParams.filter().Section" placeholder="الدائرة" class="form-control" />
-                        <input type="text" ng-show="searchBy === 2" ng-model="employeesTableParams.filter().JobTitle" placeholder="المسمى الوظيفي" class="form-control" />
-                        <input type="text" ng-show="searchBy === 3" ng-model="employeesTableParams.filter().Department" placeholder="الوحدة التنظيمية" class="form-control" />
-                    </div>
-                </div>
-           
-
-
-
-
-              
-
-                <div class="col-3 mb-2">
-                    <select ng-model="employeesTableParams.filter().Active" class="form-control">
-                        <option value="">الكل</option>
-                        <option value="true">نشط</option>
-                        <option value="false">مستقيل</option>
-                    </select>
-                </div>
-
-
-                <div class="col-3 mb-2">
-                    <select class="form-control" name="JobTitle"
-                            ng-model="employeesTableParams.filter().CategoryId"
-                            ng-options="c.CategoryId as c.Name for c in Categories">
-                        <option value="">الكل</option>
-                    </select>
-                </div>
-
-            </div>*@
-
-
-
-
-            <table class="table table-hover table-bordered text-center" ng-table="employeesTableParams">
-                <thead class="table-light">
-                    <tr>
-                        <th>#</th>
-                        <th>الاسم</th>
-                        <th>الفئة</th>
-                        <th>الدائرة</th>
-                        <th>المسمى الوظيفي</th>
-                        <th>الوحدة التنظيمية</th>
-                        <th>الموقع</th>
-                        <th>الإجراءات</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr ng-repeat="employee in $data">
-                        <td>{{$index + 1}}</td>
-                        <td>
-                            {{employee.FullName}}
-                            <div>
-                                <small class="text-muted">
-                                    <span class="text-danger" ng-show="!employee.Active">مستقيل</span>
-                                </small>
-                            </div>
-                        </td>
-                        <td>{{employee.Category}}</td>
-                        <td>{{employee.Section}}</td>
-                        <td>{{employee.JobTitle}}</td>
-                        <td>{{employee.Department}}</td>
-                        <td>
-                            <span ng-show="employee.WorkLocation == 'Amman'">عمان</span>
-                            <span ng-show="employee.WorkLocation == 'Khaldieh'">الخالدية</span>
-                        </td>
-                        <td>
-                            <div class="btn-group">
-                                <button type="button" class="btn btn-success dropdown-toggle actions" data-bs-toggle="dropdown"></button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#!/editEmployee/{{employee.EmployeeId}}" ng-show="employee.Active">تعديل</a></li>
-                                    <li><hr class="dropdown-divider" ng-show="employee.Active"></li>
-                                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#exceptionModalForm" ng-click="loadException(employee.EmployeeId)" ng-show="employee.Active">بدل استثناء</a></li>
-                                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#damageModalForm" ng-click="loadDamaged(employee.EmployeeId)" ng-show="employee.Active">استلام تلف مادة</a></li>
-                                    <li><hr class="dropdown-divider" ng-show="employee.Active"></li>
-                                    <li><a class="dropdown-item" href="#!/issuances/{{employee.EmployeeId}}/0">سجل الصرف</a></li>
-                                    <li><a class="dropdown-item" href="#!/entitlements/{{employee.EmployeeId}}/0">سجل المستحقات</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="" ng-click="confirmDelete(employee.EmployeeId)" ng-show="employee.Active">استقال الموظف</a></li>
-                                    <li><a class="dropdown-item text-success" href="" data-bs-toggle="modal" data-bs-target="#activationModalForm" ng-click="loadActivation(employee)" ng-show="!employee.Active">اعادة تفعيل الموظف</a></li>
-                                </ul>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
 
         </div>
 
+        <div class="card p-3 mb-3 shadow-sm">
+
+            <!-- ✅ Row 1 -->
+            <div class="row g-2">
+
+                <!-- Full Name -->
+                <div class="col-md-4">
+                    <label class="form-label">اسم الموظف</label>
+                    <input type="text"
+                           class="form-control"
+                           placeholder="بحث باسم الموظف"
+                           ng-model="search.FullName" />
+                </div>
+
+                <!-- Employee Number -->
+                <div class="col-md-4">
+                    <label class="form-label">الرقم الوظيفي</label>
+                    <input type="text"
+                           class="form-control"
+                           placeholder="بحث بالرقم الوظيفي"
+                           ng-model="search.EmployeeNumber" />
+                </div>
+
+                <!-- Active -->
+                <div class="col-md-4">
+                    <label class="form-label">الحالة</label>
+                    <select class="form-control"
+                            ng-model="search.Active">
+                        <option value="">الكل</option>
+                        <option value="true">فعّال</option>
+                        <option value="false">متقاعد</option>
+                    </select>
+                </div>
+
+            </div>
+
+
+            <!-- ✅ Row 2 -->
+            <div class="row g-2 mt-2">
+
+                <!-- Department -->
+                <div class="col-md-4">
+                    <label class="form-label">الوحدة التنظيمية</label>
+                    <select class="form-control"
+                            ng-model="search.DepartmentId"
+                            ng-click="loadDepartments()"
+                            ng-options="d.DepartmentId as d.Name for d in Departments"
+                            ng-change="loadSectionsByDepartment(search.DepartmentId)">
+                        <option value="">كل الوحدات</option>
+                    </select>
+                </div>
+
+                <!-- Section -->
+                <div class="col-md-4">
+                    <label class="form-label">القسم</label>
+                    <select class="form-control"
+                            ng-model="search.SectionId"
+                            ng-click="loadSections()"
+                            ng-options="s.SectionId as s.Name for s in sections">
+                        <option value="">كل الأقسام</option>
+                    </select>
+                </div>
+
+                <!-- Category -->
+                <div class="col-md-4">
+                    <label class="form-label">التصنيف</label>
+                    <select class="form-control"
+                            ng-model="search.CategoryId"
+                            ng-options="c.CategoryId as c.Name for c in Categories">
+                        <option value="">كل التصنيفات</option>
+                    </select>
+                </div>
+
+            </div>
+
+
+            <!-- ✅ Buttons Row -->
+            <div class="row mt-3">
+                <div class="col-md-12 text-end">
+
+                    <!-- Search Button -->
+                    <button class="btn btn-primary search px-4"
+                            ng-click="applySearch()">
+                        <i class="fa fa-search"></i>
+                        بحث
+                    </button>
+
+                    <!-- Reset Button (optional) -->
+                    <button class="btn btn-secondary reset px-4 ms-2"
+                            ng-click="resetSearch()">
+                        <i class="fa fa-refresh"></i>
+                        إعادة ضبط
+                    </button>
+
+                </div>
+            </div>
+
+        </div>
+
+
+
+
     </div>
 
+
+
+
+    <div class="card">
+
+        <table class="table table-hover table-bordered text-center" ng-table="employeesTableParams">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>الرقم الوظيفي</th>
+                    <th>الاسم</th>
+                    <th>التصنيف</th>
+                    <th>الوحدة التنظيمية</th>
+                    <th>القسم/الشعبة</th>
+                    <th>المسمى الوظيفي</th>
+                    <th>الموقع</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="employee in $data">
+                    <td>{{$index + 1}}</td>
+                    <td><span class="text-dark">{{employee.EmployeeNumber}}</span></td>
+                    <td>
+                        {{employee.FullName}}
+                        <div>
+                            <small class="text-muted">
+                                <span class="text-danger" ng-show="!employee.Active">مستقيل</span>
+                            </small>
+                        </div>
+                    </td>
+                    <td>{{employee.Category}}</td>
+                    <td>{{employee.Department}}</td>
+                    <td>{{employee.Section}}</td>
+                    <td>{{employee.JobTitle}}</td>
+                    <td>
+                        <span ng-show="employee.WorkLocationStr == 'Amman'">عمان</span>
+                        <span ng-show="employee.WorkLocationStr == 'Khaldieh'">الخالدية</span>
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-success dropdown-toggle actions" data-bs-toggle="dropdown"></button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#!/editEmployee/{{employee.EmployeeId}}" ng-if="employee.Active && !hasRole(2)">تعديل</a></li>
+                                <li><a class="dropdown-item" href="" ng-click="openUpdateJobTitleModal(employee)" ng-if="employee.Active && !hasRole(2)">تغيير المسمى الوظيفي</a></li>
+                                <li><hr class="dropdown-divider" ng-if="employee.Active && !hasRole(2)"></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#exceptionModalForm" ng-click="loadException(employee.EmployeeId)" ng-if="employee.Active && !hasRole(2)">بدل استثناء</a></li>
+                                <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#damageModalForm" ng-click="loadDamaged(employee.EmployeeId)" ng-if="employee.Active && !hasRole(2)">استلام تلف مادة</a></li>
+                                <li><hr class="dropdown-divider" ng-if="employee.Active && !hasRole(2)"></li>
+                                <li><a class="dropdown-item" href="#!/issuances/{{employee.EmployeeId}}/0">سجل الصرف</a></li>
+                                <li><a class="dropdown-item" href="#!/entitlements/{{employee.EmployeeId}}/0">سجل المستحقات</a></li>
+                                <li><hr class="dropdown-divider" ng-if="!hasRole(2)"></li>
+                                <li><a class="dropdown-item text-danger" href="" ng-click="confirmDelete(employee.EmployeeId)" ng-if="employee.Active && !hasRole(2)">استقال الموظف</a></li>
+                                <li><a class="dropdown-item text-success" href="" data-bs-toggle="modal" data-bs-target="#activationModalForm" ng-click="loadActivation(employee)" ng-if="!employee.Active && !hasRole(2)">اعادة تفعيل الموظف</a></li>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
 </div>
+
+
+
+
+
+
+
+
 
 
 
@@ -504,7 +527,7 @@
                 </div>
             </div>
         </form>
-       
+
     </div>
 </div>
 
@@ -559,7 +582,7 @@
                     <label for="exampleFormControlSelect12">الفئة</label>
                     <input disabled arabic-only ng-model="jobTitleCategory.Category" type="text" name="Catgory" class="form-control rounded-0 bg-light" id="exampleFormControlInput5" placeholder="الفئة">
                 </form>
-              
+
 
             </div>
             <div class="modal-footer">
@@ -573,6 +596,172 @@
                 </button>
 
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="exportEntitlementsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <!-- Header -->
+            <div class="modal-header">
+                <h5 class="modal-title">تصدير استحقاقات الموظفين</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+
+                <label>اختر السنة</label>
+
+                <select class="form-control"
+                        ng-model="exportYear"
+                        ng-options="y for y in exportYears">
+                    <option value="">اختر السنة</option>
+                </select>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button class="btn btn-success"
+                        ng-disabled="!exportYear"
+                        ng-click="downloadEntitlementsExcel()">
+
+                    <i class="fa fa-file-excel"></i>
+                    تحميل Excel
+                </button>
+
+                <button class="btn btn-danger"
+                        data-bs-dismiss="modal">
+                    إغلاق
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- ✅ Update Job Title Modal -->
+<div class="modal fade" id="updateJobTitleModalForm" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <!-- Header -->
+            <div class="modal-header">
+                <h5 class="modal-title">تغيير المسمى الوظيفي</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+
+                <div class="border small mb-3"
+                     dir="rtl"
+                     style="text-align:right;">
+
+                    <p class="mb-1">
+                        <strong>الموظف:</strong>
+                        {{selectedEmployee.FullName}}
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>المسمى الحالي:</strong>
+                        {{selectedEmployee.JobTitle}}
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>التصنيف الحالي:</strong>
+                        {{selectedEmployee.Category || "—"}}
+                    </p>
+
+                    <p class="mb-1">
+                        <strong>الوحدة الحالية:</strong>
+                        {{selectedEmployee.Department}}
+                    </p>
+
+                    <p class="mb-0">
+                        <strong>القسم الحالي:</strong>
+                        {{selectedEmployee.Section || "—"}}
+                    </p>
+
+                </div>
+
+
+                <!-- ✅ Form -->
+                <form name="updateJobTitleForm" novalidate>
+
+
+
+                    <!-- Department -->
+                    <div class="form-group mb-3">
+                        <label>الوحدة التنظيمية *</label>
+                        <select class="form-control"
+                                ng-model="jobTitleUpdate.DepartmentId"
+                                ng-options="d.DepartmentId as d.Name for d in Departments"
+                                ng-change="loadSectionsByDepartment(jobTitleUpdate.DepartmentId)"
+                                required>
+                            <option value="" disabled selected>اختر الوحدة التنظيمية</option>
+                        </select>
+                        <div class="invalid-feedback d-block" ng-show="updateJobTitleForm.$submitted && !jobTitleUpdate.DepartmentId">
+                            <i class="bx bx-radio-circle"></i>
+                            يرجى اختيار الوحدة التنظيمية
+                        </div>
+                    </div>
+
+                    <!-- Section -->
+                    <div class="form-group mb-3">
+                        <label>القسم / الشعبة</label>
+                        <select class="form-control"
+                                ng-model="jobTitleUpdate.SectionId"
+                                ng-options="s.SectionId as s.Name for s in Sections"
+                                ng-change="onSectionChange(jobTitleUpdate.SectionId)">
+                            <option value="">بدون قسم</option>
+                        </select>
+                    </div>
+
+                    <!-- Job Title -->
+                    <div class="form-group mb-3">
+                        <label>المسمى الوظيفي *</label>
+                        <select class="form-control"
+                                ng-model="jobTitleUpdate.JobTitleId"
+                                ng-options="j.JobTitleId as j.Name for j in JobTitles"
+                                required
+                                ng-change="loadCategory(jobTitleUpdate.JobTitleId)">
+                            <option value="" disabled selected>اختر المسمى الوظيفي</option>
+                        </select>
+                        <div class="invalid-feedback d-block" ng-show="updateJobTitleForm.$submitted && !jobTitleUpdate.JobTitleId">
+                            <i class="bx bx-radio-circle"></i>
+                            يرجى اختيار المسمى الوظيفي
+                        </div>
+                    </div>
+
+
+                    <div class="form-group mb-3">
+                        <label for="exampleFormControlSelect12">التصنيف</label>
+                        <input disabled arabic-only ng-model="jobTitleCategory.Category" type="text" name="Catgory" class="form-control rounded-0 bg-light" id="exampleFormControlInput5" placeholder="التصنيف">
+                    </div>
+
+                </form>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button class="btn btn-primary accept"
+                         data-bs-dismiss="modal"
+                        ng-click="saveJobTitleUpdate()">
+                    حفظ التعديل
+                </button>
+
+                <button class="btn btn-secondary closeBtn"
+                        data-bs-dismiss="modal">
+                    إغلاق
+                </button>
+            </div>
+
         </div>
     </div>
 </div>

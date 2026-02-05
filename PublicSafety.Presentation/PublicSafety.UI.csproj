@@ -983,6 +983,7 @@
     <Content Include="Uploads\file_18745c78c02a4168914c6b4fd5cd5445.png" />
     <Content Include="Uploads\file_38f2a9c4dffc4841afeb5ced22d38525.png" />
     <Content Include="Uploads\file_bbea23454ed14ee0b45185fe29828b14.png" />
+    <Content Include="Views\Home\AllEntitlements.cshtml" />
     <None Include="Views\Home\ItemLogs.cshtml" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">

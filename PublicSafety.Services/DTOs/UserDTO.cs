@@ -12,6 +12,7 @@ namespace PublicSafety.Services.DTOs
         public Guid UserId { get; set; }
         public string Username { get; set; }
         public int Type { get; set; }
+        public string Email { get; set; }
       
     }
 }

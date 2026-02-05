@@ -60,5 +60,28 @@ namespace PublicSafety.APIs.Controllers
             }
         }
 
+        [HttpGet]
+        public JsonResult GetBySection(Guid SectionId)
+        {
+            try
+            {
+                var data = JobTitleService.GetJobTitlesBySection(SectionId);
+
+                return Json(new ApiResponse<List<JobTitleDTO>>
+                {
+                    Success = true,
+                    Data = data
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new ApiResponse<List<JobTitleDTO>>
+                {
+                    Success = false,
+                    Message = ex.Message
+                }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
     }
 }

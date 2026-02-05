@@ -43,7 +43,7 @@
                         </a>
                     </li>
 
-                    <li class="" ng-class="{'active': activeItem == 1}" >
+                    <li class="" ng-class="{'active': activeItem == 1}">
                         <a class="sidenav-item-link justify-content-between" href="#!/matrices">
                             <i class="mdi mdi-file-document-box"></i>
                             <span class="nav-text">المصفوفات</span>
@@ -51,20 +51,29 @@
                     </li>
 
                     <li class="" ng-class="{'active': activeItem == 2}">
+                        <a class="sidenav-item-link justify-content-between" href="#!/allEntitlements">
+                            <i class="mdi mdi-account-box-outline"></i>
+                            <span class="nav-text">مستحقات الموظفين</span>
+                        </a>
+                    </li>
+
+
+
+                    <li class="" ng-class="{'active': activeItem == 3}">
                         <a class="sidenav-item-link justify-content-between" href="#!/employees">
                             <i class="mdi mdi-account-group"></i>
                             <span class="nav-text">الموظفين</span>
                         </a>
                     </li>
 
-                    <li class="" ng-class="{'active': activeItem == 3}">
+                    <li class="" ng-class="{'active': activeItem == 4}">
                         <a class="sidenav-item-link justify-content-between" href="#!/items">
                             <i class="mdi mdi-package-variant-closed"></i>
                             <span class="nav-text">المواد</span>
                         </a>
                     </li>
 
-                    <li class="" ng-class="{'active': activeItem == 4}" ng-show="IsAdmin || IsManager">
+                    <li class="" ng-class="{'active': activeItem == 5}" ng-if="!hasRole(3)">
                         <a class="sidenav-item-link justify-content-between" href="#!/requests">
                             <i class="mdi mdi-pencil-box-outline"></i>
                             <span class="nav-text">طلبات تعديل المعلومات</span>

@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+using System.Data.Entity;
 namespace PublicSafety.Services
 {
     public class EmployeeService
@@ -22,6 +22,7 @@ namespace PublicSafety.Services
             {
                 EmployeeId = e.EmployeeId,
                 FullName = e.FullName,
+                EmployeeNumber = e.EmployeeNumber,
                 Email = e.Email,
                 Phone = e.Phone,
                 IsIntern = e.IsIntern,
@@ -30,7 +31,7 @@ namespace PublicSafety.Services
                 WorkLocation = e.WorkLocation.ToString(),
                 HealthInsuranceFile = e.HealthInsuranceFile,
                 Department = e.Department.Name,
-                Section = e.Section.Name,
+                Section = e.Section?.Name,
                 JobTitle = e.JobTitle.Name,
                 CreationDate = e.CreationDate.ToString("yyyy-MM-dd"),
                 EmploymentDate = e.EmploymentDate.ToString("yyyy-MM-dd"),
@@ -44,13 +45,207 @@ namespace PublicSafety.Services
             });
         }
 
+        public static PagedResult<EmployeePagedDTO> GetEmployeesPaged(
+       int page,
+       int pageSize,
+       string sortField,
+       string sortDir,
+       Dictionary<string, string> filter
+   )
+        {
+            using (var context = new AppDbContext())
+            {
+
+                var query = context.Employees
+      .Include(e => e.Department)
+      .Include(e => e.Section)
+      .Include(e => e.JobTitle)
+      .Select(e => new EmployeePagedDTO
+      {
+          EmployeeId = e.EmployeeId,
+
+          FullName = e.FullName,
+          EmployeeNumber = e.EmployeeNumber,
+
+          Email = e.Email,
+          Phone = e.Phone,
+
+          IsIntern = e.IsIntern,
+          Active = e.Active,
+
+          Notes = e.Notes,
+
+          WorkLocation = e.WorkLocation,
+          HealthInsuranceFile = e.HealthInsuranceFile,
+
+        
+          DepartmentId = e.DepartmentId,
+          Department = e.Department.Name,
+
+         
+          SectionId = e.SectionId,
+          Section = e.Section != null ? e.Section.Name : null,
+
+       
+          JobTitleId = e.JobTitleId,
+          JobTitle = e.JobTitle.Name,
+
+        
+          CategoryId = e.JobTitle.jobTitleCategories
+              .Select(jc => jc.CategoryId)
+              .FirstOrDefault(),
+
+          Category = e.JobTitle.jobTitleCategories
+              .Select(jc => jc.Category.Name)
+              .FirstOrDefault(),
+
+       
+          CreationDate = e.CreationDate,
+
+          EmploymentDate = e.EmploymentDate,
+
+          RetirementDate = e.RetirementDate ?? DateTime.MinValue
+      })
+      .AsQueryable();
+
+
+
+                if (filter != null)
+                {
+                    foreach (var f in filter)
+                    {
+                        if (string.IsNullOrWhiteSpace(f.Value))
+                            continue;
+
+                        switch (f.Key)
+                        {
+                            case "FullName":
+                                query = query.Where(x =>
+                                    x.FullName.Contains(f.Value));
+                                break;
+
+                            case "EmployeeNumber":
+                                query = query.Where(x =>
+                                    x.EmployeeNumber.Contains(f.Value));
+                                break;
+
+                            case "DepartmentId":
+                                {
+                                    Guid depId = Guid.Parse(f.Value);
+                                    query = query.Where(x =>
+                                        x.DepartmentId == depId);
+                                    break;
+                                }
+
+                            case "SectionId":
+                                {
+                                    Guid secId = Guid.Parse(f.Value);
+                                    query = query.Where(x =>
+                                        x.SectionId == secId);
+                                    break;
+                                }
+
+                            case "CategoryId":
+                                {
+                                    Guid catId = Guid.Parse(f.Value);
+                                    query = query.Where(x =>
+                                        x.CategoryId == catId);
+                                    break;
+                                }
+
+                            case "Active":
+                                {
+                                    bool active = f.Value == "true";
+                                    query = query.Where(x =>
+                                        x.Active == active);
+                                    break;
+                                }
+
+                            case "IsIntern":
+                                {
+                                    bool intern = f.Value == "true";
+                                    query = query.Where(x =>
+                                        x.IsIntern == intern);
+                                    break;
+                                }
+                        }
+                    }
+                }
+
+                bool asc = sortDir.Equals("asc",
+                    StringComparison.OrdinalIgnoreCase);
+
+                switch (sortField)
+                {
+                    case "FullName":
+                        query = asc
+                            ? query.OrderBy(x => x.FullName)
+                            : query.OrderByDescending(x => x.FullName);
+                        break;
+
+                    case "EmployeeNumber":
+                        query = asc
+                            ? query.OrderBy(x => x.EmployeeNumber)
+                            : query.OrderByDescending(x => x.EmployeeNumber);
+                        break;
+
+                    case "EmploymentDate":
+                        query = asc
+                            ? query.OrderBy(x => x.EmploymentDate)
+                            : query.OrderByDescending(x => x.EmploymentDate);
+                        break;
+
+                    case "CreationDate":
+                        query = asc
+                            ? query.OrderBy(x => x.CreationDate)
+                            : query.OrderByDescending(x => x.CreationDate);
+                        break;
+
+                    default:
+                        query = asc
+                            ? query.OrderBy(x => x.FullName)
+                            : query.OrderByDescending(x => x.FullName);
+                        break;
+                }
+
+     
+                int total = query.Count();
+
+                var data = query
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                foreach (var item in data)
+                {
+                    item.EmploymentDateStr = item.EmploymentDate.ToString("yyyy-MM-dd");
+                    item.WorkLocationStr = item.WorkLocation.ToString();
+                }
+
+
+                return new PagedResult<EmployeePagedDTO>
+                {
+                    Data = data,
+                    Total = total
+                };
+            }
+        }
+
 
 
         public static Guid AddNewEmployee(AddEmployeeDTO employee)
         {
+
+            if (EmployeeRepo.EmployeeNumberExists(employee.EmployeeNumber))
+            {
+                throw new Exception("الرقم الوظيفي مستخدم مسبقاً، يرجى إدخال رقم آخر");
+            }
+
+
             var newEmployee = new Employee()
             {
                 EmployeeId = Guid.NewGuid(),
+                EmployeeNumber = employee.EmployeeNumber,
                 FirstName = employee.FirstName,
                 SecondName = employee.SecondName,
                 LastName = employee.LastName,
@@ -94,6 +289,7 @@ namespace PublicSafety.Services
             return new AddEmployeeDTO()
             {
                 EmployeeId = Employee.EmployeeId,
+                EmployeeNumber = Employee.EmployeeNumber,
                 FullName = Employee.FullName,
                 FirstName = Employee.FirstName,
                 SecondName = Employee.SecondName,
@@ -106,7 +302,7 @@ namespace PublicSafety.Services
                 WorkLocation = Employee.WorkLocation.ToString(),
                 HealthInsuranceFile = Employee.HealthInsuranceFile,
                 DepartmentId = Employee.Department.DepartmentId,
-                SectionId = Employee.Section.SectionId,
+                SectionId = Employee.Section?.SectionId,
                 JobTitleId = Employee.JobTitle.JobTitleId,
                 CategoryId = Employee.JobTitle.jobTitleCategories.Select(jc => jc.Category.CategoryId).FirstOrDefault(),
                 EmploymentDate = Employee.EmploymentDate.ToString(),
@@ -120,10 +316,19 @@ namespace PublicSafety.Services
             if (existingEmployee == null)
                 return false;
 
+
+            if (employee.EmployeeNumber != existingEmployee.EmployeeNumber && EmployeeRepo.EmployeeNumberExists(employee.EmployeeNumber))
+            {
+                throw new Exception("الرقم الوظيفي مستخدم مسبقاً، يرجى إدخال رقم آخر");
+            }
+
             // حفظ الحالة القديمة
             bool wasActive = existingEmployee.Active;
             var oldJobTitleId = existingEmployee.JobTitleId;
 
+
+
+            existingEmployee.EmployeeNumber = employee.EmployeeNumber;
             // تحديث البيانات الأساسية
             existingEmployee.FirstName = employee.FirstName;
             existingEmployee.SecondName = employee.SecondName;
@@ -233,6 +438,73 @@ namespace PublicSafety.Services
         }
 
 
+        public static bool UpdateEmployeeJobTitle(
+    Guid employeeId,
+    Guid newJobTitleId,
+    Guid newDepartmentId,
+    Guid? newSectionId
+)
+        {
+            var employee = EmployeeRepo.GetEmployeeById(employeeId);
+
+            if (employee == null)
+                throw new Exception("الموظف غير موجود");
+
+            if (!employee.Active)
+                throw new Exception("لا يمكن تعديل بيانات موظف متقاعد");
+
+            DateTime now = DateTime.Now;
+
+            // ✅ If nothing changed → return
+            if (employee.JobTitleId == newJobTitleId &&
+                employee.DepartmentId == newDepartmentId &&
+                employee.SectionId == newSectionId)
+            {
+                return true;
+            }
+
+            // =====================================================
+            // ✅ Close previous JobTitleHistory record
+            // =====================================================
+            var lastHistory = EmployeeJobTitleHistoryRepo
+                .GetLastJobTitleHistoryByEmployee(employeeId);
+
+            if (lastHistory != null && lastHistory.EndDate == null)
+            {
+                lastHistory.EndDate = now;
+            }
+
+            // =====================================================
+            // ✅ Create new JobTitleHistory
+            // =====================================================
+            var newHistory = new EmployeeJobTitleHistory
+            {
+                EmployeeJobTitleHistoryId = Guid.NewGuid(),
+                EmployeeId = employeeId,
+                JobTitleId = newJobTitleId,
+                StartDate = now,
+                EndDate = null
+            };
+
+            // =====================================================
+            // ✅ Update Employee main table
+            // =====================================================
+            employee.JobTitleId = newJobTitleId;
+            employee.JobTitleUpdateDate = now;
+
+            employee.DepartmentId = newDepartmentId;
+            employee.SectionId = newSectionId;
+
+            // =====================================================
+            // ✅ Save only those fields safely
+            // =====================================================
+            return EmployeeRepo.UpdateEmployee(
+                employee,
+                lastHistory,
+                newHistory
+            );
+        }
+
 
         public static int GetNumberOfActiveEmployees()
         {
@@ -293,7 +565,8 @@ namespace PublicSafety.Services
                         .FirstOrDefault(),
                 Category = e.JobTitle.jobTitleCategories
                         .Select(jc => jc.Category.Name)
-                        .FirstOrDefault()
+                        .FirstOrDefault(),
+                EmployeeNumber = e.EmployeeNumber
             });
 
         }

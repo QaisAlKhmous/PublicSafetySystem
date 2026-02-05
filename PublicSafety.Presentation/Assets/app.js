@@ -44,6 +44,10 @@ app.config(function ($routeProvider) {
             templateUrl: '/Home/Entitlements',
             controller: 'entitlementCtrl'
         })
+        .when("/allEntitlements", {
+            templateUrl: '/Home/AllEntitlements',
+            controller: 'allEntitlementsCtrl'
+        })
         .when("/itemLogs/:itemId", {
             templateUrl: '/Home/ItemLogs',
             controller: 'itemLogCtrl'
@@ -84,7 +88,10 @@ app.run(function ($rootScope, $location, $cookies,$timeout) {
     $rootScope.LogedInUser.userType = (res[2]).replace("Type=", "");
 
 
-
+    $rootScope.hasRole = function (roleId) {
+        return $rootScope.LogedInUser &&
+            $rootScope.LogedInUser.userType == roleId;
+    };
     
     $rootScope.toastify = function (msg, type) {
         if (type)
@@ -216,12 +223,26 @@ app.factory('employeeService', function ($http) {
         getEmployeeById: function (id) {
 
             return $http.get(baseUrl + '/GetEmployee?Id=' + id);
+
+        },
+        getEmployeesPaged: function (req) {
+            return $http.post(baseUrl + "/GetEmployees", req, {
+                headers: { 'Content-Type': 'application/json' }
+            });
+        },
+        getEntitlementsPaged: function (req) {
+            return $http.post(baseUrl + "/GetEntitlementsPaged", req, {
+                headers: { 'Content-Type': 'application/json' }
+            });
         },
         addNewEmployee: function (employee) {
             return $http.post(baseUrl + '/AddNewEmployee' , employee);
         },
         updateEmployee: function (employee) {
             return $http.post(baseUrl + '/UpdateEmployee', employee);
+        },
+        UpdateEmployeeJobTitle: function (model) {
+            return $http.post(baseUrl + '/UpdateEmployeeJobTitle', model);
         },
         getAllEmployees: function () {
             return $http.get(baseUrl + '/GetAllEmployees');
@@ -242,8 +263,7 @@ app.factory('employeeService', function ($http) {
 });
 
 app.controller('sidebarCtrl', function ($scope, $rootScope, $location) {
-    $scope.IsAdmin = $rootScope.LogedInUser.userType == 0;
-    $scope.IsManager = $rootScope.LogedInUser.userType == 1;
+
     
     $scope.activeItem = 0;
 
@@ -265,17 +285,22 @@ app.controller('sidebarCtrl', function ($scope, $rootScope, $location) {
             $rootScope.setActive(1);
 
         }
-        if (url === '/employees' || url === '/addEmployee' || url.startsWith('/editEmployee') || url.startsWith("/issuances") || url.startsWith("/entitlements")) {
+        if (url === '/allEntitlements') {
             $rootScope.setActive(2);
 
         }
 
-        if (url === '/items') {
+        if (url === '/employees' || url === '/addEmployee' || url.startsWith('/editEmployee') || url.startsWith("/issuances") || url.startsWith("/entitlements")) {
             $rootScope.setActive(3);
 
         }
-        if (url === '/requests') {
+
+        if (url === '/items') {
             $rootScope.setActive(4);
+
+        }
+        if (url === '/requests') {
+            $rootScope.setActive(5);
 
         }
     
@@ -824,15 +849,88 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
     };
 
 
-    $scope.getAllEmployees = function () {
-        employeeService.getAllEmployees().then(function (response) {
-            $scope.employees = response.data;
 
-            $scope.employeesTableParams.settings({ dataset: $scope.employees });
-        })
+
+    $scope.loadJobTitles = function () {
+        $http.get('/JobTitle/GetAllJobTitles')
+            .then(function (res) {
+
+                if (res.data && res.data.Success) {
+                    $scope.jobTitles = res.data.Data || [];
+                } else {
+                    $scope.jobTitles = [];
+                }
+
+            })
+            .catch(function (err) {
+
+                if (err.data && err.data.Message) {
+                    console.error(err.data.Message);
+                } else {
+                    console.error("مشكلة في السيرفر");
+                }
+
+                $scope.jobTitles = [];
+            });
+
     }
 
-    $scope.getAllEmployees();
+    $scope.loadSections = function () {
+        console.log("hi");
+        $http.get('/Section/GetAllSections')
+            .then(function (res) {
+
+                if (res.data && res.data.Success) {
+                    $scope.sections = res.data.Data || [];
+                    
+                } else {
+                    $scope.sections = [];
+                }
+
+            })
+            .catch(function (err) {
+                console.error(err);
+                $scope.sections = [];
+            });
+
+    }
+
+   
+    $scope.search = {
+        FullName: "",
+        EmployeeNumber: "",
+        DepartmentId: null,
+        SectionId: null,
+        CategoryId: null,
+        Active: ""
+    };
+
+    $scope.resetSearch = function () {
+        $scope.search = {
+            FullName: "",
+            EmployeeNumber: "",
+            DepartmentId: null,
+            SectionId: null,
+            CategoryId: null,
+            Active: ""
+        };
+    }
+    
+    $scope.applySearch = function () {
+
+        $scope.employeesTableParams.filter({
+
+            FullName: $scope.search.FullName,
+            EmployeeNumber: $scope.search.EmployeeNumber,
+
+            DepartmentId: $scope.search.DepartmentId,
+            SectionId: $scope.search.SectionId,
+            CategoryId: $scope.search.CategoryId,
+
+            Active: $scope.search.Active
+        });
+
+    };
 
 
     $scope.employeesTableParams = new NgTableParams(
@@ -845,10 +943,235 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
     );
     $scope.employeesTableParams.settings().counts = [];
 
+
+    $scope.employeesTableParams = new NgTableParams(
+        {
+            page: 1,
+            count: 10,
+            sorting: { CreatedDate: "desc" },
+            filter: {}
+        },
+        {
+            getData: function (params) {
+
+                let sorting = params.sorting() || {};
+                let sortField = Object.keys(sorting)[0];
+                let sortDir = sorting[sortField];
+
+                let request = {
+                    page: params.page(),
+                    pageSize: params.count(),
+                    sortField: sortField,
+                    sortDir: sortDir,
+                    filter: params.filter()
+                };
+
+                return employeeService.getEmployeesPaged(request)
+                    .then(function (res) {
+                        console.log(res)
+
+                        params.total(res.data.Data.Total);
+
+                        return res.data.Data.Data;
+                    });
+            }
+        }
+    );
+
+
     $scope.GoToAddPage = function () {
         $location.path('/addEmployee');
     }
 
+    $scope.loadJobTitlesByDepartment = function (departmentId) {
+
+        if (!departmentId) {
+            $scope.JobTitles = [];
+            return;
+        }
+
+        $http.get('/JobTitle/GetByDepartment', {
+            params: { departmentId: departmentId }
+        })
+            .then(function (res) {
+
+                if (res.data && res.data.Success) {
+                    $scope.JobTitles = res.data.Data || [];
+                } else {
+                    $scope.JobTitles = [];
+                }
+
+            })
+            .catch(function (err) {
+
+                if (err.data && err.data.Message) {
+                    console.error(err.data.Message);
+                } else {
+                    console.error("مشكلة في السيرفر");
+                }
+
+                $scope.JobTitles = [];
+            });
+    };
+
+    $scope.loadJobTitlesBySection = function (sectionId) {
+
+        if (!sectionId) {
+            $scope.JobTitles = [];
+            return;
+        }
+
+        $http.get('/JobTitle/GetBySection', {
+            params: { SectionId: sectionId }
+        })
+            .then(function (res) {
+
+                if (res.data && res.data.Success) {
+                    $scope.JobTitles = res.data.Data || [];
+                } else {
+                    $scope.JobTitles = [];
+                }
+
+            })
+            .catch(function (err) {
+
+                if (err.data && err.data.Message) {
+                    console.error(err.data.Message);
+                } else {
+                    console.error("مشكلة في السيرفر");
+                }
+
+                $scope.JobTitles = [];
+            });
+    };
+
+    $scope.onSectionChange = function (sectionId) {
+
+        $scope.jobTitleUpdate.JobTitleId = null;
+
+        if (sectionId) {
+            console.log("hi")
+            $scope.loadJobTitlesBySection(sectionId);
+        } else {
+            // ✅ Department-level jobtitles
+            $scope.loadJobTitlesByDepartment($scope.jobTitleUpdate.DepartmentId);
+        }
+    };
+
+    $scope.loadDepartments = function () {
+
+        if (!$scope.Departments)
+        $http.get('/Department/GetAllDepartments')
+            .then(function (res) {
+
+                if (res.data && res.data.Success) {
+                    $scope.Departments = res.data.Data;
+                } else {
+                    $scope.Departments = [];
+                }
+
+            })
+            .catch(function (err) {
+
+                if (err.data && err.data.Message) {
+                    console.error(err.data.Message);
+                } else {
+                    console.error("مشكلة في السيرفر");
+                }
+
+                $scope.Departments = [];
+            });
+    };
+
+    $scope.loadSectionsByDepartment = function (departmentId) {
+
+        if (!departmentId) {
+            $scope.JobTitles = [];
+            return;
+        }
+
+        $http.get('/Section/GetSectionsByDepartmentId', {
+            params: { DepartmentId: departmentId }
+        })
+            .then(function (res) {
+
+                if (res.data && res.data.Success) {
+                    $scope.Sections = res.data.Data || [];
+                } else {
+                    $scope.Sections = [];
+                }
+
+            })
+            .catch(function (err) {
+
+                if (err.data && err.data.Message) {
+                    console.error(err.data.Message);
+                } else {
+                    console.error("مشكلة في السيرفر");
+                }
+
+                $scope.Sections = [];
+            });
+    };
+
+
+    $scope.loadCategory = function (JobTitleId) {
+        if (JobTitleId)
+            $http.get('/Category/GetCategoryByJobTitleId?JobTitleId=' + JobTitleId).then((res) => {
+                $scope.jobTitleCategory = res.data;
+
+            })
+
+        else $scope.jobTitleCategory = null;
+    }
+
+    $scope.openUpdateJobTitleModal = function (employee) {
+
+        console.log(employee)
+      
+        $scope.selectedEmployee = employee;
+
+        // ✅ Fill default values with current employee data
+        $scope.jobTitleUpdate = {
+            EmployeeId: employee.EmployeeId,
+            JobTitleId: employee.JobTitleId,
+            DepartmentId: employee.DepartmentId,
+            SectionId: employee.SectionId
+        };
+
+        console.log($scope.jobTitleUpdate)
+        
+          $scope.loadDepartments();
+
+
+      
+        if (employee.DepartmentId) {
+            $scope.loadSectionsByDepartment(employee.DepartmentId);
+        }
+
+        $scope.onSectionChange(employee.SectionId);
+
+
+        // ✅ Open modal
+        var modal = new bootstrap.Modal(
+            document.getElementById("updateJobTitleModalForm")
+        );
+        modal.show();
+    };
+
+    $scope.saveJobTitleUpdate = function () {
+
+        if ($scope.updateJobTitleForm.$invalid) {
+
+            console.warn("Form invalid");
+            return;
+        }
+
+        employeeService.UpdateEmployeeJobTitle($scope.jobTitleUpdate).then((res) => {
+            $scope.employeesTableParams.reload();
+            $rootScope.toastify(res.data.Message, 1);
+        })
+    }
 
     $scope.issuance = { EmployeeId: null, IssuanceId: null, ItemId: null, Quantity: 1, Type: '', ExceptionReason: '', ExceptionFormPath: '', SignedReceiptPath: '', CreatedBy: $rootScope.LogedInUser.username, IssuanceDate: '' };
 
@@ -938,7 +1261,7 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
 
                     if (res.data && res.data.Success) {
                         $rootScope.toastify(res.data.Message, 1);
-                        $scope.getAllEmployees();
+                        $scope.employeesTableParams.reload();
                        
                     } else {
                         $rootScope.toastify(res.data.Message || 'خطأ غير متوقع', 0);
@@ -982,28 +1305,7 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
             });
 
     }
-    $scope.loadDepartments = function () {
-        $http.get('/Department/GetAllDepartments')
-            .then(function (res) {
 
-                if (res.data && res.data.Success) {
-                    $scope.departments = res.data.Data;
-                } else {
-                    $scope.departments = [];
-                }
-
-            })
-            .catch(function (err) {
-
-                if (err.data && err.data.Message) {
-                    console.error(err.data.Message);
-                } else {
-                    console.error("مشكلة في السيرفر");
-                }
-
-                $scope.departments = [];
-            });
-    };
     $scope.loadSections = function () {
         $http.get('/Section/GetAllSections')
             .then(function (res) {
@@ -1063,16 +1365,7 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
 
     $scope.issue = function () {
 
-        if ($rootScope.LogedInUser.userType != 0) {
-            $http.post('/Item/IsQuantityEnough', { Id: $scope.issuance.ItemId, Quantity: $scope.issuance.Quantity }).then((res) => {
-                if (res.data)
-                    $scope.addChangeRequest();
-                else {
-                    $rootScope.toastify('الكمية المطلوبة غير متوفرة', 0);
-                }
-            })
-           
-        } else {
+       
 
             $http.post('/Issuance/AddNewIssuance', $scope.issuance)
                 .then(function (res) {
@@ -1108,7 +1401,7 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
 
                 });
 
-        }
+        
 
 
     }
@@ -1192,7 +1485,21 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
             return;
         }
 
-        $scope.issue();
+        if ($rootScope.LogedInUser.userType != 0) {
+            $http.post('/Item/IsQuantityEnough', { Id: $scope.issuance.ItemId, Quantity: $scope.issuance.Quantity }).then((res) => {
+                if (res.data)
+                    $scope.addChangeRequest();
+                else {
+                    $rootScope.toastify('الكمية المطلوبة غير متوفرة', 0);
+                }
+            })
+
+        }
+        else {
+            $scope.issue();
+        }
+
+     
     };
 
     $scope.confirmDelete = function (EmployeeId) {
@@ -1213,7 +1520,7 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
     $scope.deleteEmployee = function (EmployeeId) {
         employeeService.deleteEmployee(EmployeeId).then((res) => {
             $rootScope.toastify('تم تغيير حالة الموظف الى مستقيل', 1);
-            $scope.getAllEmployees();
+            $scope.employeesTableParams.reload();
         }).catch((err) => {
             if (err.data && err.data.Message) {
                 $rootScope.toastify(err.data.Message);
@@ -1395,6 +1702,50 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
 
     $scope.initReceiptYears();
 
+
+    $scope.exportYear = null;
+    $scope.exportYears = [];
+
+    // ✅ Generate years dynamically from 2020 → current year
+    $scope.loadExportYears = function () {
+
+        var currentYear = new Date().getFullYear();
+
+        $scope.exportYears = [];
+
+        for (var y = 2020; y <= currentYear; y++) {
+            $scope.exportYears.push(y);
+        }
+
+        // default = current year
+        $scope.exportYear = currentYear;
+    };
+
+
+    // ✅ Open Modal
+    $scope.openExportEntitlementsModal = function () {
+
+        $scope.loadExportYears();
+
+        var modal = new bootstrap.Modal(
+            document.getElementById("exportEntitlementsModal")
+        );
+
+        modal.show();
+    };
+
+
+    // ✅ Download Excel
+    $scope.downloadEntitlementsExcel = function () {
+
+        if (!$scope.exportYear)
+            return;
+
+        // ✅ Redirect browser to download link
+        window.location.href =
+            "/Upload/ExportEntitlementsExcel?year=" + $scope.exportYear;
+    };
+
    
 })
 app.directive('arabicOnly', function () {
@@ -1484,8 +1835,75 @@ app.directive('validEmail', function () {
 });
 
 app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeService, $location, $http, $timeout, $routeParams,$rootScope) {
+    $scope.employee = {
+        EmployeeId: null, EmployeeNumber: '', FullName: '', FirstName: '', SecondName: '', LastName: '', Email: '', Phone: '', IsIntern: false, Notes: '', WorkLocation: 'Amman',
+        HealthInsuranceFile: '', DepartmentId: null, SectionId: null, JobTitleId: null, CategoryId: null,
+        EmploymentDate: '', Notes: '', Active: true
+    }
 
-   
+    $scope.updateEmployeeId = $routeParams.employeeId;
+
+    $scope.changeRequest = {
+        EntityType: 'Employee', EntityId: '', OldValue: null,
+        NewValue: '', ChangedBy: $rootScope.LogedInUser.username
+    }
+
+    $scope.loadDepartments = function () {
+        $http.get('/Department/GetAllDepartments')
+            .then(function (res) {
+
+                if (res.data && res.data.Success) {
+                    $scope.Departments = res.data.Data;
+                } else {
+                    $scope.Departments = [];
+                }
+
+            })
+            .catch(function (err) {
+
+                if (err.data && err.data.Message) {
+                    console.error(err.data.Message);
+                } else {
+                    console.error("مشكلة في السيرفر");
+                }
+
+                $scope.Departments = [];
+            });
+    };
+
+    $scope.loadDepartments();
+
+    $scope.checkIfUpdate = function () {
+        if ($scope.updateEmployeeId) {
+            employeeService.getEmployeeById($scope.updateEmployeeId)
+                .then((res) => {
+
+                    $scope.employee = res.data.Data;
+                    $scope.changeRequest = {
+                        EntityType: 'Employee', EntityId: $scope.updateEmployeeId, OldValue: JSON.stringify($scope.employee),
+                        NewValue: '', ChangedBy: $rootScope.LogedInUser.username
+                    }
+                    $scope.loadSectionsByDepartment($scope.employee.DepartmentId);
+
+                    if ($scope.employee.SectionId)
+                        $scope.loadJobTitlesBySection($scope.employee.SectionId)
+                    else
+                        $scope.loadJobTitlesByDepartment($scope.employee.DepartmentId)
+
+
+                    $scope.loadCategory($scope.employee.JobTitleId);
+                    initHealthInsuranceDropzone();
+                }).catch((err) => {
+
+                    if (err.data && err.data.Message) {
+                        $rootScope.toastify(err.data.Message);
+                    } else {
+                        $rootScope.toastify("مشكلة في السيرفر");
+                    }
+                })
+        }
+    }
+    $scope.checkIfUpdate();
 
     $scope.GoToListPage = function () {
         $location.path('/employees');
@@ -1582,16 +2000,22 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
             });
     };
 
+    $scope.loadJobTitlesBySection = function (sectionId) {
 
+        if (!sectionId) {
+            $scope.JobTitles = [];
+            return;
+        }
 
-    $scope.loadDepartments = function () {
-        $http.get('/Department/GetAllDepartments')
+        $http.get('/JobTitle/GetBySection', {
+            params: { SectionId: sectionId }
+        })
             .then(function (res) {
 
                 if (res.data && res.data.Success) {
-                    $scope.Departments = res.data.Data;
+                    $scope.JobTitles = res.data.Data || [];
                 } else {
-                    $scope.Departments = [];
+                    $scope.JobTitles = [];
                 }
 
             })
@@ -1603,28 +2027,61 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
                     console.error("مشكلة في السيرفر");
                 }
 
-                $scope.Departments = [];
+                $scope.JobTitles = [];
             });
     };
 
+    $scope.onDepartmentChange = function (departmentId) {
 
-    $scope.loadSections = function () {
-        $http.get('/Section/GetAllSections')
+        $scope.loadSectionsByDepartment(departmentId);
+        $scope.loadJobTitlesByDepartment(departmentId);
+
+    };
+
+    $scope.onSectionChange = function (sectionId) {
+
+        $scope.employee.JobTitleId = null;
+
+        if (sectionId) {
+            $scope.loadJobTitlesBySection(sectionId);
+        } else {
+            // ✅ Department-level jobtitles
+            $scope.loadJobTitlesByDepartment($scope.employee.DepartmentId);
+        }
+    };
+
+  
+    $scope.loadSectionsByDepartment = function (departmentId) {
+
+        if (!departmentId) {
+            $scope.JobTitles = [];
+            return;
+        }
+
+        $http.get('/Section/GetSectionsByDepartmentId', {
+            params: { DepartmentId: departmentId }
+        })
             .then(function (res) {
 
                 if (res.data && res.data.Success) {
                     $scope.Sections = res.data.Data || [];
                 } else {
-                    $scope.Sections = [];
+                    $scope.JobTSectionsitles = [];
                 }
 
             })
             .catch(function (err) {
-                console.error(err);
+
+                if (err.data && err.data.Message) {
+                    console.error(err.data.Message);
+                } else {
+                    console.error("مشكلة في السيرفر");
+                }
+
                 $scope.Sections = [];
             });
+    };
 
-    }
 
     $scope.loadCategory = function (JobTitleId) {
         if (JobTitleId)
@@ -1636,58 +2093,23 @@ app.controller('addEmployeeCtrl', function ($scope, NgTableParams, employeeServi
         else $scope.jobTitleCategory = null;
     }
 
-    
-    $scope.loadSections();
-    $scope.loadDepartments();
-   
-
-    $scope.employee = {
-        EmployeeId : null,FullName : '',FirstName: '', SecondName: '', LastName: '', Email: '', Phone: '', IsIntern: false, Notes: '', WorkLocation: 'Amman',
-        HealthInsuranceFile: '', DepartmentId: null, SectionId: null, JobTitleId: null, CategoryId: null,
-        EmploymentDate: '',Notes: '',Active: true
-    }
-
-    $scope.updateEmployeeId = $routeParams.employeeId;
-
-    $scope.changeRequest = {
-        EntityType: 'Employee', EntityId: '', OldValue: null,
-        NewValue: '', ChangedBy: $rootScope.LogedInUser.username
-    }
 
    
-    $scope.checkIfUpdate = function () {
-        if ($scope.updateEmployeeId) {
-            employeeService.getEmployeeById($scope.updateEmployeeId)
-                .then((res) => {
-                  
-                    $scope.employee = res.data.Data;
-                    $scope.changeRequest = {
-                        EntityType: 'Employee', EntityId: $scope.updateEmployeeId, OldValue: JSON.stringify($scope.employee),
-                        NewValue: '', ChangedBy: $rootScope.LogedInUser.username
-                    }
-                    $scope.loadCategory($scope.employee.JobTitleId);
-                    initHealthInsuranceDropzone();
-                }).catch((err) => {
 
-                    if (err.data && err.data.Message) {
-                        $rootScope.toastify(err.data.Message);
-                    } else {
-                        $rootScope.toastify("مشكلة في السيرفر");
-                    }
-                })
-        }
-    }
-    $scope.checkIfUpdate();
+
+
+   
+
 
     $scope.saveEmployee = function () {
         $scope.employeeForm.$setSubmitted();
 
-        if ($scope.employeeForm.$invalid || !$scope.employee.JobTitleId || !$scope.employee.DepartmentId || !$scope.employee.SectionId) {
+        if ($scope.employeeForm.$invalid || !$scope.employee.JobTitleId || !$scope.employee.DepartmentId) {
 
             console.warn("Form invalid");
             return;
         }
-        if ($rootScope.LogedInUser.userType != 0) {
+        if ($rootScope.hasRole(3) || $rootScope.hasRole(2)) {
 
             const { EmployeeId, CategoryId, ...employeeRequest } = $scope.employee;
             $scope.employeeRequest = employeeRequest;
@@ -1988,7 +2410,7 @@ app.controller('dashboardCtrl', function (
 
 
 
-    $scope.IsAdmin = $rootScope.LogedInUser.userType == 0;
+
 
     $scope.loadNumbers = function () {
 
@@ -2476,7 +2898,7 @@ app.controller('entitlementCtrl',
     
         $scope.issueEntitlemet = function () {
 
-           
+
 
             $scope.entitlementForm.$setSubmitted();
 
@@ -2493,31 +2915,28 @@ app.controller('entitlementCtrl',
                     $rootScope.toastify('الكمية غير متوفرة', 0);
                     return;
                 }
-                if ($rootScope.LogedInUser.userType != 0) {
-                    $scope.addChangeRequest();
 
-                } else {
-                    $http.post('/Issuance/AddNewEntitledIssuance', $scope.issuance)
-                        .then(function (res) {
+                $http.post('/Issuance/AddNewEntitledIssuance', $scope.issuance)
+                    .then(function (res) {
 
-                            $rootScope.toastify(res.data.Message, 1);
-                            $('#issueModalForm').modal('hide');
-                            $scope.loadEntitlements();
+                        $rootScope.toastify(res.data.Message, 1);
+                        $('#issueModalForm').modal('hide');
+                        $scope.entitlementsTableParams.reload();
 
-                        })
-                        .catch(function (err) {
+                    })
+                    .catch(function (err) {
 
-                            if (err.data && err.data.Message) {
-                                $rootScope.toastify(err.data.Message, 0);
-                            } else {
-                                $rootScope.toastify('مشكلة في السيرفر', 0);
-                            }
+                        if (err.data && err.data.Message) {
+                            $rootScope.toastify(err.data.Message, 0);
+                        } else {
+                            $rootScope.toastify('مشكلة في السيرفر', 0);
+                        }
 
-                        });
+                    });
 
-                }
 
-             
+
+
             });
         };
 
@@ -2669,7 +3088,427 @@ app.controller('entitlementCtrl',
 
     });
 
+app.controller('allEntitlementsCtrl',
+    function ($scope, employeeService, itemService, $location, $http,
+        $timeout, $rootScope, NgTableParams, $routeParams) {
 
+        $scope.loadDepartments = function () {
+
+            if (!$scope.Departments)
+                $http.get('/Department/GetAllDepartments')
+                    .then(function (res) {
+
+                        if (res.data && res.data.Success) {
+                            $scope.Departments = res.data.Data;
+                        } else {
+                            $scope.Departments = [];
+                        }
+
+                    })
+                    .catch(function (err) {
+
+                        if (err.data && err.data.Message) {
+                            console.error(err.data.Message);
+                        } else {
+                            console.error("مشكلة في السيرفر");
+                        }
+
+                        $scope.Departments = [];
+                    });
+        };
+
+        $scope.loadSectionsByDepartment = function (departmentId) {
+            if (!departmentId) {
+                $scope.JobTitles = [];
+                return;
+            }
+
+            $http.get('/Section/GetSectionsByDepartmentId', {
+                params: { DepartmentId: departmentId }
+            })
+                .then(function (res) {
+
+                    if (res.data && res.data.Success) {
+                        $scope.Sections = res.data.Data || [];
+                    } else {
+                        $scope.Sections = [];
+                    }
+
+                })
+                .catch(function (err) {
+
+                    if (err.data && err.data.Message) {
+                        console.error(err.data.Message);
+                    } else {
+                        console.error("مشكلة في السيرفر");
+                    }
+
+                    $scope.Sections = [];
+                });
+        };
+
+        $scope.years = [];
+        for (var y = 2020; y <= new Date().getFullYear() + 1; y++) {
+            $scope.years.push(y);
+        }
+        $scope.loadCategories = function () {
+            if (!$scope.Categories)
+            $http.get('/Category/GetAllCategories').then((res) => {
+                $scope.Categories = res.data;
+            })
+
+        }
+
+        $scope.entitlements = [];
+
+        $scope.filters = {
+            Year: new Date().getFullYear(),   // default current year
+            DepartmentId: null,
+            SectionId: null,
+            CategoryId: null,
+            Search: "",
+            IsIssued: ""   // "" = all, 1 = issued, 0 = not issued
+        };
+
+        $scope.selectedEntitlement = null;
+
+
+        /* ============================================
+           ✅ Load Global Entitlements (Server Paging)
+           ============================================ */
+
+        $scope.entitlementsTableParams = new NgTableParams(
+            {
+                page: 1,
+                count: 20
+            },
+            {
+                getData: function (params) {
+
+                    var request = {
+                        page: params.page(),
+                        pageSize: params.count(),
+                        filter: {
+                            Year: $scope.filters.Year,
+                            DepartmentId: $scope.filters.DepartmentId,
+                            SectionId: $scope.filters.SectionId,
+                            CategoryId: $scope.filters.CategoryId,
+                            Search: $scope.filters.Search,
+                            IsIssued: $scope.filters.IsIssued
+                        }
+                    };
+
+                    return employeeService.getEntitlementsPaged(request)
+                        .then(function (res) {
+
+                            if (res.data && res.data.Success) {
+                                console.log(res.data.Data.Data)
+                                params.total(res.data.Data.Total);
+
+                                return res.data.Data.Data;
+                            }
+
+                            return [];
+                        })
+                        .catch(function () {
+                            $rootScope.toastify("حدث خطأ أثناء تحميل الاستحقاقات", 0);
+                            return [];
+                        });
+                }
+            }
+        );
+
+
+        /* ============================================
+           ✅ Apply Filters
+           ============================================ */
+
+        $scope.applyFilters = function () {
+            $scope.entitlementsTableParams.page(1);
+            $scope.entitlementsTableParams.reload();
+        };
+
+
+        /* ============================================
+           ✅ Reset Filters
+           ============================================ */
+
+        $scope.resetFilters = function () {
+
+            $scope.filters = {
+                Year: new Date().getFullYear(),
+                DepartmentId: "",
+                SectionId: "",
+                CategoryId: "",
+                Search: "",
+                IsIssued: ""
+            };
+
+            $scope.applyFilters();
+        };
+
+        $scope.issuance = {
+            EmployeeId: null,
+            ItemId: null,
+            MatrixItemId: null,
+            Quantity: 1,
+            Type: 'Entitled',
+            SignedReceiptPath: '',
+            CreatedBy: $rootScope.LogedInUser.username,
+            IssuanceDate: ''
+        };
+
+
+        $scope.selectEntitlement = function (entitlement) {
+
+            $scope.issuance = {
+                EmployeeId: entitlement.EmployeeId,
+                ItemId: entitlement.ItemId,
+                MatrixItemId: entitlement.MatrixItemId,
+                Quantity: 1,
+                Type: 'Entitled',
+                SignedReceiptPath: '',
+                CreatedBy: $rootScope.LogedInUser.username,
+                IssuanceDate: entitlement.EntitlementYear
+            };
+
+            $scope.selectedEntitlement = entitlement;
+
+
+            $('#issueModalForm').modal('show');
+        };
+
+
+        $scope.entitlementDropzone = null;
+
+        $('#issueModalForm').on('shown.bs.modal', function () {
+            if (!$scope.entitlementDropzone) {
+                $scope.entitlementDropzone =
+                    $rootScope.initFileDropzone(
+                        "#entitlementReceiptDropzone",
+                        $scope.issuance,
+                        "SignedReceiptPath"
+                    );
+            }
+        });
+
+        $('#issueModalForm').on('hidden.bs.modal', function () {
+            $scope.$apply(function () {
+
+
+                if ($scope.entitlementDropzone) {
+                    $scope.entitlementDropzone.removeAllFiles(true);
+                }
+
+
+                $scope.issuance.SignedReceiptPath = '';
+
+
+                if ($scope.entitlementForm) {
+                    $scope.entitlementForm.$setPristine();
+                    $scope.entitlementForm.$setUntouched();
+                }
+            });
+        });
+
+       
+
+      
+
+
+        $scope.issueEntitlemet = function () {
+
+
+
+            $scope.entitlementForm.$setSubmitted();
+
+            if ($scope.entitlementForm.$invalid) {
+                return;
+            }
+            
+            $http.post('/Item/IsQuantityEnough', {
+                Id: $scope.issuance.ItemId,
+                Quantity: $scope.issuance.Quantity
+            }).then((res) => {
+
+                if (!res.data) {
+                    $rootScope.toastify('الكمية غير متوفرة', 0);
+                    return;
+                }
+              
+                    $http.post('/Issuance/AddNewEntitledIssuance', $scope.issuance)
+                        .then(function (res) {
+
+                            $rootScope.toastify(res.data.Message, 1);
+                            $('#issueModalForm').modal('hide');
+                            $scope.entitlementsTableParams.reload();
+
+                        })
+                        .catch(function (err) {
+
+                            if (err.data && err.data.Message) {
+                                $rootScope.toastify(err.data.Message, 0);
+                            } else {
+                                $rootScope.toastify('مشكلة في السيرفر', 0);
+                            }
+
+                        });
+
+              
+
+
+            });
+        };
+
+       
+        $scope.exportYear = null;
+        $scope.exportYears = [];
+
+        // ✅ Generate years dynamically from 2020 → current year
+        $scope.loadExportYears = function () {
+
+            var currentYear = new Date().getFullYear();
+
+            $scope.exportYears = [];
+
+            for (var y = 2020; y <= currentYear; y++) {
+                $scope.exportYears.push(y);
+            }
+
+            // default = current year
+            $scope.exportYear = currentYear;
+        };
+
+
+        // ✅ Open Modal
+        $scope.openExportEntitlementsModal = function () {
+
+            $scope.loadExportYears();
+
+            var modal = new bootstrap.Modal(
+                document.getElementById("exportEntitlementsModal")
+            );
+
+            modal.show();
+        };
+
+
+        // ✅ Download Excel
+        $scope.downloadEntitlementsExcel = function () {
+
+            if (!$scope.exportYear)
+                return;
+
+            // ✅ Redirect browser to download link
+            window.location.href =
+                "/Upload/ExportEntitlementsExcel?year=" + $scope.exportYear;
+        };
+
+
+        $scope.sendIssueNotificationEmail = function () {
+            Swal.fire({
+                title: 'هل انت متأكد من ارسال ايميل اشعار؟',
+                text: "",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'نعم',
+                cancelButtonText: 'لا'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $http.post("/Email/SendIssueNotificationToManager", {
+                        UserId: $rootScope.LogedInUser.userId
+                    }).then((res) => {
+                        $rootScope.toastify(res.data.Message, 1);
+                    }).catch((err) => {
+                        $rootScope.toastify(err.data?.Message, 0);
+                    })
+                }
+            });
+        }
+
+        $scope.issueCategory = function () {
+            $http.post('/Issuance/IssueMatrixForCategory', {
+                categoryId: $scope.selectedCategory.CategoryId,
+                year: $scope.selectedYear,
+                UserId: $rootScope.LogedInUser.userId,
+                SignedReceiptPath: $scope.signedReceipt.receiptPath
+            }).then((res) => {
+                $rootScope.toastify('تم صرف المواد بنجاح', 1)
+            }).catch((res) => {
+                if (res.data && res.data.Message)
+                    $rootScope.toastify(res.data.Message, 0);
+                else {
+                    $rootScope.toastify('مشكلة غير متوقعة', 0);
+                }
+            })
+        }
+
+        $scope.confirmIssueCategory = function () {
+            Swal.fire({
+                title: '؟' + $scope.selectedCategory.Name + ' هل انت متأكد من صرف المواد الى جميع الموظفين من فئة',
+                text: "",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'نعم',
+                cancelButtonText: 'لا'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    if ($rootScope.LogedInUser.userType != 0) {
+
+
+
+                        $scope.addIssueCategoryChangeRequest();
+
+                    } else {
+                        $scope.issueCategory();
+                    }
+
+
+                };
+            });
+
+
+        }
+
+
+        $scope.selectedYear = null;
+
+        $scope.signedReceipt = {
+            receiptPath: ''
+        };
+
+        $scope.isUploading = false;
+
+        $scope.openEntitleMatrixModal = function () {
+
+            $scope.loadCategories();
+            $scope.selectedYear = 2025;
+
+            $scope.signedReceipt.receiptPath = '';
+            $scope.entitleForm.$submitted = false;
+
+            $('#entitleMatrixModal').modal('show');
+
+            setTimeout(function () {
+
+                if ($scope.signedReceiptDropzone) {
+                    $scope.signedReceiptDropzone.destroy();
+                }
+
+                $scope.signedReceiptDropzone = $rootScope.initFileDropzone(
+                    "#signedReceiptDropzone",
+                    $scope.signedReceipt,
+                    "receiptPath"
+                );
+
+            }, 300);
+        };
+
+});
 
 app.controller("itemLogCtrl", function ($scope, $http, NgTableParams, $routeParams,itemService) {
 
@@ -2809,8 +3648,7 @@ app.controller("itemLogCtrl", function ($scope, $http, NgTableParams, $routePara
 });
 app.controller("requestsCtrl", function ($scope, employeeService, itemService, $location, $http, $timeout, $rootScope, NgTableParams) {
 
-    $scope.IsAdmin = $rootScope.LogedInUser.userType == 0;
-    $scope.IsManager = $rootScope.LogedInUser.userType == 1;
+ 
 
     $scope.changeRequests = []
 
@@ -2867,6 +3705,8 @@ app.controller("requestsCtrl", function ($scope, employeeService, itemService, $
         $http.post('/ChangeRequest/AcceptChangeRequest', { ChangeRequestId: requestId, ApprovedBy: $rootScope.LogedInUser.username }).then((res) => {
             $rootScope.toastify('تم الموافقة على الطلب وتعديل البيانات بنجاح', 1);
             $scope.loadChangeRequests();
+        }).catch((err) => {
+            $rootScope.toastify(err.data.Message, 0);
         })
     }
 

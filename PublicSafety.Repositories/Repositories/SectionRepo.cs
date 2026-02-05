@@ -26,7 +26,15 @@ namespace PublicSafety.Repositories.Repositories
             }
         }
 
-        public static Section GetSectionById(Guid Id)
+        public static IEnumerable<Section> GetSectionByDepartmentId(Guid DepartmentId)
+        {
+            using (var context = new AppDbContext())
+            {
+                return context.Sections.Where(s => s.DepartmentId == DepartmentId).ToList();
+            }
+        }
+
+        public static Section GetSectionById(Guid? Id)
         {
             using (var context = new AppDbContext())
             {

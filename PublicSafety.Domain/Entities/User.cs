@@ -8,9 +8,10 @@ namespace PublicSafety.Domain.Entities
 {
     public enum enType
     {
-        admin = 0,
-        manager = 1,
-        user = 2
+        SuperAdmin = 0,
+        Admin = 1,
+        manager = 2,
+        user = 3
     }
     public class User
     {

@@ -100,7 +100,8 @@ namespace PublicSafety.Services
                     TotalRemaining = TotalRemaining,
                     Category = employee.Category,
                     CategoryId = employee.CategoryId,
-                    IsIssued = IsIssued
+                    IsIssued = IsIssued,
+                    EmployeeNumber = employee.EmployeeNumber
                 });
             }
 

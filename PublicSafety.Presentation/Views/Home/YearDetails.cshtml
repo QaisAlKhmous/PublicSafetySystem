@@ -33,6 +33,10 @@
                                 الكمية المخططة:
                                 <strong>{{ item.PlannedQty }}</strong>
                             </p>
+                            <p class="card-text">
+                                الكمية المصروفة:
+                                <strong>{{ item.IssuedQty }}</strong>
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -54,14 +58,21 @@
 
         <div class="card-body">
             <div class="row mb-3">
-                <div class="col-5">
+
+                <div class="col-3">
+                    <label>الرقم الوظيفي</label>
+                    <input type="text" ng-model="employeeYearTableParams.filter().EmployeeNumber" placeholder="الرقم الوظيفي" class="form-control" />
+                </div>
+
+
+                <div class="col-3">
                     <label>الاسم</label>
                     <input type="text" ng-model="employeeYearTableParams.filter().EmployeeName" placeholder="الاسم" class="form-control" />
                 </div>
 
 
                 <div class="col-3">
-                    <label>الفئة</label>
+                    <label>التصنيف</label>
                     <select class="form-control" name="JobTitle"
                             ng-model="employeeYearTableParams.filter().CategoryId"
                             ng-options="c.CategoryId as c.Name for c in Categories">
@@ -88,8 +99,9 @@
 
                 <thead>
                     <tr>
+                        <th>الرقم الوظيفي</th>
                         <th>اسم الموظف</th>
-                        <th>الفئة</th>
+                        <th>التصنيف</th>
                         <th>الكمية المخططة</th>
                         <th>الكمية المصروفة</th>
                         <th>الكمية المتبقية</th>
@@ -100,8 +112,9 @@
 
 
                 <tbody>
-                    <tr class="t-hover" ng-repeat="row in $data" >
+                    <tr class="t-hover" ng-repeat="row in $data">
 
+                        <td>{{row.EmployeeNumber}}</td>
                         <td>{{row.EmployeeName}}</td>
                         <td>{{row.Category}}</td>
 

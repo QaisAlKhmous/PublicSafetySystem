@@ -84,6 +84,7 @@
     <Compile Include="Controllers\ChangeRequestController.cs" />
     <Compile Include="Controllers\DepartmentController.cs" />
     <Compile Include="Controllers\DisposalController.cs" />
+    <Compile Include="Controllers\EmailController.cs" />
     <Compile Include="Controllers\EmployeeController.cs" />
     <Compile Include="Controllers\IssuanceController.cs" />
     <Compile Include="Controllers\ItemController.cs" />

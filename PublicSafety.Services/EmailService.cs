@@ -66,12 +66,11 @@ namespace AdminDashboard.Services
 
 ";
 
- 
+            var admins = UserService.GetAdmins();
 
-
-            //foreach (var adminEmail in admins)
+            foreach (var item in admins)
             {
-                SendEmail("qmohammad.kh@gmail.com", subject, body);
+                SendEmail(item.Email, subject, body);
             }
         }
 
@@ -92,5 +91,89 @@ namespace AdminDashboard.Services
 
             smtp.Send(message);
         }
+
+
+        public static void SendIssueNotificationToManager(
+     Guid userId)
+        {
+          
+
+        
+            var user = UserService.GetUserByUserId(userId);
+
+            string issuedBy = user != null
+                ? user.Username
+                : "مستخدم غير معروف";
+
+            string subject = "إشعار بعملية صرف مستحقات";
+
+            string body =
+                "السيد/ة المدير المحترم،\n\n" +
+                "نود إعلامكم بأنه تم تنفيذ عملية صرف مستحقات للموظفين عبر نظام مستودع السلامة العامة.\n\n" +
+                $"تمت العملية بواسطة المستخدم: {issuedBy}\n" +
+                $"تاريخ العملية: {DateTime.Now:yyyy-MM-dd HH:mm}\n\n" +
+                "يرجى العلم بأن هذا البريد للإشعار فقط ولا يتطلب أي إجراء.\n\n" +
+                "مع الاحترام،\n" +
+                "نظام مستودع السلامة العامة";
+
+            var admins = UserService.GetAdmins();
+
+            foreach (var item in admins)
+            {
+                SendEmail(item.Email, subject, body);
+            }
+            
+        }
+
+
+
+        public static void SendExceptionNotificationToManager(
+    Guid userId,
+    string employeeName,
+    string employeeNumber,
+    string itemName,
+    int quantity,
+    string reason,
+    string exceptionFormPath)
+        {
+            
+            var user = UserService.GetUserByUserId(userId);
+
+            string issuedBy = user != null ? user.Username : "مستخدم غير معروف";
+
+            string subject = "إشعار بصرف بدل استثناء لموظف";
+
+            string body =
+                "السيد/ة المدير المحترم،\n\n" +
+                "نود إعلامكم بأنه تم تنفيذ عملية صرف بدل استثناء عبر نظام مستودع السلامة العامة.\n\n" +
+
+                "تفاصيل الموظف:\n" +
+                "--------------------------------------\n" +
+                $"اسم الموظف: {employeeName}\n" +
+                $"الرقم الوظيفي: {employeeNumber}\n\n" +
+
+                "تفاصيل الاستثناء:\n" +
+                $"المادة: {itemName}\n" +
+                $"الكمية: {quantity}\n" +
+                $"السبب: {reason}\n\n" +
+
+                "معلومات العملية:\n" +
+                $"تمت العملية بواسطة: {issuedBy}\n" +
+                $"تاريخ العملية: {DateTime.Now:yyyy-MM-dd HH:mm}\n" +
+                "--------------------------------------\n\n" +
+
+                "مرفق نموذج الاستثناء.\n\n" +
+                "هذا البريد للإشعار فقط.\n\n" +
+                "مع الاحترام،\n" +
+                "نظام مستودع السلامة العامة";
+
+            var admins = UserService.GetAdmins();
+
+            foreach (var item in admins)
+            {
+                SendEmail(item.Email, subject, body);
+            }
+        }
+
     }
 }

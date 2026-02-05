@@ -196,6 +196,50 @@ namespace PublicSafety.Repositories.Repositories
             }
         }
 
+        public static bool UpdateEmployeeJobTitleAndOrgOnly(
+    Employee employee,
+    EmployeeJobTitleHistory oldHistory,
+    EmployeeJobTitleHistory newHistory
+)
+        {
+            using (var context = new AppDbContext())
+            using (var tx = context.Database.BeginTransaction())
+            {
+                try
+                {
+                    // ✅ Attach employee
+                    context.Employees.Attach(employee);
+
+                    // ✅ Update ONLY these fields
+                    context.Entry(employee).Property(x => x.JobTitleId).IsModified = true;
+                    context.Entry(employee).Property(x => x.JobTitleUpdateDate).IsModified = true;
+                    context.Entry(employee).Property(x => x.DepartmentId).IsModified = true;
+                    context.Entry(employee).Property(x => x.SectionId).IsModified = true;
+
+                    // ✅ Close previous history row
+                    if (oldHistory != null)
+                    {
+                        context.EmployeeJobTitleHistories.Attach(oldHistory);
+                        context.Entry(oldHistory).Property(x => x.EndDate).IsModified = true;
+                    }
+
+                    // ✅ Insert new history row
+                    if (newHistory != null)
+                    {
+                        context.EmployeeJobTitleHistories.Add(newHistory);
+                    }
+
+                    context.SaveChanges();
+                    tx.Commit();
+                    return true;
+                }
+                catch
+                {
+                    tx.Rollback();
+                    throw;
+                }
+            }
+        }
 
 
         public static int GetNumberOfActiveEmployees()
@@ -267,6 +311,24 @@ namespace PublicSafety.Repositories.Repositories
             }
           
         }
+
+        public static bool EmployeeNumberExists(string employeeNumber)
+        {
+            using (var db = new AppDbContext())
+            {
+                return db.Employees.Any(e => e.EmployeeNumber == employeeNumber);
+            }
+        }
+
+        public static void AddJobTitleHistoryRange(List<EmployeeJobTitleHistory> histories)
+        {
+            using (var db = new AppDbContext())
+            {
+                db.EmployeeJobTitleHistories.AddRange(histories);
+                db.SaveChanges();
+            }
+        }
+
 
     }
 }

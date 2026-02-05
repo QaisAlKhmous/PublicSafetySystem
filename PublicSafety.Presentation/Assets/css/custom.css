@@ -147,7 +147,28 @@ button.add:hover {
   background-color: #388E3C !important;       /* pressed/holding state */
   transform: scale(0.98);          /* optional: slight shrink effect */
 }
+button.reset {
+    background-color: var(--color-secondary) !important;
+    color: var(--dropdown-text) !important;
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: var(--text-small) !important;
+}
+    button.reset:hover {
+        background-color: var(--dropdown-bg);
+    }
 
+    button.reset.show {
+        background-color: var(--dropdown-bg);
+    }
+
+    button.reset:active {
+        background-color: var(--dropdown-bg) !important; /* pressed/holding state */
+        transform: scale(0.98); /* optional: slight shrink effect */
+    }
 
 button.search {
     background-color: var(--dropdown-bg) !important;
@@ -279,3 +300,70 @@ button.search {
 .dropdown-menu{
     min-width: 13rem;
 }
+/* ✅ Base themed button */
+.btn-theme {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    font-size: var(--text-small);
+    padding: 6px 14px;
+    border-radius: 10px;
+    transition: 0.25s ease-in-out;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+
+    /* ✅ Icon size */
+    .btn-theme i {
+        font-size: 18px;
+    }
+
+/* ✅ Export button (Gold Theme) */
+.btn-theme-export {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+}
+
+    .btn-theme-export:hover {
+        background: var(--color-primary);
+        color: var(--color-text);
+        border-color: var(--color-hover);
+    }
+
+/* ✅ Email button (Accent Theme) */
+.btn-theme-email {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+
+    .btn-theme-email:hover {
+        background: var(--color-accent);
+        color: var(--color-background);
+        border-color: var(--color-hover);
+    }
+
+/* ✅ Active click */
+.btn-theme:active {
+    transform: scale(0.96);
+    background: var(--color-active);
+    border-color: var(--color-active);
+}
+
+/* ✅ Disabled state */
+.btn-theme:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: var(--dropdown-disabled);
+}
+/* ✅ Category Issue Button */
+.btn-theme-category {
+    border-color: var(--color-secondary);
+    color: var(--color-secondary);
+}
+
+    .btn-theme-category:hover {
+        background: var(--color-secondary);
+        color: var(--color-text);
+        border-color: var(--color-hover);
+    }

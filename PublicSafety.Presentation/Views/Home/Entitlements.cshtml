@@ -43,7 +43,7 @@
                     </select>
                 </div>
 
-                <div class="col-md-4">
+                <div class="col-md-4" ng-if="!hasRole(2)">
                     <button class="btn btn-info"
                             ng-click="openIssueYearModal()">
                         صرف استحقاقات سنة
@@ -66,7 +66,7 @@
                         <span ng-show="entitlement.IsIssued" class="text-success">مستلم</span>
                         <span ng-show="!entitlement.IsIssued" class="text-danger">غير مستلم</span>
                     </td>
-                    <td data-title="'الاجراءات'">
+                    <td data-title="'الاجراءات'" ng-if="!hasRole(2)">
                         <button type="button" class="btn btn-success " data-bs-toggle="modal" data-bs-target="#issueModalForm" ng-show="!entitlement.IsIssued" ng-click="selectEntitlment(entitlement)">تسليم</button>
                     </td>
 

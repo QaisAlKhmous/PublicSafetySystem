@@ -85,6 +85,11 @@ namespace PublicSafety.Presentation.Controllers
             return View();
         }
 
+        public ActionResult AllEntitlements()
+        {
+            return View();
+        }
+
         public ActionResult Contact()
         {
             ViewBag.Message = "Your contact page.";

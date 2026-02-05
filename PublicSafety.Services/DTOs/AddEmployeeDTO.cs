@@ -9,6 +9,7 @@ namespace PublicSafety.Services.DTOs
     public class AddEmployeeDTO
     {
         public Guid? EmployeeId { get; set; }
+        public string EmployeeNumber { get; set; }
         public string FullName { get; set; }
         public string FirstName { get; set; }
         public string SecondName { get; set; }
@@ -21,7 +22,7 @@ namespace PublicSafety.Services.DTOs
         public string WorkLocation { get; set; }
         public string HealthInsuranceFile { get; set; }
         public Guid DepartmentId { get; set; }
-        public Guid SectionId { get; set; }
+        public Guid? SectionId { get; set; }
         public Guid JobTitleId { get; set; }
         public Guid CategoryId { get; set; }
         public string EmploymentDate { get; set; }

@@ -3,16 +3,16 @@
     using System;
     using System.Data.Entity.Migrations;
     
-    public partial class add_permissionType : DbMigration
+    public partial class add_employeeNumber_field : DbMigration
     {
         public override void Up()
         {
-            DropColumn("dbo.Users", "Type");
+            AddColumn("dbo.Employees", "EmployeeNumber", c => c.String(nullable: false, maxLength: 50));
         }
         
         public override void Down()
         {
-            AddColumn("dbo.Users", "Type", c => c.Int(nullable: false));
+            DropColumn("dbo.Employees", "EmployeeNumber");
         }
     }
 }

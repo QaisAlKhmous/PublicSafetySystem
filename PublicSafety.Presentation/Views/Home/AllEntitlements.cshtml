@@ -1,0 +1,442 @@
+﻿
+@{
+    ViewBag.Title = "AllEntitlements";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="content">
+
+
+    <div class="card card-default">
+        <div class="card-header d-flex justify-content-between align-items-center">
+
+
+            <h2 class="mb-0">قائمة المستحقات</h2>
+
+
+
+
+        </div>
+
+
+
+        <div class="card shadow-sm mb-3">
+
+            <!-- ✅ Header Row (Title + Actions) -->
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+
+                <!-- Title -->
+                <h6 class="mb-0 fw-bold">
+                    <i class="mdi mdi-filter-outline text-muted"></i>
+                    فلترة استحقاقات الموظفين
+                </h6>
+
+                <!-- Actions -->
+                <div class="d-flex gap-2 flex-wrap" ng-if="!hasRole(2)">
+
+                    <!-- ✅ صرف لفئة -->
+                    <button type="button" 
+                            class="btn-theme btn-theme-category btn-sm d-flex align-items-center gap-2 ml-1"
+                            ng-click="openEntitleMatrixModal()">
+                        <i class="mdi mdi-box-variant"></i>
+                        <span>صرف لفئة</span>
+                    </button>
+
+
+                    <!-- ✅ Export Entitlements Excel -->
+                    <button type="button"
+                            class="btn-theme btn-theme-export btn-sm d-flex align-items-center gap-2 ml-1"
+                            ng-click="openExportEntitlementsModal()">
+                        <i class="mdi mdi-file-excel-outline"></i>
+                        <span>تنزيل كشف الاستحقاقات (Excel)</span>
+                    </button>
+
+
+                    <!-- ✅ Notify Manager by Email -->
+                    <button type="button"
+                            class="btn-theme btn-theme-email btn-sm d-flex align-items-center gap-2"
+                            ng-click="sendIssueNotificationEmail()">
+                        <i class="mdi mdi-email-send-outline"></i>
+                        <span>إرسال إشعار لرئيس القسم عبر البريد</span>
+                    </button>
+
+                </div>
+
+            </div>
+
+            <!-- ✅ Filters Body -->
+            <div class="card-body p-3">
+
+                <!-- ✅ Row 1 -->
+                <div class="row g-3">
+
+                    <!-- Year -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">سنة الاستحقاق</label>
+                        <select class="form-control"
+                                ng-model="filters.Year"
+                                ng-options="y for y in years">
+                            <option value="">كل السنوات</option>
+                        </select>
+                    </div>
+
+                    <!-- Search -->
+                    <div class="col-md-5">
+                        <label class="form-label fw-semibold">بحث</label>
+                        <input type="text"
+                               class="form-control"
+                               placeholder="اسم الموظف أو الرقم الوظيفي..."
+                               ng-model="filters.Search" />
+                    </div>
+
+                    <!-- Status -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">الحالة</label>
+                        <select class="form-control"
+                                ng-model="filters.IsIssued">
+                            <option value="">الكل</option>
+                            <option value="1">مستلم بالكامل</option>
+                            <option value="0">غير مستلم</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <!-- ✅ Row 2 -->
+                <div class="row g-3 mt-2">
+
+                    <!-- Department -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">الوحدة التنظيمية</label>
+                        <select class="form-control"
+                                ng-model="filters.DepartmentId"
+                                ng-options="d.DepartmentId as d.Name for d in Departments"
+                                ng-change="loadSectionsByDepartment(filters.DepartmentId)">
+                            <option value="">كل الوحدات</option>
+                        </select>
+                    </div>
+
+                    <!-- Section -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">القسم</label>
+                        <select class="form-control"
+                                ng-model="filters.SectionId"
+                                ng-options="s.SectionId as s.Name for s in Sections">
+                            <option value="">كل الأقسام</option>
+                        </select>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">التصنيف</label>
+                        <select class="form-control"
+                                ng-model="filters.CategoryId"
+                                ng-options="c.CategoryId as c.Name for c in Categories">
+                            <option value="">كل التصنيفات</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <!-- ✅ Bottom Buttons -->
+                <div class="d-flex justify-content-end gap-2 mt-4">
+
+                    <!-- Search Button -->
+                    <button class="btn btn-primary search px-4"
+                            ng-click="applyFilters()">
+                        <i class="fa fa-search"></i>
+                        بحث
+                    </button>
+
+                    <!-- Reset Button -->
+                    <button class="btn btn-secondary reset px-4 ms-2 mr-1"
+                            ng-click="resetFilters()">
+                        <i class="fa fa-refresh"></i>
+                        إعادة ضبط
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+
+
+        <table class="table table-hover table-product"
+               style="width:100%; text-align:center;"
+               ng-table="entitlementsTableParams">
+
+            <tr ng-repeat="row in $data">
+
+                <!-- رقم -->
+                <td data-title="'#'">
+                    {{$index + 1}}
+                </td>
+
+                <!-- الموظف -->
+                <td data-title="'الموظف'">
+                    {{row.EmployeeName}}
+                    <br />
+                    <small class="text-muted">
+                        {{row.EmployeeNumber}}
+                    </small>
+                </td>
+
+                <!-- الوحدة -->
+                <td data-title="'الوحدة التنظيمية'">
+                    {{row.DepartmentName}}
+                </td>
+
+                <!-- القسم -->
+                <td data-title="'القسم'">
+                    {{row.SectionName || "—"}}
+                </td>
+
+                <!-- التصنيف -->
+                <td data-title="'التصنيف'">
+                    {{row.CategoryName}}
+                </td>
+
+                <!-- المادة -->
+                <td data-title="'اسم المادة'">
+                    {{row.ItemName}}
+                </td>
+
+
+                <!-- الكمية المستحقة -->
+                <td data-title="'المستحق'">
+                    {{row.EntitledQty}}
+                </td>
+
+                <!-- الكمية المصروفة -->
+                <td data-title="'المصروف'">
+                    {{row.IssuedQty}}
+                </td>
+
+
+
+                <!-- الحالة -->
+                <td data-title="'الحالة'">
+
+                    <span ng-if="row.IsIssued"
+                          class="badge bg-success">
+                        مستلم بالكامل
+                    </span>
+
+                    <span ng-if="!row.IsIssued"
+                          class="badge bg-danger">
+                        غير مستلم
+                    </span>
+
+                </td>
+
+                <!-- الإجراءات -->
+                <td data-title="'الإجراءات'" ng-if="!hasRole(2)">
+
+                    <!-- زر الصرف -->
+                    <button type="button"
+                            class="btn btn-sm btn-success"
+                            ng-if="!row.IsIssued"
+                            ng-click="selectEntitlement(row)"
+                            data-bs-toggle="modal"
+                            data-bs-target="#issueModalForm">
+
+                        تسليم
+                    </button>
+
+
+
+                </td>
+
+            </tr>
+
+        </table>
+
+        <!-- Empty Message -->
+        <h5 ng-show="$data.length === 0"
+            class="text-danger text-center mt-3">
+            لا توجد استحقاقات مطابقة
+        </h5>
+
+
+    </div>
+</div>
+
+
+<div class="modal fade" id="issueModalForm" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    صرف مادة ({{selectedEntitlement.ItemName}})
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <form name="entitlementForm" novalidate>
+
+                    <!-- Quantity -->
+                    <div class="form-group">
+                        <label>الكمية المراد صرفها</label>
+                        <input type="number"
+                               class="form-control"
+                               name="Quantity"
+                               ng-model="issuance.Quantity"
+                               min="1"
+                               max="{{selectedEntitlement.RemainingQty}}"
+                               ng-keydown="blockTyping($event)"
+                               ng-change="validateQuantity()"
+                               required>
+
+                        <div class="invalid-feedback d-block"
+                             ng-show="entitlementForm.$submitted && entitlementForm.Quantity.$invalid">
+                            يرجى إدخال كمية صحيحة
+                        </div>
+                    </div>
+
+                    <!-- Dropzone -->
+                    <div class="form-group mt-3">
+                        <label>نموذج الاستلام</label>
+
+                        <div id="entitlementReceiptDropzone"
+                             class="dropzone"
+                             ng-class="{'border-danger': entitlementForm.$submitted && !issuance.SignedReceiptPath}">
+                        </div>
+
+                        <input type="hidden"
+                               name="SignedReceiptFile"
+                               ng-model="issuance.SignedReceiptPath"
+                               required>
+
+                        <div class="invalid-feedback d-block"
+                             ng-show="entitlementForm.$submitted && !issuance.SignedReceiptPath">
+                            يرجى رفع نموذج الاستلام
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-primary accept"
+                        ng-click="issueEntitlemet()">
+                    حفظ التغييرات
+                </button>
+                <button class="btn btn-danger closeBtn"
+                        data-bs-dismiss="modal">
+                    إغلاق
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="exportEntitlementsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <!-- Header -->
+            <div class="modal-header">
+                <h5 class="modal-title">تصدير استحقاقات الموظفين</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+
+                <label>اختر السنة</label>
+
+                <select class="form-control"
+                        ng-model="exportYear"
+                        ng-options="y for y in exportYears">
+                    <option value="">اختر السنة</option>
+                </select>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button class="btn btn-success"
+                        ng-disabled="!exportYear"
+                        ng-click="downloadEntitlementsExcel()">
+
+                    <i class="fa fa-file-excel"></i>
+                    تحميل Excel
+                </button>
+
+                <button class="btn btn-danger"
+                        data-bs-dismiss="modal">
+                    إغلاق
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="entitleMatrixModal" tabindex="-1" aria-labelledby="entitleMatrixModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <form name="entitleForm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalFormTitle">صرف لفئة كاملة</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+
+                <div class="modal-body">
+
+                    <div class="form-group">
+                        <label>الفئة</label>
+                        <select class="form-control rounded-0 bg-light"
+                                ng-model="selectedCategory"
+                                ng-options="c as c.Name for c in Categories track by c.CategoryId">
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>سنة الاستحقاق</label>
+                        <select class="form-control"
+                                ng-model="selectedYear"
+                                ng-options="y as y for y in years">
+                            <option value="">اختر السنة</option>
+                        </select>
+                    </div>
+
+
+                    <div class="form-group mt-3">
+                        <label>إيصال الاستلام الموقّع</label>
+
+                        <div id="signedReceiptDropzone"
+                             class="dropzone"
+                             ng-class="{'border-danger': signedReceiptForm.$submitted && !signedReceipt.receiptPath}">
+                        </div>
+
+                        <!-- Hidden required input -->
+                        <input type="hidden"
+                               name="SignedReceiptFile"
+                               ng-model="signedReceipt.receiptPath"
+                               required>
+
+                        <div class="invalid-feedback d-block"
+                             ng-show="signedReceiptForm.$submitted && !signedReceipt.receiptPath">
+                            يرجى رفع إيصال الاستلام
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary accept" type="button" ng-disabled="isLoading"
+                            ng-click="confirmIssueCategory()">
+                        صرف
+                    </button>
+                    <button class="btn btn-danger closeBtn"
+                            data-bs-dismiss="modal">
+                        إغلاق
+                    </button>
+                </div>
+            </div>
+        </form>
+
+    </div>
+</div>

@@ -46,12 +46,20 @@
                   
                 </div>
                 <div class="row">
-                    <div class="form-group col-6">
+                    <div class="form-group col-4">
+                        <label for="exampleFormControlPassword4">الرقم الوظيفي*</label>
+                        <input ng-model="employee.EmployeeNumber" type="text" name="EmployeeNumber" class="form-control rounded-0 bg-light" id="exampleFormControlPassword4" style="direction:ltr" required>
+                        <div class="invalid-feedback d-block" ng-show="employeeForm.$submitted && employeeForm.EmployeeNumber.$error.required">
+                            <i class="bx bx-radio-circle"></i>
+                            يرجى ادخال الرقم الوظيفي
+                        </div>
+                    </div>
+                    <div class="form-group col-4">
                         <label for="exampleFormControlPassword4">البريد الالكتروني</label>
                         <input valid-email ng-model="employee.Email" type="email" name="Email" class="form-control rounded-0 bg-light" id="exampleFormControlPassword4" placeholder="example@email.com" style="direction:ltr">
                         <span ng-show="employeeForm.email.$error.email">البريد الإلكتروني غير صحيح!</span>
                     </div>
-                    <div class="form-group col-6">
+                    <div class="form-group col-4">
                         <label for="exampleFormControlPassword4">رقم الجوال</label>
                         <input numbers-only ng-model="employee.Phone" type="text" name="Phone" class="form-control rounded-0 bg-light" id="exampleFormControlPassword4" placeholder="07xxxxxxxx" style="direction:ltr">
 
@@ -60,13 +68,13 @@
                 </div>
 
                 <div class="row">
-                
-                    <div class="form-group col-4">
+
+                    <div class="form-group col-3">
                         <label for="exampleFormControlSelect12">الوحدة التنظيمية*</label>
                         <select class="form-control rounded-0 bg-light" required
                                 ng-model="employee.DepartmentId" name="Department"
                                 ng-options="d.DepartmentId as d.Name for d in Departments"
-                                ng-change="loadJobTitlesByDepartment(employee.DepartmentId)">
+                                ng-change="onDepartmentChange(employee.DepartmentId)">
                             <option value="" disabled selected>اختر الوحدة التنظيمية</option>
                         </select>
                         <div class="invalid-feedback d-block" ng-show="employeeForm.$submitted && !employee.DepartmentId">
@@ -75,7 +83,21 @@
                         </div>
 
                     </div>
-                    <div class="form-group col-4">
+
+                    <div class="form-group col-3">
+                        <label for="exampleFormControlSelect12">القسم/الشعبة*</label>
+                        <select class="form-control rounded-0 bg-light" 
+                                ng-model="employee.SectionId" name="Section"
+                                ng-options="s.SectionId as s.Name for s in Sections"
+                                ng-change="onSectionChange(employee.SectionId)">
+                            <option value="">بدون شعبة (على مستوى الدائرة)</option>
+                        </select>
+                   
+
+                    </div>
+
+
+                    <div class="form-group col-3">
                         <label for="exampleFormControlSelect12">المسمى الوظيفي*</label>
                         <select class="form-control rounded-0 bg-light" name="JobTitle" required
                                 ng-model="employee.JobTitleId"
@@ -88,19 +110,19 @@
                             يرجى اختيار المسمى الوظيفي
                         </div>
                     </div>
-                    <div class="form-group col-4">
-                        <label for="exampleFormControlSelect12">الفئة</label>
-                        <input disabled arabic-only ng-model="jobTitleCategory.Category" type="text" name="Catgory" class="form-control rounded-0 bg-light" id="exampleFormControlInput5" placeholder="الفئة">
+                    <div class="form-group col-3">
+                        <label for="exampleFormControlSelect12">التصنيف</label>
+                        <input disabled arabic-only ng-model="jobTitleCategory.Category" type="text" name="Catgory" class="form-control rounded-0 bg-light" id="exampleFormControlInput5" placeholder="التصنيف">
                     </div>
                 </div>
 
                 <div class="row">
-                    <div class="form-group col-4">
+                    <div class="form-group col-6">
                         <label for="exampleFormControlInput5">تاريخ التوظيف*</label>
                         <input ng-model="employee.EmploymentDate" type="text" name="date" class="form-control rounded-0 bg-light" placeholder="Select date" required />
                     </div>
 
-                    <div class="form-group col-4">
+                    @*<div class="form-group col-4">
                         <label for="exampleFormControlSelect12">الدائرة*</label>
                         <select class="form-control rounded-0 bg-light"
                                 ng-model="employee.SectionId" name="Section" required
@@ -111,9 +133,9 @@
                             <i class="bx bx-radio-circle"></i>
                             يرجى اختيار الدائرة
                         </div>
-                    </div>
+                    </div>*@
 
-                    <div class="form-group col-4">
+                    <div class="form-group col-6">
                         <label for="exampleFormControlPassword4" style="direction: rtl;">موقع العمل</label>
                         <select class="form-control rounded-0 bg-light" name="WorkLocation" ng-model="employee.WorkLocation">
                             <option value="Amman">عمان</option>
@@ -126,20 +148,20 @@
                 <div class="row">
 
                     <div class="form-group col-6">
-                        <label for="exampleFormControlInput5">النوع</label>
+                        <label for="exampleFormControlInput5">الصفة</label>
                         <select class="form-control rounded-0 bg-light" name="IsIntern" ng-model="employee.IsIntern">
                             <option ng-value="false">موظف</option>
                             <option ng-value="true">متدرب</option>
                         </select>
                     </div>
 
-                    <div class="form-group col-6">
+                    @*<div class="form-group col-6">
                         <label for="exampleFormControlInput5">الحالة</label>
                         <select class="form-control rounded-0 bg-light" name="IsIntern" ng-model="employee.Active">
                             <option ng-value="true">نشط</option>
                             <option ng-value="false">مستقيل</option>
                         </select>
-                    </div>
+                    </div>*@
                 </div>
                 <div class="row">
 
@@ -160,7 +182,7 @@
                         <textarea class="form-control rounded-0 bg-light" id="exampleFormControlTextarea1" rows="3" ng-model="employee.Notes"></textarea>
                     </div>
                     <div class="form-group col-6">
-                        <label for="exampleFormControlPassword4">التأمين الصحي</label>
+                        <label for="exampleFormControlPassword4">التقرير الصحي</label>
                         <div id="healthInsuranceDropzone" class="dropzone"></div>
                     </div>
 
