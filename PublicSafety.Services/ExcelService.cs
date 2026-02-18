@@ -19,86 +19,138 @@ namespace PublicSafety.Services
 
         public static ExcelUploadResult AddEmployeesFromExcel(Stream fileStream)
         {
-            List<string> errors = new List<string>();
-            List<Employee> employees = new List<Employee>();
-            List<EmployeeJobTitleHistory> histories = new List<EmployeeJobTitleHistory>();
+            var errors = new List<string>();
+            var employees = new List<Employee>();
+            var histories = new List<EmployeeJobTitleHistory>();
+
+            // لمنع تكرار الرقم الوظيفي داخل نفس الملف
+            var fileEmployeeNumbers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             using (var wb = new XLWorkbook(fileStream))
             {
-                var ws = wb.Worksheet(1);
-                var rows = ws.RangeUsed().RowsUsed();
+                var ws = wb.Worksheet("EmployeesTemplate") ?? wb.Worksheet(1);
 
-                foreach (var row in rows.Skip(1)) // ✅ Skip header
+                // آخر صف فيه بيانات
+                var lastRow = ws.LastRowUsed()?.RowNumber() ?? 0;
+                if (lastRow < 4)
                 {
+                    return new ExcelUploadResult
+                    {
+                        SuccessCount = 0,
+                        Errors = new List<string> { "No employee data found in the file." }
+                    };
+                }
+
+                // ✅ البيانات تبدأ من Row 4
+                for (int r = 4; r <= lastRow; r++)
+                {
+                    var row = ws.Row(r);
+
+                    // تجاهل الصفوف الفاضية (اعتبر العمود A كمؤشر)
+                    var employeeNumber = row.Cell(1).GetString().Trim();
+                    if (string.IsNullOrWhiteSpace(employeeNumber))
+                        continue;
+
                     try
                     {
-                        // ✅ Column A: Employee Number
-                        string employeeNumber = row.Cell(1).GetString().Trim();
-
-                        // ✅ Duplicate check
-                        if (EmployeeRepo.EmployeeNumberExists(employeeNumber))
+                        // ✅ Duplicate داخل نفس الملف
+                        if (!fileEmployeeNumbers.Add(employeeNumber))
                         {
-                            errors.Add($"Row {row.RowNumber()}: الرقم الوظيفي ({employeeNumber}) مستخدم مسبقاً.");
+                            errors.Add($"Row {r}: الرقم الوظيفي ({employeeNumber}) مكرر داخل نفس الملف.");
                             continue;
                         }
 
-                        // ✅ Column B–D: Names
+                        // ✅ Duplicate في قاعدة البيانات
+                        if (EmployeeRepo.EmployeeNumberExists(employeeNumber))
+                        {
+                            errors.Add($"Row {r}: الرقم الوظيفي ({employeeNumber}) مستخدم مسبقاً.");
+                            continue;
+                        }
+
+                        // ✅ Required fields
                         string firstName = row.Cell(2).GetString().Trim();
                         string secondName = row.Cell(3).GetString().Trim();
                         string lastName = row.Cell(4).GetString().Trim();
 
-                        // ✅ Column E–F: Contact
-                        string email = row.Cell(5).GetString().Trim();
-                        string phone = row.Cell(6).GetString().Trim();
-
-                        // ✅ Column G: Employment Date
-                        DateTime employmentDate = row.Cell(7).GetDateTime();
-
-                        // ✅ Column H: Work Location
-                        string workLocationStr = row.Cell(8).GetString().Trim();
-
-                        if (!Enum.TryParse(workLocationStr, true, out enWorkLocation workLocation))
+                        if (string.IsNullOrWhiteSpace(firstName) ||
+                            string.IsNullOrWhiteSpace(secondName) ||
+                            string.IsNullOrWhiteSpace(lastName))
                         {
-                            errors.Add($"Row {row.RowNumber()}: موقع العمل غير صحيح ({workLocationStr}).");
+                            errors.Add($"Row {r}: الاسم الأول/الأب/العائلة مطلوبين.");
                             continue;
                         }
 
-                        // ✅ Column I–K: Department / Section / JobTitle
+                        // ✅ Optional contact
+                        string email = row.Cell(5).GetString().Trim();
+                        string phone = row.Cell(6).GetString().Trim();
+
+                        // ✅ Employment Date (supports Excel date OR string yyyy-mm-dd)
+                        if (!TryReadDate(row.Cell(7), out DateTime employmentDate))
+                        {
+                            errors.Add($"Row {r}: تاريخ التعيين غير صحيح. استخدم yyyy-mm-dd أو تاريخ Excel.");
+                            continue;
+                        }
+
+                        // ✅ Work Location enum
+                        string workLocationStr = row.Cell(8).GetString().Trim();
+                        if (!Enum.TryParse(workLocationStr, true, out enWorkLocation workLocation))
+                        {
+                            errors.Add($"Row {r}: موقع العمل غير صحيح ({workLocationStr}).");
+                            continue;
+                        }
+
+                        // ✅ Department / Section / JobTitle
                         string departmentName = row.Cell(9).GetString().Trim();
                         string sectionName = row.Cell(10).GetString().Trim();
                         string jobTitleName = row.Cell(11).GetString().Trim();
 
+                        if (string.IsNullOrWhiteSpace(departmentName) ||
+                            string.IsNullOrWhiteSpace(sectionName) ||
+                            string.IsNullOrWhiteSpace(jobTitleName))
+                        {
+                            errors.Add($"Row {r}: الوحدة التنظيمية/القسم/المسمى الوظيفي مطلوبين.");
+                            continue;
+                        }
+
                         var dept = DepartmentService.GetDepartmentByName(departmentName);
                         if (dept == null)
                         {
-                            errors.Add($"Row {row.RowNumber()}: الوحدة التنظيمية غير صحيحة ({departmentName}).");
+                            errors.Add($"Row {r}: الوحدة التنظيمية غير صحيحة ({departmentName}).");
                             continue;
                         }
 
                         var section = SectionService.GetSectionByName(sectionName);
                         if (section == null)
                         {
-                            errors.Add($"Row {row.RowNumber()}: القسم غير صحيح ({sectionName}).");
+                            errors.Add($"Row {r}: القسم غير صحيح ({sectionName}).");
                             continue;
                         }
+
+                        // (اختياري) تأكد القسم تابع للوحدة إذا عندك DepartmentId في Section
+                        // if (section.DepartmentId != dept.DepartmentId)
+                        // {
+                        //     errors.Add($"Row {r}: القسم ({sectionName}) لا يتبع للوحدة ({departmentName}).");
+                        //     continue;
+                        // }
 
                         var jobTitle = JobTitleService.GetJobTitleByName(jobTitleName);
                         if (jobTitle == null)
                         {
-                            errors.Add($"Row {row.RowNumber()}: المسمى الوظيفي غير صحيح ({jobTitleName}).");
+                            errors.Add($"Row {r}: المسمى الوظيفي غير صحيح ({jobTitleName}).");
                             continue;
                         }
 
-                        // ✅ Create Employee
+                        var employeeId = Guid.NewGuid();
+
                         var employee = new Employee
                         {
-                            EmployeeId = Guid.NewGuid(),
+                            EmployeeId = employeeId,
                             EmployeeNumber = employeeNumber,
 
                             FirstName = firstName,
                             SecondName = secondName,
                             LastName = lastName,
-                            FullName = firstName + " " + secondName + " " + lastName,
+                            FullName = $"{firstName} {secondName} {lastName}",
 
                             Email = email,
                             Phone = phone,
@@ -119,24 +171,23 @@ namespace PublicSafety.Services
 
                         employees.Add(employee);
 
-                        // ✅ Add JobTitle History like AddNewEmployee()
                         histories.Add(new EmployeeJobTitleHistory
                         {
                             EmployeeJobTitleHistoryId = Guid.NewGuid(),
-                            EmployeeId = employee.EmployeeId,
-                            JobTitleId = employee.JobTitleId,
+                            EmployeeId = employeeId,
+                            JobTitleId = jobTitle.JobTitleId,
                             StartDate = employmentDate,
                             EndDate = null
                         });
                     }
                     catch (Exception ex)
                     {
-                        errors.Add($"Row {row.RowNumber()}: {ex.Message}");
+                        errors.Add($"Row {r}: {ex.Message}");
                     }
                 }
             }
 
-            // ✅ Save Only if we have employees
+            // ✅ Save only valid employees
             if (employees.Any())
             {
                 EmployeeRepo.AddRange(employees);
@@ -150,77 +201,240 @@ namespace PublicSafety.Services
             };
         }
 
+        private static bool TryReadDate(IXLCell cell, out DateTime date)
+        {
+            date = default;
+
+            // إذا الخلية تاريخ Excel حقيقي
+            if (cell.DataType == XLDataType.DateTime)
+            {
+                date = cell.GetDateTime();
+                return true;
+            }
+
+            // إذا مكتوبة كنص
+            var s = cell.GetString().Trim();
+            if (string.IsNullOrWhiteSpace(s)) return false;
+
+            // جرّب parsing مرن (yyyy-mm-dd وغيرها)
+            return DateTime.TryParse(s, out date);
+        }
+
+
 
 
         public static byte[] GenerateEmployeeTemplate()
         {
-            using (var wb = new XLWorkbook())
-            {
-                var ws = wb.Worksheets.Add("EmployeesTemplate");
+           var workLocations = new[] { "Amman", "Khaldieh" };
 
-                // ✅ Headers (Required Only)
-                ws.Cell("A1").Value = "Employee Number (رقم وظيفي)*";
-                ws.Cell("B1").Value = "First Name (الاسم الأول)*";
-                ws.Cell("C1").Value = "Second Name (اسم الأب)*";
-                ws.Cell("D1").Value = "Last Name (اسم العائلة)*";
+            
+            var deptList = DepartmentService.GetAllDepartments().Select(d => d.Name).ToList();
+            var secList = SectionService.GetAllSections().Select(s => s.Name).ToList();
+            var jobList = JobTitleService.GetAllJobTitles().Select(j => j.Name).ToList();
+            var locList = (workLocations ?? Enumerable.Empty<string>()).Where(x => !string.IsNullOrWhiteSpace(x)).Distinct().OrderBy(x => x).ToList();
 
-                ws.Cell("E1").Value = "Email (البريد الإلكتروني)";
-                ws.Cell("F1").Value = "Phone (رقم الهاتف)";
+             var wb = new XLWorkbook();
 
-                ws.Cell("G1").Value = "Employment Date (yyyy-mm-dd)*";
-                ws.Cell("H1").Value = "Work Location (Amman/Khaldieh)*";
+         
+            var ws = wb.Worksheets.Add("EmployeesTemplate");
 
-                ws.Cell("I1").Value = "Department Name (الوحدة التنظيمية)*";
-                ws.Cell("J1").Value = "Section Name (القسم)*";
-                ws.Cell("K1").Value = "Job Title (المسمى الوظيفي)*";
+            // Instructions row
+            ws.Cell("A1").Value = "التعليمات: الحقول المميزة بعلامة * إلزامية. يجب إدخال التاريخ بصيغة yyyy-mm-dd. يرجى استخدام القوائم المنسدلة عند توفرها.";
 
-                // ✅ Style Header Row
-                var headerRange = ws.Range("A1:K1");
-                headerRange.Style.Font.Bold = true;
-                headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                headerRange.Style.Fill.BackgroundColor = XLColor.LightGray;
-                headerRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            ws.Range("A1:K1").Merge().Style
+                .Font.SetBold()
+                .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left)
+                .Fill.SetBackgroundColor(XLColor.LightYellow);
 
-                // ✅ Column Widths
-                ws.Column(1).Width = 22;  // Employee Number
-                ws.Column(2).Width = 18;  // First Name
-                ws.Column(3).Width = 18;  // Second Name
-                ws.Column(4).Width = 18;  // Last Name
-                ws.Column(5).Width = 25;  // Email
-                ws.Column(6).Width = 18;  // Phone
-                ws.Column(7).Width = 28;  // Employment Date
-                ws.Column(8).Width = 28;  // Work Location
-                ws.Column(9).Width = 25;  // Department
-                ws.Column(10).Width = 25; // Section
-                ws.Column(11).Width = 25; // Job Title
+            // Headers (Row 2)
+            ws.Cell("A2").Value = "Employee Number (رقم وظيفي)*";
+            ws.Cell("B2").Value = "First Name (الاسم الأول)*";
+            ws.Cell("C2").Value = "Second Name (اسم الأب)*";
+            ws.Cell("D2").Value = "Last Name (اسم العائلة)*";
+            ws.Cell("E2").Value = "Email (البريد الإلكتروني)";
+            ws.Cell("F2").Value = "Phone (رقم الهاتف)";
+            ws.Cell("G2").Value = "Employment Date (yyyy-mm-dd)*";
+            ws.Cell("H2").Value = "Work Location (Amman/Khaldieh)*";
+            ws.Cell("I2").Value = "Department Name (الوحدة التنظيمية)*";
+            ws.Cell("J2").Value = "Section Name (القسم)*";
+            ws.Cell("K2").Value = "Job Title (المسمى الوظيفي)*";
 
-                // ✅ Example Row (Optional)
-                ws.Cell("A2").Value = "1023";
-                ws.Cell("B2").Value = "Ahmad";
-                ws.Cell("C2").Value = "Mohammad";
-                ws.Cell("D2").Value = "Saleh";
-                ws.Cell("E2").Value = "ahmad@example.com";
-                ws.Cell("F2").Value = "0790000000";
-                ws.Cell("G2").Value = "2026-01-15";
-                ws.Cell("H2").Value = "Amman";
-                ws.Cell("I2").Value = "IT Department";
-                ws.Cell("J2").Value = "Development Section";
-                ws.Cell("K2").Value = "Software Engineer";
+            // Header style
+            var headerRange = ws.Range("A2:K2");
+            headerRange.Style.Font.Bold = true;
+            headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            headerRange.Style.Fill.BackgroundColor = XLColor.LightGray;
+            headerRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            headerRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
 
-                ws.Range("A2:K2").Style.Font.FontColor = XLColor.DarkGray;
+            // Required columns highlight (optional: subtle)
+            // A,B,C,D,G,H,I,J,K
+            foreach (var col in new[] { 1, 2, 3, 4, 7, 8, 9, 10, 11 })
+                ws.Cell(2, col).Style.Fill.BackgroundColor = XLColor.FromArgb(220, 230, 241); // light blue-ish
 
-                // ✅ Footer Note
-                ws.Cell("A4").Value =
-                    "ملاحظة: الحقول التي تحتوي على علامة * إلزامية.";
-                ws.Range("A4:K4").Merge().Style.Font.Italic = true;
+            // Column widths
+            ws.Column(1).Width = 22;
+            ws.Column(2).Width = 18;
+            ws.Column(3).Width = 18;
+            ws.Column(4).Width = 18;
+            ws.Column(5).Width = 28;
+            ws.Column(6).Width = 18;
+            ws.Column(7).Width = 22;
+            ws.Column(8).Width = 26;
+            ws.Column(9).Width = 26;
+            ws.Column(10).Width = 26;
+            ws.Column(11).Width = 26;
 
-                // ✅ Export File
-                using (var ms = new MemoryStream())
-                {
-                    wb.SaveAs(ms);
-                    return ms.ToArray();
-                }
-            }
+            // Freeze panes (keep header visible)
+            ws.SheetView.FreezeRows(2);
+
+            // Example row (Row 3)
+            ws.Cell("A3").Value = "1023";
+            ws.Cell("B3").Value = "أحمد";
+            ws.Cell("C3").Value = "محمد";
+            ws.Cell("D3").Value = "صالح";
+            ws.Cell("E3").Value = "ahmad@example.com";
+            ws.Cell("F3").Value = "0790000000";
+            ws.Cell("G3").Value = "2026-01-15";
+            ws.Cell("H3").Value = "Amman";
+            ws.Cell("I3").Value = deptList.FirstOrDefault() ?? "IT Department";
+            ws.Cell("J3").Value = secList.FirstOrDefault() ?? "Development Section";
+            ws.Cell("K3").Value = jobList.FirstOrDefault() ?? "Software Engineer";
+            ws.Range("A3:K3").Style.Font.FontColor = XLColor.DarkGray;
+
+            // Make data entry area (Rows 3..5000 for example)
+            int startRow = 4;
+            int endRow = 5000;
+
+            // =========================
+            // Lists Sheet (Hidden)
+            // =========================
+            var listsWs = wb.Worksheets.Add("Lists");
+            listsWs.Visibility = XLWorksheetVisibility.VeryHidden;
+
+            // Put lists in columns
+            WriteList(listsWs, "A1", "WorkLocations", locList);
+            WriteList(listsWs, "B1", "Departments", deptList);
+            WriteList(listsWs, "C1", "Sections", secList);
+            WriteList(listsWs, "D1", "JobTitles", jobList);
+
+            // Define named ranges (for data validation)
+            DefineNamedRange(wb, listsWs, "WorkLocations", "A2", locList.Count);
+            DefineNamedRange(wb, listsWs, "Departments", "B2", deptList.Count);
+            DefineNamedRange(wb, listsWs, "Sections", "C2", secList.Count);
+            DefineNamedRange(wb, listsWs, "JobTitles", "D2", jobList.Count);
+
+            // =========================
+            // Data Validation
+            // =========================
+
+            // Work location dropdown (H)
+            AddDropdown(ws.Range(startRow, 8, endRow, 8), "WorkLocations");
+
+            // Department dropdown (I)
+            if (deptList.Count > 0)
+                AddDropdown(ws.Range(startRow, 9, endRow, 9), "Departments");
+
+            // Section dropdown (J)
+            if (secList.Count > 0)
+                AddDropdown(ws.Range(startRow, 10, endRow, 10), "Sections");
+
+        
+            if (jobList.Count > 0)
+                AddDropdown(ws.Range(startRow, 11, endRow, 11), "JobTitles");
+
+            var dateRange = ws.Range(startRow, 7, endRow, 7);
+
+         
+            dateRange.Style.DateFormat.Format = "yyyy-mm-dd";
+
+           
+            var dvDate = dateRange.CreateDataValidation();
+            dvDate.AllowedValues = XLAllowedValues.Date;
+            dvDate.Operator = XLOperator.Between;
+
+      
+            dvDate.MinValue = "DATE(1900,1,1)";
+            dvDate.MaxValue = "DATE(2100,12,31)";
+
+
+            dvDate.InputTitle = "Employment Date";
+            dvDate.InputMessage = "Enter date in format yyyy-mm-dd";
+            dvDate.ErrorTitle = "Invalid Date";
+            dvDate.ErrorMessage = "Please enter a valid date between 1900-01-01 and 2100-12-31.";
+
+            // Email basic hint (optional)
+            var emailRange = ws.Range(startRow, 5, endRow, 5);
+            var dvEmail = emailRange.CreateDataValidation();
+            dvEmail.InputTitle = "Email";
+            dvEmail.InputMessage = "Example: name@domain.com";
+
+
+
+
+            // Unlock data entry area so they can type
+            ws.Range(startRow, 1, endRow, 11).Style.Protection.Locked = false;
+
+
+
+            // Lock Row 1 (Instructions)
+            ws.Range("1:1").Style.Protection.Locked = true;
+
+            // Lock Row 2 (Headers)
+            ws.Range("2:2").Style.Protection.Locked = true;
+
+            // Lock Row 3 (Headers)
+            ws.Range("3:3").Style.Protection.Locked = true;
+
+            ws.Protect("1234");
+
+
+            // Borders for the entry area (optional)
+            var tableRange = ws.Range(2, 1, endRow, 11);
+            tableRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+            tableRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+
+             var ms = new MemoryStream();
+            wb.SaveAs(ms);
+            return ms.ToArray();
+        }
+
+        private static void WriteList(IXLWorksheet ws, string headerCell, string header, IList<string> values)
+        {
+            ws.Cell(headerCell).Value = header;
+            ws.Cell(headerCell).Style.Font.Bold = true;
+
+            int col = ws.Cell(headerCell).Address.ColumnNumber;
+            int row = ws.Cell(headerCell).Address.RowNumber + 1;
+
+            for (int i = 0; i < values.Count; i++)
+                ws.Cell(row + i, col).Value = values[i];
+        }
+
+        private static void DefineNamedRange(XLWorkbook wb, IXLWorksheet ws, string rangeName, string startCell, int count)
+        {
+           
+            if (count <= 0) return;
+
+            var start = ws.Cell(startCell).Address;
+            var end = ws.Cell(start.RowNumber + count - 1, start.ColumnNumber).Address;
+            var rng = ws.Range(start, end);
+
+           
+            var existing = wb.DefinedNames.FirstOrDefault(n => n.Name.Equals(rangeName, StringComparison.OrdinalIgnoreCase));
+            existing?.Delete();
+
+            wb.DefinedNames.Add(rangeName, rng);
+        }
+
+        private static void AddDropdown(IXLRange range, string namedRange)
+        {
+            var dv = range.CreateDataValidation();
+            dv.AllowedValues = XLAllowedValues.List;
+            dv.InCellDropdown = true;
+            dv.List(namedRange, true);
+            dv.ErrorTitle = "Invalid Value";
+            dv.ErrorMessage = "Please select a value from the dropdown list.";
         }
 
 

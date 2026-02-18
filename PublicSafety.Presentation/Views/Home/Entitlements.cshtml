@@ -43,13 +43,22 @@
                     </select>
                 </div>
 
-                <div class="col-md-4" ng-if="!hasRole(2)">
-                    <button class="btn btn-info"
+                <div class="col-md-4 d-flex flex-column gap-2 " ng-if="!hasRole(2)">
+
+                    <button class="btn btn-info w-100"
                             ng-click="openIssueYearModal()">
                         صرف استحقاقات سنة
                     </button>
 
+                    <button type="button"
+                            class="btn-theme btn-theme-email btn-sm d-flex align-items-center gap-2 w-100"
+                            ng-click="sendIssueNotificationEmail()">
+                        <i class="mdi mdi-email-send-outline"></i>
+                        <span>إرسال إشعار لرئيس القسم عبر البريد</span>
+                    </button>
+
                 </div>
+
 
             </div>
             <table class="table table-hover table-product" style="width:100%;text-align:center;" ng-table="entitlementsTableParams">
@@ -131,12 +140,12 @@
                         <input type="hidden"
                                name="SignedReceiptFile"
                                ng-model="issuance.SignedReceiptPath"
-                               required>
+                               >
 
-                        <div class="invalid-feedback d-block"
+                        @*<div class="invalid-feedback d-block"
                              ng-show="entitlementForm.$submitted && !issuance.SignedReceiptPath">
                             يرجى رفع نموذج الاستلام
-                        </div>
+                        </div>*@
                     </div>
 
                 </form>

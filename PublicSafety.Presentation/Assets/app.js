@@ -2921,8 +2921,7 @@ app.controller('entitlementCtrl',
 
                         $rootScope.toastify(res.data.Message, 1);
                         $('#issueModalForm').modal('hide');
-                        $scope.entitlementsTableParams.reload();
-
+                        $scope.loadEntitlements();
                     })
                     .catch(function (err) {
 
@@ -3084,7 +3083,28 @@ app.controller('entitlementCtrl',
             });
         };
 
-
+        $scope.sendIssueNotificationEmail = function () {
+            Swal.fire({
+                title: 'هل انت متأكد من ارسال ايميل اشعار؟',
+                text: "",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'نعم',
+                cancelButtonText: 'لا'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $http.post("/Email/SendIssueNotificationToManager", {
+                        UserId: $rootScope.LogedInUser.userId
+                    }).then((res) => {
+                        $rootScope.toastify(res.data.Message, 1);
+                    }).catch((err) => {
+                        $rootScope.toastify(err.data?.Message, 0);
+                    })
+                }
+            });
+        }
 
     });
 

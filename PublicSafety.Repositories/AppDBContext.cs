@@ -12,7 +12,7 @@ namespace PublicSafety.Repositories
     public class AppDbContext : DbContext
     {
 
-        public AppDbContext() : base("Server = .;Database = PublicSafety; Integrated Security = SSPI; TrustServerCertificate = True;")
+        public AppDbContext() : base("Server = MIHIMA\\SQLEXPRESS;Database = PublicSafety;User Id = Qais; Password = Qais_2004; TrustServerCertificate = True")
         {
 
         }
