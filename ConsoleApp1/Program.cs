@@ -17,7 +17,148 @@ namespace ConsoleApp1
     internal class Program
     {
 
+        public static void ImportEmployeesFromExcel(string filePath)
+        {
+            if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+                throw new Exception("ملف الإكسل غير موجود");
 
+            var departmentId = Guid.Parse("0e4efeed-4bfc-4e75-9088-4d1c92940eac");
+            var sectionId = Guid.Parse("201ebb18-1fa8-45c2-94d2-1c406ec5426d");
+            var jobTitleId = Guid.Parse("83098CB6-9B6F-4895-B55D-57BDF52DC022");
+            var employmentDate = new DateTime(2022, 1, 1);
+
+            int totalRows = 0;
+            int addedCount = 0;
+            int skippedCount = 0;
+            int failedCount = 0;
+
+            using (var db = new AppDbContext())
+            using (var workbook = new XLWorkbook(filePath))
+            {
+                var worksheet = workbook.Worksheet(1);
+                var lastRow = worksheet.LastRowUsed().RowNumber();
+
+                for (int rowNumber = 4; rowNumber <= lastRow; rowNumber++) // 2 because row 1 is header
+                {
+                    totalRows++;
+
+                    try
+                    {
+                        var fullNameFromExcel = worksheet.Cell(rowNumber, "B").GetValue<string>()?.Trim();
+
+                        if (string.IsNullOrWhiteSpace(fullNameFromExcel))
+                        {
+                            skippedCount++;
+                            Debug.WriteLine($"Row {rowNumber}: skipped because FullName is empty.");
+                            continue;
+                        }
+
+                        var parsedName = ParseArabicName(fullNameFromExcel);
+                        var employeeId = Guid.NewGuid();
+
+                        var employee = new Employee
+                        {
+                            EmployeeId = employeeId,
+                            Active = true,
+                            JobTitleId = jobTitleId,
+                            Notes = null,
+                            CreationDate = DateTime.Now,
+                            Email = null,
+                            Phone = null,
+                            IsIntern = false,
+                            WorkLocation = enWorkLocation.Khaldieh,
+                            HealthInsuranceFile = null,
+                            DepartmentId = departmentId,
+                            SectionId = sectionId,
+                            EmploymentDate = employmentDate,
+                            RetirementDate = null,
+                            JobTitleUpdateDate = employmentDate,
+                            FullName = fullNameFromExcel,
+                            FirstName = parsedName.FirstName,
+                            SecondName = parsedName.SecondName,
+                            LastName = parsedName.LastName,
+                            EmployeeNumber = GenerateEmployeeNumberGuid()
+                        };
+
+                        db.Employees.Add(employee);
+
+                        db.EmployeeJobTitleHistories.Add(new EmployeeJobTitleHistory
+                        {
+                            EmployeeJobTitleHistoryId = Guid.NewGuid(),
+                            EmployeeId = employeeId,
+                            JobTitleId = jobTitleId,
+                            StartDate = employmentDate,
+                            EndDate = null
+                        });
+
+                        db.SaveChanges();
+                        addedCount++;
+
+                        Debug.WriteLine($"Row {rowNumber}: added -> {fullNameFromExcel}");
+                    }
+                    catch (Exception ex)
+                    {
+                        failedCount++;
+                        Debug.WriteLine($"Row {rowNumber}: failed -> {ex.Message}");
+
+                        // مهم جدًا حتى لا يبقى الـ context معلّق على entity فاشلة
+                        db.ChangeTracker.Entries().ToList().ForEach(e => e.State = System.Data.Entity.EntityState.Detached);
+                    }
+                }
+            }
+
+            Debug.WriteLine($"Total rows: {totalRows}");
+            Debug.WriteLine($"Added: {addedCount}");
+            Debug.WriteLine($"Skipped: {skippedCount}");
+            Debug.WriteLine($"Failed: {failedCount}");
+        }
+
+        static string GenerateEmployeeNumberGuid()
+        {
+            return "TEMP-" + Guid.NewGuid().ToString("N").Substring(0, 12).ToUpper();
+        }
+
+        private static ParsedNameDto ParseArabicName(string fullName)
+        {
+            if (string.IsNullOrWhiteSpace(fullName))
+            {
+                return new ParsedNameDto
+                {
+                    FirstName = "",
+                    SecondName = "",
+                    LastName = ""
+                };
+            }
+
+            var parts = fullName
+                .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                .ToList();
+
+            string firstName = parts.Count > 0 ? parts[0] : "";
+            string secondName = parts.Count > 1 ? parts[1] : "";
+            string lastName = "";
+
+            if (parts.Count >= 4)
+                lastName = parts[2] + " " + parts[3];
+            else if (parts.Count == 3)
+                lastName = parts[2];
+            else
+                lastName = "";
+
+            return new ParsedNameDto
+            {
+                FirstName = firstName,
+                SecondName = secondName,
+                LastName = lastName
+            };
+        }
+
+        private class ParsedNameDto
+        {
+            public string FirstName { get; set; }
+            public string SecondName { get; set; }
+            public string LastName { get; set; }
+        }
         public static void ImportDepartmentsFromExcel(string filePath)
         {
             if (!File.Exists(filePath))
@@ -649,10 +790,116 @@ namespace ConsoleApp1
 
             Debug.WriteLine("✅ Full Import Completed Successfully!");
         }
+
+
+        public class JobTitleCheckResult
+        {
+            public List<string> ExcelJobTitles { get; set; } = new List<string>();
+            public List<string> MissingJobTitles { get; set; } = new List<string>();
+            public List<JobTitleMatchDto> MatchedJobTitles { get; set; } = new List<JobTitleMatchDto>();
+        }
+
+        public class JobTitleMatchDto
+        {
+            public string ExcelJobTitle { get; set; }
+            public Guid JobTitleId { get; set; }
+            public string DatabaseJobTitle { get; set; }
+        }
+
+        public class JobTitleChecker
+        {
+            public static JobTitleCheckResult CheckJobTitles(string filePath)
+            {
+                var result = new JobTitleCheckResult();
+
+                if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
+                    throw new FileNotFoundException("Excel file not found.");
+
+                List<string> excelJobTitles = new List<string>();
+
+                using (var workbook = new XLWorkbook(filePath))
+                {
+                    var worksheet = workbook.Worksheet(1);
+
+                    foreach (var row in worksheet.RowsUsed().Skip(1))
+                    {
+                        var jobTitle = row.Cell("E").GetValue<string>()?.Trim();
+
+                        if (!string.IsNullOrWhiteSpace(jobTitle))
+                        {
+                            excelJobTitles.Add(jobTitle);
+                        }
+                    }
+                }
+
+                excelJobTitles = excelJobTitles
+                    .Distinct()
+                    .ToList();
+
+                result.ExcelJobTitles = excelJobTitles;
+
+                using (var db = new AppDbContext())
+                {
+                    var dbJobTitles = db.JobTitles
+                        .ToList()
+                        .Select(x => new
+                        {
+                            x.JobTitleId,
+                            OriginalName = x.Name,
+                            NormalizedName = NormalizeArabic(x.Name)
+                        })
+                        .ToList();
+
+                    foreach (var excelTitle in excelJobTitles)
+                    {
+                        var normalizedExcel = NormalizeArabic(excelTitle);
+
+                        var match = dbJobTitles
+                            .FirstOrDefault(x => x.NormalizedName == normalizedExcel);
+
+                        if (match == null)
+                        {
+                            result.MissingJobTitles.Add(excelTitle);
+                        }
+                        else
+                        {
+                            result.MatchedJobTitles.Add(new JobTitleMatchDto
+                            {
+                                ExcelJobTitle = excelTitle,
+                                JobTitleId = match.JobTitleId,
+                                DatabaseJobTitle = match.OriginalName
+                            });
+                        }
+                    }
+                }
+
+                return result;
+            }
+
+            private static string NormalizeArabic(string text)
+            {
+                if (string.IsNullOrWhiteSpace(text))
+                    return string.Empty;
+
+                return text.Trim()
+                    .Replace("أ", "ا")
+                    .Replace("إ", "ا")
+                    .Replace("آ", "ا")
+                    .Replace("ى", "ي")
+                    .Replace("ة", "ه")
+                    .Replace("ؤ", "و")
+                    .Replace("ئ", "ي")
+                    .Replace("ـ", "")
+                    .Replace(" ", "");
+            }
+        }
         static void Main(string[] args)
         {
+      
 
-            ImportEverything("C:\\Users\\qaisk\\OneDrive\\Documents\\Downloads\\JobTitlesWithSections.xlsx");
+            ImportEmployeesFromExcel(@"C:\Users\qkhmous\Downloads\employees.xlsx");
+
+          
         }
     }
 }

@@ -131,6 +131,7 @@
     <Compile Include="DTOs\ActivateEmployeeDTO.cs" />
     <Compile Include="DTOs\AddEmployeeDTO.cs" />
     <Compile Include="DTOs\AddIssuanceDTO.cs" />
+    <Compile Include="DTOs\AddJobTitleDTO.cs" />
     <Compile Include="DTOs\CategoryDTO.cs" />
     <Compile Include="DTOs\ChangeRequestDTO.cs" />
     <Compile Include="DTOs\DepartmentDTO.cs" />
@@ -147,6 +148,7 @@
     <Compile Include="DTOs\ItemsDTO.cs" />
     <Compile Include="DTOs\JobTitleCategoryDTO.cs" />
     <Compile Include="DTOs\JobTitleDTO.cs" />
+    <Compile Include="DTOs\JobTitleListDTO.cs" />
     <Compile Include="DTOs\LoginResultDTO.cs" />
     <Compile Include="DTOs\MatrixDTO.cs" />
     <Compile Include="DTOs\MatrixItemDTO.cs" />

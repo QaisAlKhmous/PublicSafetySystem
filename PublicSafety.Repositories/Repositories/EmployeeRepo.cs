@@ -158,14 +158,14 @@ namespace PublicSafety.Repositories.Repositories
         public static bool UpdateEmployee(
       Employee employee,
       EmployeeJobTitleHistory oldJobTitleHistory,
-      EmployeeJobTitleHistory newJobTitleHistory)
+      EmployeeJobTitleHistory newJobTitleHistory,
+      EmployeeJobTitleHistory firstJobTitleHistoryToUpdate = null)
         {
             using (var context = new AppDbContext())
             using (var transaction = context.Database.BeginTransaction())
             {
                 try
                 {
-                    // مهم جدًا
                     employee.JobTitle = null;
                     employee.Department = null;
                     employee.Section = null;
@@ -184,6 +184,14 @@ namespace PublicSafety.Repositories.Repositories
                         context.EmployeeJobTitleHistories.Add(newJobTitleHistory);
                     }
 
+                    if (firstJobTitleHistoryToUpdate != null &&
+                        (oldJobTitleHistory == null ||
+                         oldJobTitleHistory.EmployeeJobTitleHistoryId != firstJobTitleHistoryToUpdate.EmployeeJobTitleHistoryId))
+                    {
+                        context.EmployeeJobTitleHistories.Attach(firstJobTitleHistoryToUpdate);
+                        context.Entry(firstJobTitleHistoryToUpdate).State = EntityState.Modified;
+                    }
+
                     context.SaveChanges();
                     transaction.Commit();
                     return true;
@@ -195,7 +203,6 @@ namespace PublicSafety.Repositories.Repositories
                 }
             }
         }
-
         public static bool UpdateEmployeeJobTitleAndOrgOnly(
     Employee employee,
     EmployeeJobTitleHistory oldHistory,

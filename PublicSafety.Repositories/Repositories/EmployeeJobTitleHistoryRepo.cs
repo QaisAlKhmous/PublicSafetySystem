@@ -21,7 +21,16 @@ namespace PublicSafety.Repositories.Repositories
 
             }
         }
-
+        public static EmployeeJobTitleHistory GetFirstJobTitleHistoryByEmployee(Guid employeeId)
+        {
+            using (var context = new AppDbContext())
+            {
+                return context.EmployeeJobTitleHistories
+                    .Where(x => x.EmployeeId == employeeId)
+                    .OrderBy(x => x.StartDate)
+                    .FirstOrDefault();
+            }
+        }
         public static EmployeeJobTitleHistory GetLastJobTitleHistoryByEmployee(Guid EmployeeId)
         {
             using (var context = new AppDbContext())

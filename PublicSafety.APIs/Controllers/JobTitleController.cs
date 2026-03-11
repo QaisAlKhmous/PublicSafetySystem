@@ -83,5 +83,53 @@ namespace PublicSafety.APIs.Controllers
             }
         }
 
+        [HttpPost]
+        public JsonResult AddJobTitle(AddJobTitleDTO model)
+        {
+            try
+            {
+                var result = JobTitleService.AddJobTitle(model);
+
+                return Json(new
+                {
+                    Success = true,
+                    Message = "تمت الإضافة بنجاح",
+                    Data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [HttpGet]
+        public JsonResult GetAllJobTitlesHierarchy()
+        {
+            try
+            {
+                var data = JobTitleService.GetAllJobTitlesHierarchy();
+
+                return Json(new
+                {
+                    Success = true,
+                    Data = data
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    Success = false,
+                    Message = ex.Message
+                }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+
     }
 }

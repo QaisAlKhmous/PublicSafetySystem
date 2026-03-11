@@ -16,6 +16,12 @@ namespace PublicSafety.Services
 {
     public class ExcelService
     {
+       static string GenerateEmployeeNumberGuid()
+        {
+            
+            return "TEMP-" + Guid.NewGuid().ToString("N").Substring(0, 12).ToUpper();
+        }
+
 
         public static ExcelUploadResult AddEmployeesFromExcel(Stream fileStream)
         {
@@ -41,57 +47,52 @@ namespace PublicSafety.Services
                     };
                 }
 
-                // ✅ البيانات تبدأ من Row 4
                 for (int r = 4; r <= lastRow; r++)
                 {
                     var row = ws.Row(r);
 
-                    // تجاهل الصفوف الفاضية (اعتبر العمود A كمؤشر)
-                    var employeeNumber = row.Cell(1).GetString().Trim();
-                    if (string.IsNullOrWhiteSpace(employeeNumber))
-                        continue;
+                   var employeeNumber = row.Cell(1).GetString().Trim();
+                    //if (string.IsNullOrWhiteSpace(employeeNumber))
+                    //    continue;
 
                     try
                     {
-                        // ✅ Duplicate داخل نفس الملف
+                        if (string.IsNullOrWhiteSpace(employeeNumber))
+                            employeeNumber = GenerateEmployeeNumberGuid();
+
                         if (!fileEmployeeNumbers.Add(employeeNumber))
                         {
                             errors.Add($"Row {r}: الرقم الوظيفي ({employeeNumber}) مكرر داخل نفس الملف.");
                             continue;
                         }
 
-                        // ✅ Duplicate في قاعدة البيانات
                         if (EmployeeRepo.EmployeeNumberExists(employeeNumber))
                         {
                             errors.Add($"Row {r}: الرقم الوظيفي ({employeeNumber}) مستخدم مسبقاً.");
                             continue;
                         }
 
-                        // ✅ Required fields
+
                         string firstName = row.Cell(2).GetString().Trim();
                         string secondName = row.Cell(3).GetString().Trim();
                         string lastName = row.Cell(4).GetString().Trim();
 
                         if (string.IsNullOrWhiteSpace(firstName) ||
-                            string.IsNullOrWhiteSpace(secondName) ||
                             string.IsNullOrWhiteSpace(lastName))
                         {
-                            errors.Add($"Row {r}: الاسم الأول/الأب/العائلة مطلوبين.");
+                            errors.Add($"Row {r}: الاسم الأول/الأب مطلوبين.");
                             continue;
                         }
 
-                        // ✅ Optional contact
                         string email = row.Cell(5).GetString().Trim();
                         string phone = row.Cell(6).GetString().Trim();
 
-                        // ✅ Employment Date (supports Excel date OR string yyyy-mm-dd)
                         if (!TryReadDate(row.Cell(7), out DateTime employmentDate))
                         {
                             errors.Add($"Row {r}: تاريخ التعيين غير صحيح. استخدم yyyy-mm-dd أو تاريخ Excel.");
                             continue;
                         }
 
-                        // ✅ Work Location enum
                         string workLocationStr = row.Cell(8).GetString().Trim();
                         if (!Enum.TryParse(workLocationStr, true, out enWorkLocation workLocation))
                         {
@@ -99,7 +100,6 @@ namespace PublicSafety.Services
                             continue;
                         }
 
-                        // ✅ Department / Section / JobTitle
                         string departmentName = row.Cell(9).GetString().Trim();
                         string sectionName = row.Cell(10).GetString().Trim();
                         string jobTitleName = row.Cell(11).GetString().Trim();
@@ -145,7 +145,9 @@ namespace PublicSafety.Services
                         var employee = new Employee
                         {
                             EmployeeId = employeeId,
-                            EmployeeNumber = employeeNumber,
+                            EmployeeNumber = string.IsNullOrWhiteSpace(employeeNumber)
+                                     ? null
+                                     : employeeNumber,
 
                             FirstName = firstName,
                             SecondName = secondName,
@@ -163,7 +165,7 @@ namespace PublicSafety.Services
                             JobTitleId = jobTitle.JobTitleId,
 
                             Active = true,
-                            IsIntern = true,
+                            IsIntern = false,
 
                             CreationDate = DateTime.Now,
                             JobTitleUpdateDate = employmentDate
@@ -187,7 +189,6 @@ namespace PublicSafety.Services
                 }
             }
 
-            // ✅ Save only valid employees
             if (employees.Any())
             {
                 EmployeeRepo.AddRange(employees);

@@ -60,6 +60,10 @@ app.config(function ($routeProvider) {
             templateUrl: '/Home/YearDetails',
             controller: 'yearDetailsCtrl'
         })
+        .when("/jobTitles", {
+            templateUrl: '/Home/JobTitles',
+            controller: 'jobTitlesCtrl'
+        })
        
 
 
@@ -301,6 +305,10 @@ app.controller('sidebarCtrl', function ($scope, $rootScope, $location) {
         }
         if (url === '/requests') {
             $rootScope.setActive(5);
+
+        }
+        if (url === '/jobTitles') {
+            $rootScope.setActive(6);
 
         }
     
@@ -728,7 +736,7 @@ app.controller('matrixCtrl', function ($scope, NgTableParams, matrixService, $ht
             params: { CategoryId: $scope.selectedCategory.CategoryId }
         })
             .then(function (res) {
-                console.log("hi")
+
                     $scope.addMatrixItem.MatrixId = res.data.Data.MatrixId;     
 
             })
@@ -876,7 +884,6 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
     }
 
     $scope.loadSections = function () {
-        console.log("hi");
         $http.get('/Section/GetAllSections')
             .then(function (res) {
 
@@ -968,7 +975,6 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
 
                 return employeeService.getEmployeesPaged(request)
                     .then(function (res) {
-                        console.log(res)
 
                         params.total(res.data.Data.Total);
 
@@ -1050,7 +1056,6 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
         $scope.jobTitleUpdate.JobTitleId = null;
 
         if (sectionId) {
-            console.log("hi")
             $scope.loadJobTitlesBySection(sectionId);
         } else {
             // ✅ Department-level jobtitles
@@ -1127,7 +1132,6 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
 
     $scope.openUpdateJobTitleModal = function (employee) {
 
-        console.log(employee)
       
         $scope.selectedEmployee = employee;
 
@@ -1139,7 +1143,6 @@ app.controller('employeeCtrl', function ($scope, $timeout, NgTableParams, employ
             SectionId: employee.SectionId
         };
 
-        console.log($scope.jobTitleUpdate)
         
           $scope.loadDepartments();
 
@@ -2503,8 +2506,6 @@ app.controller('yearDetailsCtrl', function ($scope, employeeService, itemService
             params: { year: $routeParams.year }
         })
             .then(function (res) {
-                console.log("hi")
-                console.log(res.data)
 
                 $scope.employeeYearTableParams.settings({
                     dataset: res.data?.Data || []
@@ -3222,7 +3223,7 @@ app.controller('allEntitlementsCtrl',
                         .then(function (res) {
 
                             if (res.data && res.data.Success) {
-                                console.log(res.data.Data.Data)
+
                                 params.total(res.data.Data.Total);
 
                                 return res.data.Data.Data;
@@ -3802,3 +3803,210 @@ app.controller("requestsCtrl", function ($scope, employeeService, itemService, $
     }
 
 })
+
+app.controller("jobTitlesCtrl", function ($scope, employeeService, itemService, $location, $http, $timeout, $rootScope, NgTableParams) {
+
+
+    $scope.JobTitles = [];
+    $scope.Departments = [];
+    $scope.Sections = [];
+
+    $scope.loadJobTitlesByDepartment = function (departmentId) {
+
+        if (!departmentId) {
+            $scope.JobTitles = [];
+            return;
+        }
+
+        $http.get('/JobTitle/GetByDepartment', {
+            params: { departmentId: departmentId }
+        })
+            .then(function (res) {
+                if (res.data && res.data.Success) {
+                    $scope.JobTitles = res.data.Data || [];
+                } else {
+                    $scope.JobTitles = [];
+                }
+            })
+            .catch(function (err) {
+                if (err.data && err.data.Message) {
+                    console.error(err.data.Message);
+                } else {
+                    console.error("مشكلة في السيرفر");
+                }
+
+                $scope.JobTitles = [];
+            });
+    };
+
+    $scope.loadJobTitlesBySection = function (sectionId) {
+
+        if (!sectionId) {
+            $scope.JobTitles = [];
+            return;
+        }
+
+        $http.get('/JobTitle/GetBySection', {
+            params: { SectionId: sectionId }
+        })
+            .then(function (res) {
+                if (res.data && res.data.Success) {
+                    $scope.JobTitles = res.data.Data || [];
+                } else {
+                    $scope.JobTitles = [];
+                }
+            })
+            .catch(function (err) {
+                if (err.data && err.data.Message) {
+                    console.error(err.data.Message);
+                } else {
+                    console.error("مشكلة في السيرفر");
+                }
+
+                $scope.JobTitles = [];
+            });
+    };
+
+   
+
+    $scope.loadDepartments = function () {
+
+        if (!$scope.departments || !$scope.departments.length) {
+            $http.get('/Department/GetAllDepartments')
+                .then(function (res) {
+                    if (res.data && res.data.Success) {
+                        $scope.departments = res.data.Data || [];
+                    } else {
+                        $scope.departments = [];
+                    }
+                })
+                .catch(function (err) {
+                    if (err.data && err.data.Message) {
+                        console.error(err.data.Message);
+                    } else {
+                        console.error("مشكلة في السيرفر");
+                    }
+
+                    $scope.departments = [];
+                });
+        }
+    };
+
+
+
+
+    $scope.loadSectionsByDepartment = function (departmentId) {
+
+        if (!departmentId) {
+            $scope.sections = [];
+            $scope.JobTitles = [];
+            return;
+        }
+
+        $http.get('/Section/GetSectionsByDepartmentId', {
+            params: { DepartmentId: departmentId }
+        })
+            .then(function (res) {
+                if (res.data && res.data.Success) {
+                    $scope.sections = res.data.Data || [];
+                } else {
+                    $scope.sections = [];
+                }
+            })
+            .catch(function (err) {
+                if (err.data && err.data.Message) {
+                    console.error(err.data.Message);
+                } else {
+                    console.error("مشكلة في السيرفر");
+                }
+
+                $scope.sections = [];
+            });
+    };
+
+
+    $scope.loadCategories = function () {
+        if(!$scope.categories)
+        $http.get('/Category/GetAllCategories').then((res) => {
+            $scope.categories = res.data;
+            $scope.selectedCategory = $scope.categories[0];
+            $scope.selectedCategoryChanged();
+        })
+
+    }
+
+    
+    $scope.jobTitleModel = {
+        DepartmentId: null,
+        SectionId: null,
+        CategoryId: null,
+        JobTitleName: ""
+    };
+
+       
+    $scope.saveJobTitle = function () {
+
+        $http.post('/JobTitle/AddJobTitle', $scope.jobTitleModel)
+            .then(function (res) {
+
+                if (res.data && res.data.Success) {
+
+                    $rootScope.toastify(res.data.Message,1);
+
+                    // reset form
+                    $scope.jobTitleModel.JobTitleName = "";
+                    $scope.jobTitleModel.SectionId = null;
+                    $scope.jobTitleModel.CategoryId = null;
+
+                    $scope.loadAllJobTitles();
+
+                } else {
+                    $rootScope.toastify(res.data.Message || "فشل الحفظ",0);
+                }
+
+            })
+            .catch(function (err) {
+
+                if (err.data && err.data.Message) {
+                    $rootScope.toastify(err.data.Message,0);
+                } else {
+                    $rootScope.toastify("مشكلة في السيرفر",0);
+                }
+
+            });
+    };
+
+    $scope.JobTitleList = [];
+    $scope.jobTitlesTableParams = new NgTableParams({}, { dataset: [] });
+
+    $scope.loadAllJobTitles = function () {
+        $http.get('/JobTitle/GetAllJobTitlesHierarchy')
+            .then(function (res) {
+                if (res.data && res.data.Success) {
+                    $scope.JobTitleList = res.data.Data || [];
+                   
+
+                    $scope.jobTitlesTableParams = new NgTableParams(
+                        {
+                            page: 1,
+                            count: 10,
+                            sorting: { DepartmentName: "asc" }
+                        },
+                        {
+                            dataset: $scope.JobTitleList
+                        }
+                    );
+                } else {
+                    $scope.JobTitleList = [];
+                    $scope.jobTitlesTableParams = new NgTableParams({}, { dataset: [] });
+                }
+            })
+            .catch(function (err) {
+                console.error(err);
+                $scope.JobTitleList = [];
+                $scope.jobTitlesTableParams = new NgTableParams({}, { dataset: [] });
+            });
+    };
+
+    $scope.loadAllJobTitles();
+});

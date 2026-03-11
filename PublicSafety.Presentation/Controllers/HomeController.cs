@@ -90,6 +90,11 @@ namespace PublicSafety.Presentation.Controllers
             return View();
         }
 
+        public ActionResult JobTitles()
+        {
+            return View();
+        }
+
         public ActionResult Contact()
         {
             ViewBag.Message = "Your contact page.";

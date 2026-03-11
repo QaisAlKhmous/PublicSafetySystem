@@ -322,14 +322,12 @@ namespace PublicSafety.Services
                 throw new Exception("الرقم الوظيفي مستخدم مسبقاً، يرجى إدخال رقم آخر");
             }
 
-            // حفظ الحالة القديمة
             bool wasActive = existingEmployee.Active;
             var oldJobTitleId = existingEmployee.JobTitleId;
 
 
 
             existingEmployee.EmployeeNumber = employee.EmployeeNumber;
-            // تحديث البيانات الأساسية
             existingEmployee.FirstName = employee.FirstName;
             existingEmployee.SecondName = employee.SecondName;
             existingEmployee.LastName = employee.LastName;
@@ -349,14 +347,32 @@ namespace PublicSafety.Services
             existingEmployee.SectionId = employee.SectionId;
             existingEmployee.EmploymentDate = DateTime.Parse(employee.EmploymentDate);
 
+            var oldEmploymentDate = existingEmployee.EmploymentDate;
+            var newEmploymentDate = DateTime.Parse(employee.EmploymentDate);
+
+            bool employmentDateChanged = oldEmploymentDate.Date != newEmploymentDate.Date;
+
+            existingEmployee.EmploymentDate = newEmploymentDate;
+
+            EmployeeJobTitleHistory firstHistory = null;
+
+            if (employmentDateChanged)
+            {
+                firstHistory = EmployeeJobTitleHistoryRepo
+                    .GetFirstJobTitleHistoryByEmployee(existingEmployee.EmployeeId);
+
+                if (firstHistory != null)
+                {
+                    firstHistory.StartDate = newEmploymentDate;
+                }
+            }
+
             EmployeeJobTitleHistory oldHistory = null;
             EmployeeJobTitleHistory newHistory = null;
 
             DateTime now = DateTime.Now;
 
-            // ===============================
-            // 🔁 CASE 1: Re-Activate Employee
-            // ===============================
+    
             if (!wasActive && employee.Active)
             {
                 existingEmployee.RetirementDate = null;
@@ -372,43 +388,33 @@ namespace PublicSafety.Services
                     EndDate = null
                 };
 
-                return EmployeeRepo.UpdateEmployee(existingEmployee, null, newHistory);
+                return EmployeeRepo.UpdateEmployee(existingEmployee, null, newHistory, firstHistory);
             }
 
-            // ===============================
-            // 🔄 CASE 2: Job Title Changed (while active)
-            // ===============================
+           
+           
             bool jobTitleChanged =
-                wasActive &&
-                employee.Active &&
-                oldJobTitleId != employee.JobTitleId;
+     wasActive &&
+     employee.Active &&
+     oldJobTitleId != employee.JobTitleId;
 
             if (jobTitleChanged)
             {
                 existingEmployee.JobTitleId = employee.JobTitleId;
                 existingEmployee.JobTitleUpdateDate = now;
 
-                oldHistory = EmployeeJobTitleHistoryRepo
+                var currentHistory = EmployeeJobTitleHistoryRepo
                     .GetLastJobTitleHistoryByEmployee(existingEmployee.EmployeeId);
 
-                if (oldHistory != null)
-                    oldHistory.EndDate = now;
-
-                newHistory = new EmployeeJobTitleHistory
+                if (currentHistory != null)
                 {
-                    EmployeeJobTitleHistoryId = Guid.NewGuid(),
-                    EmployeeId = existingEmployee.EmployeeId,
-                    JobTitleId = employee.JobTitleId,
-                    StartDate = now,
-                    EndDate = null
-                };
+                    currentHistory.JobTitleId = employee.JobTitleId;
+                }
 
-                return EmployeeRepo.UpdateEmployee(existingEmployee, oldHistory, newHistory);
+                return EmployeeRepo.UpdateEmployee(existingEmployee, currentHistory, null, firstHistory);
             }
 
-            // ===============================
-            // 🧘 CASE 3: Normal Update
-            // ===============================
+
             if (wasActive && !employee.Active)
             {
                 
@@ -434,7 +440,7 @@ namespace PublicSafety.Services
             }
 
 
-            return EmployeeRepo.UpdateEmployee(existingEmployee, null, null);
+            return EmployeeRepo.UpdateEmployee(existingEmployee, null, null, firstHistory);
         }
 
 
@@ -455,7 +461,7 @@ namespace PublicSafety.Services
 
             DateTime now = DateTime.Now;
 
-            // ✅ If nothing changed → return
+          
             if (employee.JobTitleId == newJobTitleId &&
                 employee.DepartmentId == newDepartmentId &&
                 employee.SectionId == newSectionId)
@@ -463,9 +469,7 @@ namespace PublicSafety.Services
                 return true;
             }
 
-            // =====================================================
-            // ✅ Close previous JobTitleHistory record
-            // =====================================================
+   
             var lastHistory = EmployeeJobTitleHistoryRepo
                 .GetLastJobTitleHistoryByEmployee(employeeId);
 
@@ -474,9 +478,7 @@ namespace PublicSafety.Services
                 lastHistory.EndDate = now;
             }
 
-            // =====================================================
-            // ✅ Create new JobTitleHistory
-            // =====================================================
+ 
             var newHistory = new EmployeeJobTitleHistory
             {
                 EmployeeJobTitleHistoryId = Guid.NewGuid(),
@@ -486,18 +488,14 @@ namespace PublicSafety.Services
                 EndDate = null
             };
 
-            // =====================================================
-            // ✅ Update Employee main table
-            // =====================================================
+       
             employee.JobTitleId = newJobTitleId;
             employee.JobTitleUpdateDate = now;
 
             employee.DepartmentId = newDepartmentId;
             employee.SectionId = newSectionId;
 
-            // =====================================================
-            // ✅ Save only those fields safely
-            // =====================================================
+       
             return EmployeeRepo.UpdateEmployee(
                 employee,
                 lastHistory,
@@ -530,7 +528,6 @@ namespace PublicSafety.Services
 
             var now = DateTime.Now;
 
-            // تحديث حالة الموظف
             employee.Active = true;
             employee.RetirementDate = null;
             employee.JobTitleId = activateEmployee.JobTitleId;
@@ -538,7 +535,6 @@ namespace PublicSafety.Services
             employee.SectionId = activateEmployee.SectionId;
             employee.JobTitleUpdateDate = DateTime.Parse(activateEmployee.ActivationDate) ;
 
-            // إنشاء JobTitleHistory جديد
             var newHistory = new EmployeeJobTitleHistory
             {
                 EmployeeJobTitleHistoryId = Guid.NewGuid(),
@@ -548,7 +544,6 @@ namespace PublicSafety.Services
                 EndDate = null
             };
 
-            // تمرير البيانات جاهزة للـ Repo
             EmployeeRepo.ActivateEmployee(employee, newHistory);
         }
 

@@ -1,0 +1,103 @@
+﻿
+@{
+    ViewBag.Title = "JobTitles";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid" dir="rtl">
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white border-bottom">
+            <h4 class="mb-0 font-weight-bold">إضافة مسمى وظيفي</h4>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+                    <label class="font-weight-bold">الدائرة</label>
+                    <select class="form-control"
+                            ng-model="jobTitleModel.DepartmentId"
+                            ng-options="d.DepartmentId as d.Name for d in departments"
+                            ng-click="loadDepartments()"
+                            ng-change="loadSectionsByDepartment(jobTitleModel.DepartmentId)">
+                        <option value="">-- اختر الدائرة --</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="font-weight-bold">القسم / الشعبة</label>
+                    <select class="form-control"
+                            ng-model="jobTitleModel.SectionId"
+                            ng-options="s.SectionId as s.Name for s in sections">
+                        <option value="">-- بدون شعبة --</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="font-weight-bold">المسمى الوظيفي</label>
+                    <input type="text"
+                           class="form-control"
+                           ng-model="jobTitleModel.JobTitleName"
+                           placeholder="أدخل المسمى الوظيفي" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="font-weight-bold">الفئة</label>
+                    <select class="form-control"
+                            ng-model="jobTitleModel.CategoryId"
+                            ng-options="c.CategoryId as c.Name for c in categories"
+                            ng-click="loadCategories()">
+                        <option value="">-- اختر الفئة --</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="text-left mt-2">
+                <button type="button" class="btn btn-primary px-4" ng-click="saveJobTitle()">
+                    <i class="fa fa-save ml-1"></i>
+                    حفظ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+            <h4 class="mb-0 font-weight-bold">قائمة المسميات الوظيفية</h4>
+            <span class="badge badge-light p-2">إجمالي: {{JobTitleList.length || 0}}</span>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table ng-table="jobTitlesTableParams"
+                       class="table table-bordered table-striped table-hover text-center align-middle"
+                       show-filter="true">
+
+                    <tr ng-repeat="item in $data">
+                        <td title="'الدائرة'" filter="{ DepartmentName: 'text' }" sortable="'DepartmentName'">
+                            {{item.DepartmentName}}
+                        </td>
+
+                        <td title="'القسم / الشعبة'" filter="{ SectionName: 'text' }" sortable="'SectionName'">
+                            {{item.SectionName || '-'}}
+                        </td>
+
+                        <td title="'المسمى الوظيفي'" filter="{ JobTitleName: 'text' }" sortable="'JobTitleName'">
+                            {{item.JobTitleName}}
+                        </td>
+
+                        <td title="'الفئة'" filter="{ CategoryName: 'text' }" sortable="'CategoryName'">
+                            {{item.CategoryName || '-'}}
+                        </td>
+
+                     
+                    </tr>
+
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
